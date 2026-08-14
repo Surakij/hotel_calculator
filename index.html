@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hotel Calculation</title>
+<style>
+:root{--navy:#17365d;--blue:#2f80d1;--green:#4caf50;--purple:#8064c8;--orange:#ed7d31;--gold:#d4a500;--line:#d8dee6;--bg:#f4f7fa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Segoe UI,Arial,sans-serif;color:#1f2937}
+.app{max-width:1450px;margin:28px auto;padding:0 22px}
+.title{background:var(--navy);color:white;padding:18px 22px;font-size:22px;font-weight:700;border-radius:10px 10px 0 0}
+.cards{display:grid;grid-template-columns:1.6fr 1fr 1fr .65fr 1.25fr;gap:10px;background:white;padding:14px;border:1px solid var(--line);border-top:0}
+.card label,.guest label{display:block;font-size:11px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.card input,.guest input{width:100%;height:38px;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:white}
+.total input{font-size:18px;font-weight:700;color:var(--navy)}
+.guests{display:grid;grid-template-columns:100px 110px 100px 1fr 1.4fr;gap:10px;background:white;padding:0 14px 14px;border:1px solid var(--line);border-top:0}
+.guest{background:#f8fafc;border:1px solid var(--line);padding:9px;border-radius:6px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:14px;background:white;border:1px solid var(--line);padding:10px 12px;border-radius:7px}
+.hint{font-size:12px;color:#6b7280}.actions{display:flex;gap:8px}
+button{border:0;border-radius:6px;padding:9px 14px;font-weight:700;cursor:pointer}
+.add{background:var(--navy);color:white}.share{background:var(--green);color:white}.download{background:var(--blue);color:white}
+.table-wrap{margin-top:8px;background:white;border:1px solid var(--line);border-radius:7px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:1080px}
+th{background:var(--navy);color:white;font-size:11px;padding:9px 7px;text-align:center}
+td{border-top:1px solid var(--line);padding:5px 6px;background:white}
+tr:nth-child(even) td{background:#f8fafc}
+td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}
+.net{font-weight:700;text-align:right}.delete{background:#f3f4f6;color:#b42318;padding:5px 8px}
+.footer{display:flex;justify-content:flex-end;margin-top:10px}
+.grand{background:var(--navy);color:white;padding:11px 16px;border-radius:6px;font-weight:700}.grand span{font-size:18px;margin-left:14px}
+#toast{position:fixed;right:22px;bottom:22px;background:#17365d;color:white;padding:12px 16px;border-radius:7px;display:none;box-shadow:0 5px 20px #0002}
+.modal{display:none;position:fixed;inset:0;background:#0006;align-items:center;justify-content:center}
+.modal-box{background:white;width:min(900px,92vw);max-height:85vh;overflow:auto;border-radius:10px;padding:18px}
+.modal-head{display:flex;justify-content:space-between;align-items:center}.modal pre{white-space:pre-wrap;font:14px/1.45 Consolas,monospace;background:#f7f8fa;padding:15px;border-radius:7px}
+.close{background:#eee}
+@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.guests{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="title">HOTEL CALCULATION</div>
+
+<div class="cards">
+  <div class="card"><label>HOTEL</label><input id="hotel" list="hotelList" value="Ozen Bolifushi" placeholder="Choose or type hotel"></div>
+  <div class="card"><label>CHECK-IN</label><input id="checkin" type="date" value="2026-10-25"></div>
+  <div class="card"><label>CHECK-OUT</label><input id="checkout" type="date" value="2026-11-03"></div>
+  <div class="card"><label>NIGHTS</label><input id="nights" readonly></div>
+  <div class="card total"><label>TOTAL NET (USD)</label><input id="topTotal" readonly></div>
+</div>
+
+<div class="guests">
+  <div class="guest"><label>ADULTS</label><input id="adults" type="number" min="0" value="4"></div>
+  <div class="guest"><label>CHILDREN</label><input id="children" type="number" min="0" value="3"></div>
+  <div class="guest"><label>INFANTS</label><input id="infants" type="number" min="0" value="1"></div>
+  <div class="guest"><label>CHILD AGES</label><input id="ages" value="2, 6, 9" placeholder="e.g. 2, 6, 9"></div>
+  <div class="guest"><label>SPO</label><input id="spo" value="" placeholder="Enter SPO code"></div>
+</div>
+
+<div class="toolbar">
+  <div class="hint">One row = one charge / rate period. TYPE → ITEM. Manual entry is allowed.</div>
+  <div class="actions">
+    <button class="add" onclick="addRow()">+ ADD ROW</button><button class="clear" onclick="clearAll()">CLEAR ALL</button>
+    <button class="share" onclick="showShare()">COPY SHARE</button>
+    <button class="download" onclick="downloadShare()">DOWNLOAD SHARE</button>
+  </div>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>TYPE</th><th>ITEM / DESCRIPTION</th><th>FROM</th><th>TO</th><th>NIGHTS</th><th>QTY</th><th>RATE (USD)</th><th>DISCOUNTS %</th><th>NET (USD)</th><th></th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+
+<div class="footer"><div class="grand">GRAND TOTAL NET <span id="grandTotal">$0.00</span></div></div>
+</div>
+
+<datalist id="hotelList"></datalist>
+<div id="toast"></div>
+<div class="modal" id="shareModal">
+<div class="modal-box">
+  <div class="modal-head"><h2>Short Share Version</h2><button class="close" onclick="closeShare()">Close</button></div>
+  <pre id="shareText"></pre>
+  <div class="actions"><button class="share" onclick="copyShare()">COPY TO CLIPBOARD</button><button class="download" onclick="downloadShare()">DOWNLOAD .TXT</button></div>
+</div>
+</div>
+
+<script>
+const LISTS={
+ HOTEL:["Ozen Bolifushi","Ozen Life Maadhoo"],
+ ROOM:["2 Bedroom Suite","Ocean Pool Suite SUNSET","Beach Pool Villa"],
+ MEAL:["BB - Adult","BB - Child","HB - Adult","HB - Child","FB - Adult","FB - Child","AI - Adult","AI - Child","AI Luxury - Adult","AI Luxury - Child","Cristal AI - Adult","Cristal AI - Child"],
+ TRANSFER:["Seaplane - Adult","Seaplane - Child","Seaplane OW - Adult","Seaplane OW - Child","Domestic - Adult","Domestic - Child","Domestic OW - Adult","Domestic OW - Child","Speedboat - Adult","Speedboat - Child","Speedboat OW - Adult","Speedboat OW - Child"],
+ DINNER:["Christmas Gala Dinner - Adult","Christmas Gala Dinner - Child","New Year Gala Dinner - Adult","New Year Gala Dinner - Child"],
+ EXTRA:["Extra Adult","Extra Child","Green Tax"]
+};
+const colors={ROOM:"#2f80d1",MEAL:"#4caf50",TRANSFER:"#8064c8",DINNER:"#ed7d31",EXTRA:"#d4a500"};
+
+function fmt(n){return Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function calcNights(a,b){if(!a||!b)return 0;const x=new Date(a+"T00:00:00"),y=new Date(b+"T00:00:00");return Math.max(0,Math.round((y-x)/86400000))}
+function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function typeOptions(selected=""){return `<option value=""></option>`+Object.keys(LISTS).filter(x=>x!=="HOTEL").map(x=>`<option ${x===selected?"selected":""}>${x}</option>`).join("")}
+
+function addRow(data={}){
+ const tr=document.createElement("tr");tr.dataset.type=data.type||"";
+ tr.innerHTML=`<td><select class="type">${typeOptions(data.type||"")}</select></td>
+ <td><input class="item" list="" value="${escapeHtml(data.item||"")}" placeholder="Choose or type manually"></td>
+ <td><input class="from" type="date" value="${data.from||""}"></td><td><input class="to" type="date" value="${data.to||""}"></td>
+ <td><input class="nights" readonly></td><td><input class="qty" type="number" min="0" step="1" value="${data.qty??""}"></td>
+ <td><input class="rate" type="number" min="0" step="0.01" value="${data.rate??""}"></td>
+ <td class="discounts"><input class="discount d1" type="number" min="0" max="100" step="0.01" value="${data.d1??data.discount??0}" placeholder="D1"><input class="discount d2" type="number" min="0" max="100" step="0.01" value="${data.d2??0}" placeholder="D2"><input class="discount d3" type="number" min="0" max="100" step="0.01" value="${data.d3??0}" placeholder="D3"><input class="discount d4" type="number" min="0" max="100" step="0.01" value="${data.d4??0}" placeholder="D4"></td>
+ <td class="net">0.00</td><td><button class="delete">×</button></td>`;
+ document.getElementById("rows").appendChild(tr);
+ const type=tr.querySelector(".type"),item=tr.querySelector(".item");
+ const setType=()=>{tr.dataset.type=type.value;item.setAttribute("list","list_"+type.value);applyAutoQty(tr);recalc()};
+ type.addEventListener("change",setType);type.addEventListener("input",setType);
+ item.addEventListener("input",()=>{applyAutoQty(tr);recalc()});
+ [".from",".to",".qty",".rate",".d1",".d2",".d3",".d4"].forEach(sel=>tr.querySelector(sel).addEventListener("input",()=>recalc()));
+ tr.querySelector(".delete").addEventListener("click",()=>{tr.remove();recalc()});
+ item.setAttribute("list","list_"+(data.type||""));applyAutoQty(tr);recalc();
+}
+function applyAutoQty(tr){
+ const type=tr.dataset.type,item=(tr.querySelector(".item").value||"").toLowerCase();
+ if(["MEAL","TRANSFER","DINNER"].includes(type)){
+   if(item.includes("adult"))tr.querySelector(".qty").value=document.getElementById("adults").value||0;
+   else if(item.includes("child"))tr.querySelector(".qty").value=document.getElementById("children").value||0;
+   else if(item.includes("infant"))tr.querySelector(".qty").value=document.getElementById("infants").value||0;
+ }
+}
+function getDiscounts(tr){return [".d1",".d2",".d3",".d4"].map(s=>parseFloat(tr.querySelector(s).value)||0).filter(x=>x>0)}
+function applyDiscounts(value,discounts){let result=value;discounts.forEach(d=>{result=result*(1-d/100)});return result}
+function recalc(){
+ document.getElementById("nights").value=calcNights(checkin.value,checkout.value);let total=0;
+ document.querySelectorAll("#rows tr").forEach(tr=>{const n=calcNights(tr.querySelector(".from").value,tr.querySelector(".to").value);tr.querySelector(".nights").value=n;const q=parseFloat(tr.querySelector(".qty").value),rate=parseFloat(tr.querySelector(".rate").value),discounts=getDiscounts(tr),base=(isFinite(q)&&isFinite(rate))?(n||1)*q*rate:0,net=applyDiscounts(base,discounts);tr.querySelector(".net").textContent=fmt(net);total+=net;tr.querySelector(".type").style.background=colors[tr.dataset.type]||"";tr.querySelector(".type").style.color=tr.dataset.type?"white":""});
+ grandTotal.textContent="$"+fmt(total);topTotal.value=fmt(total)
+}
+function currentRows(){return [...document.querySelectorAll("#rows tr")].map(tr=>{const type=tr.dataset.type||tr.querySelector(".type").value,item=tr.querySelector(".item").value,from=tr.querySelector(".from").value,to=tr.querySelector(".to").value,nights=calcNights(from,to),qty=parseFloat(tr.querySelector(".qty").value)||0,rate=parseFloat(tr.querySelector(".rate").value)||0,discounts=getDiscounts(tr),base=(nights||1)*qty*rate;return{type,item,from,to,nights,qty,rate,discounts,net:applyDiscounts(base,discounts)}}).filter(x=>x.type||x.item||x.rate)}
+function dshort(s){if(!s)return"";const [y,m,d]=s.split("-");const dt=new Date(+y,+m-1,+d);return dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short"}).replace(" ","-")}
+function expr(x){let s=`${x.rate?fmt(x.rate).replaceAll(",",""):"0"}*${x.qty}`;if(x.nights>0)s+=`*${x.nights}`;(x.discounts||[]).forEach(d=>s+=`-${d}%`);return s}
+function shareText(){
+ recalc();const hotel=(document.getElementById("hotel").value||"Hotel").toUpperCase(),cin=dshort(checkin.value),cout=dshort(checkout.value),n=nights.value,ad=adults.value||0,ch=children.value||0,inf=infants.value||0,ages=document.getElementById("ages").value,spo=document.getElementById("spo").value.trim(),rows=currentRows(),out=[hotel,`${cin}-${cout} · ${n}N · ${ad}A+${ch}C${ages?"("+ages.replace(/\s+/g,"")+")":""}+${inf}I`];
+ if(spo)out.push(`SPO: ${spo}`);out.push("");
+ const acc=rows.filter(x=>x.type==="ROOM"),extras=rows.filter(x=>x.type==="EXTRA"),usedExtra=new Set();
+ function extraLine(x){const label=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();return `${label} : ${dshort(x.from)}-${dshort(x.to)}  ${expr(x)} = ${fmt(x.net)}`}
+ acc.forEach(room=>{out.push(`${room.item} : ${dshort(room.from)}-${dshort(room.to)}  ${expr(room)} = ${fmt(room.net)}`);const matching=extras.filter(x=>x.from===room.from&&x.to===room.to&&!usedExtra.has(x)),adl=matching.filter(x=>/adult/i.test(x.item)),chd=matching.filter(x=>/child/i.test(x.item)),rest=matching.filter(x=>!adl.includes(x)&&!chd.includes(x));[...adl,...chd,...rest].forEach(x=>{out.push(extraLine(x));usedExtra.add(x)})});
+ extras.filter(x=>!usedExtra.has(x)).forEach(x=>out.push(extraLine(x)));
+ const others=rows.filter(x=>["MEAL","TRANSFER","DINNER"].includes(x.type)),groups=[];
+ others.forEach(x=>{const base=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim(),key=[x.type,base,x.from,x.to,(x.discounts||[]).join(",")].join("|");let g=groups.find(z=>z.key===key);if(!g){g={key,base,rows:[]};groups.push(g)}g.rows.push(x)});
+ groups.forEach(g=>{const parts=g.rows.map(x=>`${fmt(x.rate).replaceAll(",","")}*${x.qty}`),formula=(parts.length>1?`(${parts.join("+")})`:parts[0])+(g.rows[0].nights>0?`*${g.rows[0].nights}`:"")+(g.rows[0].discounts||[]).map(d=>`-${d}%`).join(""),total=g.rows.reduce((s,x)=>s+x.net,0);out.push(`${g.base} : ${formula} = ${fmt(total)}`)});
+ out.push("",`TOTAL: ${fmt(rows.reduce((s,x)=>s+x.net,0))} USD`);return out.join("\n")
+}
+function showShare(){shareTextEl.textContent=shareText();shareModal.style.display="flex"}
+function closeShare(){shareModal.style.display="none"}
+async function copyShare(){const t=shareText();try{await navigator.clipboard.writeText(t);toast("Calculation copied to clipboard")}catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Calculation copied")}}
+function downloadShare(){const t=shareText(),hotel=(document.getElementById("hotel").value||"Hotel").replace(/[^a-z0-9]+/gi,"_");const blob=new Blob([t],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=hotel+"_calculation.txt";a.click();URL.revokeObjectURL(a.href);toast("Short calculation downloaded")}
+function clearAll(){if(!confirm("Clear the current calculation and start a new one?"))return;hotel.value="";checkin.value="";checkout.value="";adults.value=0;children.value=0;infants.value=0;ages.value="";spo.value="";document.getElementById("rows").innerHTML="";recalc();toast("Calculation cleared")}
+function toast(s){const x=document.getElementById("toast");x.textContent=s;x.style.display="block";setTimeout(()=>x.style.display="none",2200)}
+function buildLists(){hotelList.innerHTML=LISTS.HOTEL.map(x=>`<option value="${escapeHtml(x)}">`).join("");Object.keys(LISTS).filter(x=>x!=="HOTEL").forEach(type=>{const d=document.createElement("datalist");d.id="list_"+type;d.innerHTML=LISTS[type].map(x=>`<option value="${escapeHtml(x)}">`).join("");document.body.appendChild(d)})}
+["checkin","checkout","adults","children","infants","ages","spo"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{document.querySelectorAll("#rows tr").forEach(applyAutoQty);recalc()}));buildLists();
+const demo=[{type:"ROOM",item:"2 Bedroom Suite",from:"2026-10-25",to:"2026-10-29",qty:2,rate:1250,discount:22},{type:"ROOM",item:"2 Bedroom Suite",from:"2026-10-29",to:"2026-10-31",qty:2,rate:1350,discount:22},{type:"ROOM",item:"2 Bedroom Suite",from:"2026-10-31",to:"2026-11-03",qty:2,rate:1450,discount:22},{type:"MEAL",item:"AI - Adult",from:"2026-10-25",to:"2026-11-03",rate:180,discount:10},{type:"MEAL",item:"AI - Child",from:"2026-10-25",to:"2026-11-03",rate:90,discount:10},{type:"TRANSFER",item:"Seaplane - Adult",from:"2026-10-25",to:"2026-10-25",rate:500,discount:10},{type:"TRANSFER",item:"Seaplane - Child",from:"2026-10-25",to:"2026-10-25",rate:250,discount:10},{type:"TRANSFER",item:"Domestic - Adult",from:"2026-11-03",to:"2026-11-03",rate:300,discount:0},{type:"TRANSFER",item:"Domestic - Child",from:"2026-11-03",to:"2026-11-03",rate:150,discount:0},{type:"DINNER",item:"New Year Gala Dinner - Adult",from:"2026-12-31",to:"2026-12-31",rate:750,discount:0},{type:"DINNER",item:"New Year Gala Dinner - Child",from:"2026-12-31",to:"2026-12-31",rate:375,discount:0}];demo.forEach(addRow);recalc();const shareTextEl=document.getElementById("shareText"),shareModal=document.getElementById("shareModal");
+</script>
+</body>
+</html>
