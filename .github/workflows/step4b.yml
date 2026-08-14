@@ -10,47 +10,8 @@ jobs:
       - name: Apply changes
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          old='function recalc(){document.getElementById("nights").value=calcNights(checkin.value,checkout.value);let total=0;'
-          new='function syncStayDates(){const cin=document.getElementById("checkin").value,cout=document.getElementById("checkout").value;document.querySelectorAll("#rows tr").forEach(tr=>{const type=tr.dataset.type||tr.querySelector(".type").value;if(["ROOM","MEAL","EXTRA"].includes(type)){tr.querySelector(".from").value=cin;tr.querySelector(".to").value=cout}})}\nfunction recalc(){syncStayDates();document.getElementById("nights").value=calcNights(checkin.value,checkout.value);let total=0;'
-          if old not in s: raise SystemExit('recalc marker missing')
-          s=s.replace(old,new,1)
-          old='function dshort(s){if(!s)return"";const [y,m,d]=s.split("-");const dt=new Date(+y,+m-1,+d);return dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short"}).replace(" ","-")}'
-          new='function dshort(s){if(!s)return"";const [y,m,d]=s.split("-");return `${d}.${m}`}'
-          if old not in s: raise SystemExit('dshort marker missing')
-          s=s.replace(old,new,1)
-          start=s.index('function shareText()'); end=s.index('function showShare()',start)
-          new_share='''function shareText(){recalc();const hotel=(document.getElementById("hotel").value||"Hotel").toUpperCase(),cin=dshort(checkin.value),cout=dshort(checkout.value),n=nights.value,ad=parseInt(adults.value||0,10),ch=parseInt(children.value||0,10),inf=parseInt(infants.value||0,10),ages=document.getElementById("ages").value,spo=document.getElementById("spo").value.trim(),rows=currentRows();let pax=`${ad}ADL`;if(ch>0)pax+=`+${ch}CHD${ages?"("+ages.replace(/\\s+/g,"")+")":""}`;if(inf>0)pax+=`+${inf}INF`;const out=[hotel,`${cin}-${cout} · ${n}N · ${pax}`];if(spo)out.push(`SPO: ${spo}`);out.push("");
-function line(x,label){return `${dshort(x.from)} - ${dshort(x.to)} : ${label} : ${expr(x)} = ${fmt(x.net)}`}
-const rooms=rows.filter(x=>x.type==="ROOM"),extras=rows.filter(x=>x.type==="EXTRA"),greenTax=extras.filter(x=>/green\\s*tax/i.test(x.item)),roomExtras=extras.filter(x=>!greenTax.includes(x)),usedExtra=new Set();
-rooms.forEach(room=>{out.push(line(room,room.item));const matching=roomExtras.filter(x=>x.from===room.from&&x.to===room.to&&!usedExtra.has(x));const adl=matching.filter(x=>/adult/i.test(x.item)),chd=matching.filter(x=>/child/i.test(x.item)),rest=matching.filter(x=>!adl.includes(x)&&!chd.includes(x));[...adl,...chd,...rest].forEach(x=>{out.push(line(x,x.item.replace(/\\s*-\\s*(Adult|Child|Infant)\\s*$/i,"").trim()));usedExtra.add(x)})});
-const remainingExtras=roomExtras.filter(x=>!usedExtra.has(x));const extraGroups=[];remainingExtras.forEach(x=>{const base=x.item.replace(/\\s*-\\s*(Adult|Child|Infant)\\s*$/i,"").trim(),key=[base,x.from,x.to,(x.discounts||[]).join(",")].join("|");let g=extraGroups.find(z=>z.key===key);if(!g){g={key,base,rows:[]};extraGroups.push(g)}g.rows.push(x)});extraGroups.forEach(g=>g.rows.forEach(x=>out.push(line(x,g.base))));
-function addGrouped(type){const source=rows.filter(x=>x.type===type),groups=[];source.forEach(x=>{const base=x.item.replace(/\\s*-\\s*(Adult|Child|Infant)\\s*$/i,"").trim(),key=[type,base,x.from,x.to,(x.discounts||[]).join(",")].join("|");let g=groups.find(z=>z.key===key);if(!g){g={key,base,rows:[]};groups.push(g)}g.rows.push(x)});groups.forEach(g=>{const parts=g.rows.map(x=>`${fmt(x.rate).replaceAll(",","")}*${x.qty}`);let formula=parts.length>1?`(${parts.join("+")})`:parts[0];if(g.rows[0].nights>0)formula+=`*${g.rows[0].nights}`;(g.rows[0].discounts||[]).forEach(d=>formula+=`-${d}%`);out.push(`${dshort(g.rows[0].from)} - ${dshort(g.rows[0].to)} : ${g.base} : ${formula} = ${fmt(g.rows.reduce((sum,x)=>sum+x.net,0))}`)})}
-addGrouped("MEAL");addGrouped("DINNER");addGrouped("TRANSFER");greenTax.forEach(x=>out.push(line(x,x.item)));out.push("",`TOTAL: ${fmt(rows.reduce((s,x)=>s+x.net,0))} USD`);return out.join("\\n")}
-function shareHtml(){const esc=s=>String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");const lines=shareText().split("\\n");return lines.map((line,i)=>{if(i<2||!line.trim()||line.startsWith("TOTAL:")||line.startsWith("SPO:"))return esc(line);const m=line.match(/^(\\d{2}\\.\\d{2} - \\d{2}\\.\\d{2}) : ([^:]+) : (.*)$/);if(!m)return esc(line);return `<strong>${esc(m[1])}</strong> : <strong>${esc(m[2].trim())}</strong> : ${esc(m[3])}`}).join("\\n")}
-
-'''
-          s=s[:start]+new_share+s[end:]
-          s=s.replace('<pre id="shareText"></pre>','<div id="shareText" class="share-preview"></div>',1)
-          s=s.replace('.modal-head{display:flex;justify-content:space-between;align-items:center}.modal pre{white-space:pre-wrap;font:14px/1.45 Consolas,monospace;background:#f7f8fa;padding:15px;border-radius:7px}', '.modal-head{display:flex;justify-content:space-between;align-items:center}.share-preview{white-space:pre-wrap;font:14px/1.45 Consolas,monospace;background:#f7f8fa;padding:15px;border-radius:7px}',1)
-          s=s.replace('function showShare(){shareTextEl.textContent=shareText();shareModal.style.display="flex"}', 'function showShare(){shareTextEl.innerHTML=shareHtml();shareModal.style.display="flex"}',1)
-          old='["checkin","checkout","adults","children","infants","ages","spo"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{document.querySelectorAll("#rows tr").forEach(applyAutoQty);recalc()}));buildLists();\nconst demo=['
-          new='["checkin","checkout","adults","children","infants","ages","spo"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{document.querySelectorAll("#rows tr").forEach(applyAutoQty);recalc()}));buildLists();\nfunction createDefaultRows(){document.getElementById("rows").innerHTML="";addRow({type:"ROOM",item:"",from:checkin.value,to:checkout.value,qty:1});addRow({type:"TRANSFER",item:"",from:checkin.value,to:checkin.value,qty:1});addRow({type:"EXTRA",item:"Green Tax",from:checkin.value,to:checkout.value,qty:1})}\nconst demo=['
-          if old not in s: raise SystemExit('init marker missing')
-          s=s.replace(old,new,1)
-          old='demo.forEach(addRow);recalc();const shareTextEl=document.getElementById("shareText"),shareModal=document.getElementById("shareModal");'
-          new='createDefaultRows();recalc();const shareTextEl=document.getElementById("shareText"),shareModal=document.getElementById("shareModal");'
-          if old not in s: raise SystemExit('demo startup marker missing')
-          s=s.replace(old,new,1)
-          old='function clearAll(){if(!confirm("Clear the current calculation and start a new one?"))return;hotel.value="";checkin.value="";checkout.value="";adults.value=0;children.value=0;infants.value=0;ages.value="";spo.value="";document.getElementById("rows").innerHTML="";recalc();toast("Calculation cleared")}'
-          new='function clearAll(){if(!confirm("Clear the current calculation and start a new one?"))return;hotel.value="";checkin.value="";checkout.value="";adults.value=0;children.value=0;infants.value=0;ages.value="";spo.value="";createDefaultRows();recalc();toast("Calculation cleared")}'
-          if old not in s: raise SystemExit('clear marker missing')
-          s=s.replace(old,new,1)
-          p.write_text(s,encoding='utf-8')
-          PY
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCnA9UGF0aCgnaW5kZXguaHRtbCcpCnM9cC5yZWFkX3RleHQoZW5jb2Rpbmc9J3V0Zi04JykKb2xkPSdmdW5jdGlvbiByZWNhbGMoKXtkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgibmlnaHRzIikudmFsdWU9Y2FsY05pZ2h0cyhjaGVja2luLnZhbHVlLGNoZWNrb3V0LnZhbHVlKTtsZXQgdG90YWw9MDsnCm5ldz0nZnVuY3Rpb24gc3luY1N0YXlEYXRlcygpe2NvbnN0IGNpbj1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiY2hlY2tpbiIpLnZhbHVlLGNvdXQ9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImNoZWNrb3V0IikudmFsdWU7ZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgiI3Jvd3MgdHIiKS5mb3JFYWNoKHRyPT57Y29uc3QgdHlwZT10ci5kYXRhc2V0LnR5cGV8fHRyLnF1ZXJ5U2VsZWN0b3IoIi50eXBlIikudmFsdWU7aWYoWyJST09NIiwiTUVBTCIsIkVYVFJBIl0uaW5jbHVkZXModHlwZSkpe3RyLnF1ZXJ5U2VsZWN0b3IoIi5mcm9tIikudmFsdWU9Y2luO3RyLnF1ZXJ5U2VsZWN0b3IoIi50byIpLnZhbHVlPWNvdXR9fSl9XG5mdW5jdGlvbiByZWNhbGMoKXtzeW5jU3RheURhdGVzKCk7ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoIm5pZ2h0cyIpLnZhbHVlPWNhbGNOaWdodHMoY2hlY2tpbi52YWx1ZSxjaGVja291dC52YWx1ZSk7bGV0IHRvdGFsPTA7Jwphc3NlcnQgb2xkIGluIHMKcz1zLnJlcGxhY2Uob2xkLG5ldywxfQ==' | base64 -d > /tmp/update.py
+          python /tmp/update.py
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
