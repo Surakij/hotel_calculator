@@ -12,19 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Make discount fields horizontal and compact
+      - name: Force compact horizontal discount fields
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          old='td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}'
-          new='td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}.discounts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;min-width:260px}.discounts input{width:100%;min-width:0;padding:3px;text-align:center}'
-          if old in s:
-              s=s.replace(old,new,1)
+          pattern=r'\.discounts\{[^}]*\}\.discounts input\{[^}]*\}'
+          replacement='.discounts{display:flex !important;flex-direction:row !important;align-items:center;gap:3px;min-width:260px}.discounts .discount{flex:1 1 0;width:0 !important;min-width:0 !important;height:32px;padding:3px;text-align:center}'
+          if re.search(pattern,s):
+              s=re.sub(pattern,replacement,s,count=1)
+          elif '.discounts{' not in s:
+              s=s.replace('</style>',replacement+'</style>',1)
           else:
-              raise SystemExit('target CSS not found')
-          s=s.replace('table{width:100%;border-collapse:collapse;min-width:1080px}', 'table{width:100%;border-collapse:collapse;min-width:1280px}',1)
+              s=s.replace('.discounts{','.discounts{display:flex !important;flex-direction:row !important;',1)
+          s=re.sub(r'table\{width:100%;border-collapse:collapse;min-width:[^}]+\}', 'table{width:100%;border-collapse:collapse;min-width:1280px}', s, count=1)
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit compact layout
@@ -32,5 +35,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'Fix compact calculation table layout'
+          git diff --cached --quiet || git commit -m 'Force discounts to stay in one row'
           git push
