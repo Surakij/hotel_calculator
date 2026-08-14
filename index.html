@@ -109,7 +109,7 @@ function addRow(data={}){
  <td><input class="from" type="date" value="${data.from||""}"></td><td><input class="to" type="date" value="${data.to||""}"></td>
  <td><input class="nights" readonly></td><td><input class="qty" type="number" min="0" step="1" value="${data.qty??""}"></td>
  <td><input class="rate" type="number" min="0" step="0.01" value="${data.rate??""}"></td>
- <td class="discounts"><input class="discount d1" type="number" min="0" max="100" step="0.01" value="${data.d1??data.discount??0}" placeholder="D1"><input class="discount d2" type="number" min="0" max="100" step="0.01" value="${data.d2??0}" placeholder="D2"><input class="discount d3" type="number" min="0" max="100" step="0.01" value="${data.d3??0}" placeholder="D3"><input class="discount d4" type="number" min="0" max="100" step="0.01" value="${data.d4??0}" placeholder="D4"></td>
+ <td class="discounts"><input class="discount d1" type="number" min="0" max="100" step="1" value="${data.d1??data.discount??0}" placeholder="D1"><input class="discount d2" type="number" min="0" max="100" step="1" value="${data.d2??0}" placeholder="D2"><input class="discount d3" type="number" min="0" max="100" step="1" value="${data.d3??0}" placeholder="D3"><input class="discount d4" type="number" min="0" max="100" step="1" value="${data.d4??0}" placeholder="D4"></td>
  <td class="net">0.00</td><td><button class="delete">×</button></td>`;
  document.getElementById("rows").appendChild(tr);
  const type=tr.querySelector(".type"),item=tr.querySelector(".item");
