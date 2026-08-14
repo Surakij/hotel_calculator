@@ -1,0 +1,36 @@
+name: Compact calculator table
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make discount fields horizontal and compact
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}'
+          new='td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}.discounts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;min-width:260px}.discounts input{width:100%;min-width:0;padding:3px;text-align:center}'
+          if old in s:
+              s=s.replace(old,new,1)
+          else:
+              raise SystemExit('target CSS not found')
+          s=s.replace('table{width:100%;border-collapse:collapse;min-width:1080px}', 'table{width:100%;border-collapse:collapse;min-width:1280px}',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit compact layout
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Fix compact calculation table layout'
+          git push
