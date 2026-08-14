@@ -1,0 +1,109 @@
+name: Update short share format
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update-share-format:
+    if: "!contains(github.event.head_commit.message, '[share-fix]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update short share format
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          start = s.index('function shareText(){')
+          end = s.index('\nfunction showShare()', start)
+          new = r'''function shareText(){
+ recalc();
+ const hotel=(document.getElementById("hotel").value||"Hotel").toUpperCase();
+ const cin=dshort(checkin.value),cout=dshort(checkout.value),n=nights.value;
+ const ad=parseInt(adults.value||0,10),ch=parseInt(children.value||0,10),inf=parseInt(infants.value||0,10);
+ const ages=document.getElementById("ages").value,spo=document.getElementById("spo").value.trim();
+ const rows=currentRows();
+ let pax=`${ad}ADL`;
+ if(ch>0)pax+=`+${ch}CHD${ages?"("+ages.replace(/\s+/g,"")+")":""}`;
+ if(inf>0)pax+=`+${inf}INF`;
+ const out=[hotel,`${cin}-${cout} · ${n}N · ${pax}`];
+ if(spo)out.push(`SPO: ${spo}`);
+ out.push("");
+
+ const rooms=rows.filter(x=>x.type==="ROOM");
+ const extras=rows.filter(x=>x.type==="EXTRA");
+ const greenTax=extras.filter(x=>/green\s*tax/i.test(x.item));
+ const roomExtras=extras.filter(x=>!greenTax.includes(x));
+ const usedExtra=new Set();
+
+ function extraLine(x){
+   const label=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
+   return `${label} : ${dshort(x.from)}-${dshort(x.to)}  ${expr(x)} = ${fmt(x.net)}`;
+ }
+
+ rooms.forEach(room=>{
+   out.push(`${room.item} : ${dshort(room.from)}-${dshort(room.to)}  ${expr(room)} = ${fmt(room.net)}`);
+   const matching=roomExtras.filter(x=>x.from===room.from && x.to===room.to && !usedExtra.has(x));
+   const adl=matching.filter(x=>/adult/i.test(x.item));
+   const chd=matching.filter(x=>/child/i.test(x.item));
+   const rest=matching.filter(x=>!adl.includes(x)&&!chd.includes(x));
+   [...adl,...chd,...rest].forEach(x=>{out.push(extraLine(x));usedExtra.add(x)});
+ });
+
+ const remainingExtras=roomExtras.filter(x=>!usedExtra.has(x));
+ const extraGroups=[];
+ remainingExtras.forEach(x=>{
+   const base=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
+   const key=[base,x.from,x.to,(x.discounts||[]).join(",")].join("|");
+   let g=extraGroups.find(z=>z.key===key);
+   if(!g){g={key,base,rows:[]};extraGroups.push(g)}
+   g.rows.push(x);
+ });
+ extraGroups.forEach(g=>{
+   const adl=g.rows.filter(x=>/adult/i.test(x.item));
+   const chd=g.rows.filter(x=>/child/i.test(x.item));
+   const rest=g.rows.filter(x=>!adl.includes(x)&&!chd.includes(x));
+   [...adl,...chd,...rest].forEach(x=>out.push(extraLine(x)));
+ });
+
+ function addGrouped(type){
+   const source=rows.filter(x=>x.type===type);
+   const groups=[];
+   source.forEach(x=>{
+     const base=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
+     const key=[type,base,x.from,x.to,(x.discounts||[]).join(",")].join("|");
+     let g=groups.find(z=>z.key===key);
+     if(!g){g={key,base,rows:[]};groups.push(g)}
+     g.rows.push(x);
+   });
+   groups.forEach(g=>{
+     const parts=g.rows.map(x=>`${fmt(x.rate).replaceAll(",","")}*${x.qty}`);
+     let formula=parts.length>1?`(${parts.join("+")})`:parts[0];
+     if(g.rows[0].nights>0)formula+=`*${g.rows[0].nights}`;
+     (g.rows[0].discounts||[]).forEach(d=>formula+=`-${d}%`);
+     out.push(`${g.base} : ${formula} = ${fmt(g.rows.reduce((sum,x)=>sum+x.net,0))}`);
+   });
+ }
+ addGrouped("MEAL");
+ addGrouped("DINNER");
+ addGrouped("TRANSFER");
+ greenTax.forEach(x=>out.push(extraLine(x)));
+
+ out.push("",`TOTAL: ${fmt(rows.reduce((s,x)=>s+x.net,0))} USD`);
+ return out.join("\n");
+}
+'''
+          p.write_text(s[:start] + new + s[end:], encoding='utf-8')
+          PY
+      - name: Commit update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Update short share format [share-fix]'
+          git push
