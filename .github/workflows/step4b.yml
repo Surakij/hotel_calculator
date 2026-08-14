@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Apply changes
-        run: python .github/update_calculator.py
+        run: python .github/update_calculator2.py
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
