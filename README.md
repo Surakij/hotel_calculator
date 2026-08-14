@@ -110,3 +110,5 @@ This application is a client-side calculator and does not require a server-side 
 ## License
 
 No open-source license has been declared for this repository yet. Until a license is added, the default copyright rules apply.
+
+<!-- workflow trigger -->
