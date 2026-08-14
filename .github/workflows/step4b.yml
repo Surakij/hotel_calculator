@@ -1,5 +1,5 @@
 name: Apply requested calculator changes
-on: push
+'on': [push]
 permissions:
   contents: write
 jobs:
@@ -10,8 +10,6 @@ jobs:
       - name: Apply changes
         shell: bash
         run: |
-          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCnA9UGF0aCgnaW5kZXguaHRtbCcpCnM9cC5yZWFkX3RleHQoZW5jb2Rpbmc9J3V0Zi04JykKb2xkPSdmdW5jdGlvbiByZWNhbGMoKXtkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgibmlnaHRzIikudmFsdWU9Y2FsY05pZ2h0cyhjaGVja2luLnZhbHVlLGNoZWNrb3V0LnZhbHVlKTtsZXQgdG90YWw9MDsn' | base64 -d > /dev/null
-          # The actual edit script is written below by the workflow generator.
           python - <<'PY'
           from pathlib import Path
           p=Path('index.html')
@@ -24,7 +22,7 @@ jobs:
           new='function dshort(s){if(!s)return"";const [y,m,d]=s.split("-");return `${d}.${m}`}'
           if old not in s: raise SystemExit('dshort marker missing')
           s=s.replace(old,new,1)
-          start=s.index('function shareText(){'); end=s.index('function showShare()',start)
+          start=s.index('function shareText()'); end=s.index('function showShare()',start)
           new_share='''function shareText(){recalc();const hotel=(document.getElementById("hotel").value||"Hotel").toUpperCase(),cin=dshort(checkin.value),cout=dshort(checkout.value),n=nights.value,ad=parseInt(adults.value||0,10),ch=parseInt(children.value||0,10),inf=parseInt(infants.value||0,10),ages=document.getElementById("ages").value,spo=document.getElementById("spo").value.trim(),rows=currentRows();let pax=`${ad}ADL`;if(ch>0)pax+=`+${ch}CHD${ages?"("+ages.replace(/\\s+/g,"")+")":""}`;if(inf>0)pax+=`+${inf}INF`;const out=[hotel,`${cin}-${cout} · ${n}N · ${pax}`];if(spo)out.push(`SPO: ${spo}`);out.push("");
 function line(x,label){return `${dshort(x.from)} - ${dshort(x.to)} : ${label} : ${expr(x)} = ${fmt(x.net)}`}
 const rooms=rows.filter(x=>x.type==="ROOM"),extras=rows.filter(x=>x.type==="EXTRA"),greenTax=extras.filter(x=>/green\\s*tax/i.test(x.item)),roomExtras=extras.filter(x=>!greenTax.includes(x)),usedExtra=new Set();
