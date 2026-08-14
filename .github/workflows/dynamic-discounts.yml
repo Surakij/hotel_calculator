@@ -1,0 +1,84 @@
+name: Dynamic discounts
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update discount UI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_css = 'td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}.discounts{display:flex !important;flex-direction:row !important;align-items:center;gap:3px;min-width:260px}.discounts .discount{flex:1 1 0;width:0 !important;min-width:0 !important;height:32px;padding:3px;text-align:center}'
+          new_css = 'td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}.discounts{display:flex !important;flex-direction:row !important;align-items:center;gap:4px;min-width:0}.discount-item{display:flex;align-items:center;gap:2px;flex:0 0 auto}.discounts .discount{width:58px !important;min-width:58px !important;height:32px;padding:3px;text-align:center}.discount-add,.discount-remove{width:24px;height:24px;padding:0;border-radius:50%;font-size:15px;line-height:24px;text-align:center}.discount-add{background:#e9eef5;color:#17365d}.discount-remove{background:#f3f4f6;color:#b42318}.discounts .discount-item:first-child .discount-remove{display:none}'
+          if old_css not in s:
+              raise SystemExit('Expected discount CSS not found')
+          s = s.replace(old_css, new_css, 1)
+
+          old_cell = ' <td class="discounts"><input class="discount d1" type="number" min="0" max="100" step="1" value="${data.d1??data.discount??0}" placeholder="D1"><input class="discount d2" type="number" min="0" max="100" step="1" value="${data.d2??0}" placeholder="D2"><input class="discount d3" type="number" min="0" max="100" step="1" value="${data.d3??0}" placeholder="D3"><input class="discount d4" type="number" min="0" max="100" step="1" value="${data.d4??0}" placeholder="D4"></td>'
+          if old_cell not in s:
+              raise SystemExit('Expected discount row not found')
+          s = s.replace(old_cell, ' <td class="discounts"></td>', 1)
+
+          marker = 'function addRow(data={}){'
+          helper = '''function addDiscountField(container,value=0,removable=true){
+ const wrap=document.createElement("span");wrap.className="discount-item";
+ const input=document.createElement("input");input.className="discount";input.type="number";input.min="0";input.max="100";input.step="1";input.value=value;input.placeholder="%";
+ wrap.appendChild(input);
+ if(removable){const remove=document.createElement("button");remove.type="button";remove.className="discount-remove";remove.textContent="−";remove.title="Remove discount";remove.onclick=()=>{wrap.remove();recalc()};wrap.appendChild(remove)}
+ container.appendChild(wrap);return input;
+}
+function setupDiscounts(tr,data={}){
+ const container=tr.querySelector(".discounts");container.innerHTML="";
+ const values=[data.d1??data.discount??0,data.d2??0,data.d3??0,data.d4??0];
+ let count=1;for(let i=1;i<values.length;i++)if(Number(values[i])>0)count=i+1;
+ for(let i=0;i<count;i++)addDiscountField(container,values[i],i>0);
+ const add=document.createElement("button");add.type="button";add.className="discount-add";add.textContent="+";add.title="Add another discount";
+ add.onclick=()=>{if(container.querySelectorAll(".discount").length<4){addDiscountField(container,0,true);recalc()}};
+ container.appendChild(add);
+}
+
+'''
+          if 'function addDiscountField(container' not in s:
+              s = s.replace(marker, helper + marker, 1)
+
+          old_append = ' document.getElementById("rows").appendChild(tr);\n const type=tr.querySelector(".type"),item=tr.querySelector(".item");'
+          new_append = ' document.getElementById("rows").appendChild(tr);\n setupDiscounts(tr,data);\n const type=tr.querySelector(".type"),item=tr.querySelector(".item");'
+          if old_append not in s:
+              raise SystemExit('Expected append marker not found')
+          s = s.replace(old_append, new_append, 1)
+
+          old_list = '[".from",".to",".qty",".rate",".d1",".d2",".d3",".d4"]'
+          if old_list not in s:
+              raise SystemExit('Expected discount listeners not found')
+          s = s.replace(old_list, '[".from",".to",".qty",".rate"]', 1)
+          old_item_listener = ' item.addEventListener("input",()=>{applyAutoQty(tr);recalc()});\n [".from",".to",".qty",".rate"].forEach(sel=>tr.querySelector(sel).addEventListener("input",()=>recalc()));'
+          new_item_listener = ' item.addEventListener("input",()=>{applyAutoQty(tr);recalc()});\n tr.querySelector(".discounts").addEventListener("input",()=>recalc());\n [".from",".to",".qty",".rate"].forEach(sel=>tr.querySelector(sel).addEventListener("input",()=>recalc()));'
+          if old_item_listener not in s:
+              raise SystemExit('Expected listener block not found')
+          s = s.replace(old_item_listener, new_item_listener, 1)
+
+          old_get = '''function getDiscounts(tr){return [".d1",".d2",".d3",".d4"].map(s=>parseFloat(tr.querySelector(s).value)||0).filter(x=>x>0)}'''
+          new_get = '''function getDiscounts(tr){return [...tr.querySelectorAll(".discount")].map(el=>parseFloat(el.value)||0).filter(x=>x>0)}'''
+          if old_get not in s:
+              raise SystemExit('Expected getDiscounts function not found')
+          s = s.replace(old_get, new_get, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Add dynamic discount fields' && git push)
