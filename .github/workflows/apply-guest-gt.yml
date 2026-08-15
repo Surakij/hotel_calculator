@@ -1,0 +1,20 @@
+name: Apply guest and Green Tax patch
+'on':
+  push:
+    paths:
+      - '.github/patch_guest_gt.py'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index
+        run: python .github/patch_guest_gt.py
+      - name: Commit patched index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Fix Green Tax guest count and clear reset' && git push)
