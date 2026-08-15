@@ -32,4 +32,5 @@ if start != -1:
         raise SystemExit('demo end not found')
     s = s[:start] + 'createDefaultRows();recalc();' + s[end + len('];createDefaultRows();recalc();'):]
 
+# Trigger workflow after creation so the patch is applied.
 p.write_text(s, encoding='utf-8')
