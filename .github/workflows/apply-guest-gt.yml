@@ -1,8 +1,5 @@
 name: Apply guest and Green Tax patch
-'on':
-  push:
-    paths:
-      - '.github/patch_guest_gt.py'
+'on': [push]
 permissions:
   contents: write
 jobs:
