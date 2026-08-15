@@ -1,0 +1,20 @@
+name: Fix initial state and Green Tax
+'on':
+  push:
+    paths:
+      - '.github/fix_initial_state_and_green_tax.py'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/fix_initial_state_and_green_tax.py
+      - name: Commit patched calculator
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Fix clean startup and Green Tax calculation' && git push)
