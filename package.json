@@ -1,0 +1,11 @@
+{
+  "name": "hotel-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static hotel quotation and calculation tool.",
+  "scripts": {
+    "lint": "node tools/lint.js",
+    "test": "node tests/core.test.js"
+  },
+  "devDependencies": {}
+}
