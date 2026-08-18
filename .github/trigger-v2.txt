@@ -1,1 +1,1 @@
-trigger fallback scope fix
+trigger gala and transfer rules fix
