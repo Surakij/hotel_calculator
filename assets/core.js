@@ -234,29 +234,8 @@
   }
 
   function buildShareText(input) {
-    const table = buildShareTable(input);
-    const rows = table.rows;
-    const out = [
-      table.hotel,
-      `${table.stay} · ${table.nights}N · ${table.pax}`,
-    ];
-
-    if (table.spo) out.push(`SPO: ${table.spo}`);
-    out.push("");
-
-    rows.forEach((row) => {
-      const prefix = row.dates ? `${row.dates} : ` : "";
-      out.push(`${prefix}${row.service} : ${row.formula} = ${money(row.net)}`);
-    });
-
-    out.push("", `TOTAL: ${money(table.total)} USD`);
-    return out.join("\n");
-  }
-
-  function buildShareTable(input) {
     const calculated = calculateRows(input.rows || []);
-    const allRows = calculated.rows.filter((row) => row.type || row.item || row.rate);
-    const rows = allRows.filter((row) => row.rate > 0);
+    const rows = calculated.rows.filter((row) => (row.type || row.item || row.rate) && row.rate > 0);
     const hotel = String(input.hotel || "Hotel").toUpperCase();
     const guests = input.guests || {};
     const ages = String(guests.ages || "").replace(/\s+/g, "");
@@ -266,151 +245,64 @@
     if (Number(guests.children || 0) > 0) pax += `+${Number(guests.children)}CHD${ages ? `(${ages})` : ""}`;
     if (Number(guests.infants || 0) > 0) pax += `+${Number(guests.infants)}INF`;
 
-    const shareRows = [];
+    const out = [
+      hotel,
+      `${formatShort(input.checkin)}-${formatShort(input.checkout)} · ${nightsBetween(input.checkin, input.checkout)}N · ${pax}`,
+    ];
+
+    if (spo) out.push(`SPO: ${spo}`);
+    out.push("");
+
     const rooms = rows.filter((row) => row.type === "ROOM");
     const extras = rows.filter((row) => row.type === "EXTRA" && !isGreenTax(row));
     const greenTax = rows.filter(isGreenTax);
     const usedExtras = new Set();
 
     rooms.forEach((room) => {
-      shareRows.push({ dates: dateRangeLabel(room.from, room.to), service: room.item, formula: expression(room), net: room.net });
+      out.push(`${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${money(room.net)}`);
       extras
         .filter((row) => row.from === room.from && row.to === room.to && !usedExtras.has(row))
         .sort((a, b) => Number(/child/i.test(a.item)) - Number(/child/i.test(b.item)))
         .forEach((row) => {
-          shareRows.push({ dates: dateRangeLabel(row.from, row.to), service: baseLabel(row.item), formula: expression(row), net: row.net });
+          out.push(`${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
           usedExtras.add(row);
         });
     });
 
     extras.filter((row) => !usedExtras.has(row)).forEach((row) => {
-      shareRows.push({ dates: dateRangeLabel(row.from, row.to), service: baseLabel(row.item), formula: expression(row), net: row.net });
+      out.push(`${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
     });
 
     groupedRows(rows, "MEAL").forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      shareRows.push({ dates: dateRangeLabel(group.rows[0].from, group.rows[0].to), service: group.label, formula: groupExpression(group), net: total });
+      out.push(`${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
     groupedRows(rows, "DINNER").forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      shareRows.push({ dates: "", service: group.label, formula: groupExpression(group), net: total });
+      out.push(`${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
     groupedRows(rows, "TRANSFER").forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      const dates = /\bOW\b/i.test(group.label) ? dateRangeLabel(group.rows[0].from, group.rows[0].to) : "";
-      shareRows.push({ dates, service: group.label, formula: groupExpression(group), net: total });
+      const prefix = /\bOW\b/i.test(group.label)
+        ? `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : `
+        : "";
+      out.push(`${prefix}${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
     greenTax.forEach((row) => {
-      shareRows.push({ dates: "", service: "Green Tax", formula: expression(row), net: row.net });
+      out.push(`Green Tax : ${expression(row)} = ${money(row.net)}`);
     });
 
-    const roomRows = allRows.filter((row) => row.type === "ROOM");
-    const personExtras = allRows.filter((row) => row.type === "EXTRA" && /(adult|child)/i.test(row.item || ""));
-    const otherExtras = allRows.filter((row) => row.type === "EXTRA" && !isGreenTax(row) && !/(adult|child)/i.test(row.item || ""));
-    const serviceRows = allRows.filter((row) => ["MEAL", "TRANSFER", "DINNER"].includes(row.type));
-    const greenTaxRows = allRows.filter(isGreenTax);
-    const layoutRows = [
-      ...roomRows.map((row) => tableLayoutRow(row, row.item || "Room")),
-      ...personExtras.map((row) => tableLayoutRow(row, `${baseLabel(row.item)} Supplement`)),
-      ...otherExtras.map((row) => tableLayoutRow(row, row.item || "Extra")),
-    ];
-    const staySubtotal = layoutRows.reduce((sum, row) => sum + row.net, 0);
-    if (spo && layoutRows.length) layoutRows.push(tableNoteRow("SPO", spo));
-    if (layoutRows.length) layoutRows.push(tableTotalRow("", staySubtotal, "subtotal"));
-
-    greenTaxRows.forEach((row) => layoutRows.push(tableLayoutRow(row, "Green Tax")));
-    serviceRows.forEach((row) => layoutRows.push(tableLayoutRow(row, serviceTableLabel(row))));
-
-    const serviceSubtotal = [...greenTaxRows, ...serviceRows].reduce((sum, row) => sum + row.net, 0);
-    if (serviceSubtotal > 0) layoutRows.push(tableTotalRow("", serviceSubtotal, "subtotal"));
-    layoutRows.push(tableTotalRow("Total", calculated.total, "grand"));
-
-    return {
-      hotel,
-      stay: `${formatShort(input.checkin)}-${formatShort(input.checkout)}`,
-      nights: nightsBetween(input.checkin, input.checkout),
-      pax,
-      spo,
-      rows: shareRows,
-      layoutRows,
-      total: calculated.total,
-    };
-  }
-
-  function tableMoney(value) {
-    return Number(value || 0) > 0 ? money(value) : "-";
-  }
-
-  function tableLayoutRow(row, label) {
-    return {
-      label,
-      qty: row.qty || "",
-      arr: formatDate(row.from),
-      dep: formatDate(row.to),
-      nights: row.nights || "",
-      rate: tableMoney(row.rate),
-      total: tableMoney(row.net),
-      net: row.net,
-      kind: "item",
-    };
-  }
-
-  function tableTotalRow(label, total, kind) {
-    return {
-      label: "",
-      qty: "",
-      arr: "",
-      dep: "",
-      nights: "",
-      rate: label,
-      total: tableMoney(total),
-      net: total,
-      kind,
-    };
-  }
-
-  function tableNoteRow(label, value) {
-    return {
-      label: "",
-      qty: "",
-      arr: "",
-      dep: "",
-      nights: label,
-      rate: value,
-      total: "",
-      net: 0,
-      kind: "note",
-    };
-  }
-
-  function serviceTableLabel(row) {
-    const item = row.item || row.type || "Service";
-    if (row.type === "MEAL") {
-      if (/adult/i.test(item)) return "Meal Plan - Adult";
-      if (/child/i.test(item)) return "Meal Plan - Child";
-      return "Meal Plan";
-    }
-    if (row.type === "TRANSFER") {
-      if (/adult/i.test(item)) return "Transfer - Adult";
-      if (/child/i.test(item)) return "Transfer - Child";
-      return "Transfer";
-    }
-    if (row.type === "DINNER") {
-      if (/adult/i.test(item)) return "Dinner - Adult";
-      if (/child/i.test(item)) return "Dinner - Child";
-      return "Dinner";
-    }
-    return item;
+    out.push("", `TOTAL: ${money(calculated.total)} USD`);
+    return out.join("\n");
   }
 
   return {
     addDays,
     applyDiscounts,
     buildShareText,
-    buildShareTable,
     buildStaySummaries,
     calculateRow,
     calculateRows,
