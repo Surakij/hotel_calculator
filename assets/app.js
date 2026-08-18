@@ -4,7 +4,7 @@
     HOTEL: ["Ozen Bolifushi", "Ozen Life Maadhoo"],
     ROOM: ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"],
     MEAL: ["BB - Adult", "BB - Child", "HB - Adult", "HB - Child", "FB - Adult", "FB - Child", "AI - Adult", "AI - Child", "AI Luxury - Adult", "AI Luxury - Child", "Cristal AI - Adult", "Cristal AI - Child"],
-    TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
+    TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
     DINNER: ["Christmas Gala Dinner - Adult", "Christmas Gala Dinner - Child", "New Year Gala Dinner - Adult", "New Year Gala Dinner - Child"],
     EXTRA: ["Extra Adult", "Extra Child", "Green Tax"],
   };
@@ -393,8 +393,18 @@
 
   async function copyShare() {
     const text = shareText();
+    const html = `<pre style="font:14px/1.45 Consolas, monospace; white-space:pre-wrap;">${shareHtml(text)}</pre>`;
     try {
-      await navigator.clipboard.writeText(text);
+      if (window.ClipboardItem && navigator.clipboard.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([text], { type: "text/plain" }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
       toast("Calculation copied to clipboard");
     } catch {
       const textarea = el("textarea");
