@@ -218,7 +218,7 @@ function closeShare(){shareModal.style.display="none"}async function copyShare()
   function openPicker(input,monthHint){pickerTarget=input; const d=dateObj(input.value)||dateObj(monthHint)||new Date(); pickerMonth=new Date(d.getFullYear(),d.getMonth(),1); renderPicker();}
   function closePicker(){if(picker){picker.remove();picker=null;pickerTarget=null}}
   function renderPicker(){
-    closePicker(); if(!pickerTarget)return;
+    if(picker){picker.remove();picker=null;} if(!pickerTarget)return;
     picker=document.createElement('div'); picker.className='hc-picker';
     const head=document.createElement('div'); head.className='hc-picker-head';
     const prev=document.createElement('button'); prev.type='button'; prev.textContent='‹';
@@ -232,7 +232,7 @@ function closeShare(){shareModal.style.display="none"}async function copyShare()
     const min=pickerTarget.dataset.minDate?dateObj(pickerTarget.dataset.minDate):null;
     const max=pickerTarget.dataset.maxDate?dateObj(pickerTarget.dataset.maxDate):null;
     const count=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()+1,0).getDate();
-    for(let day=1;day<=count;day++){const d=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),day),e=document.createElement('button');e.type='button';e.textContent=day;const val=`${pad(day)}.${pad(d.getMonth()+1)}.${d.getFullYear()}`; if((min&&d<min)||(max&&d>max)){e.disabled=true;e.className='disabled'} if(fmtDate(pickerTarget.value)===val)e.className='selected'; e.onclick=()=>{pickerTarget.value=val; pickerTarget.dispatchEvent(new Event('input',{bubbles:true})); closePicker();}; days.append(e)}
+    for(let day=1;day<=count;day++){const d=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),day),e=document.createElement('button');e.type='button';e.textContent=day;const val=`${pad(day)}.${pad(d.getMonth()+1)}.${d.getFullYear()}`; if((min&&d<min)||(max&&d>max)){e.disabled=true;e.className='disabled'} if(fmtDate(pickerTarget.value)===val)e.className='selected'; e.onclick=()=>{const wasCheckin=pickerTarget.id==='checkin'; const selected=val; pickerTarget.value=selected; pickerTarget.dispatchEvent(new Event('input',{bubbles:true})); closePicker(); if(wasCheckin && $('checkout')) openPicker($('checkout'),selected);}; days.append(e)}
     picker.append(days);
     const rect=pickerTarget.getBoundingClientRect(); picker.style.position='fixed'; picker.style.left=Math.min(rect.left,window.innerWidth-300)+'px'; picker.style.top=(rect.bottom+4)+'px'; document.body.append(picker);
   }
