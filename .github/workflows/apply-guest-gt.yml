@@ -9,8 +9,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Patch index
         run: python .github/patch_guest_gt.py
-      - name: Fix v2 service order
-        run: python .github/fix_v2_sort.py
       - name: Commit patched index
         run: |
           git config user.name 'github-actions[bot]'
