@@ -49,6 +49,34 @@
     input.value = core.formatDate(input.value);
   }
 
+  function numberPrecision(value) {
+    const match = String(value || "1").match(/\.(\d+)/);
+    return match ? match[1].length : 0;
+  }
+
+  function stepNumber(input, direction) {
+    const step = Number(input.step || 1) || 1;
+    const min = input.min === "" ? -Infinity : Number(input.min);
+    const max = input.max === "" ? Infinity : Number(input.max);
+    const current = input.value === "" ? 0 : Number(input.value);
+    const precision = numberPrecision(input.step);
+    const next = Math.min(max, Math.max(min, current + direction * step));
+
+    input.value = precision ? next.toFixed(precision) : String(Math.round(next));
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function numberStepper(input, compact = false) {
+    const wrap = el("span", { className: `number-stepper${compact ? " compact" : ""}` });
+    const minus = el("button", { className: "step-button", type: "button", title: "Decrease", textContent: "-" });
+    const plus = el("button", { className: "step-button", type: "button", title: "Increase", textContent: "+" });
+
+    minus.addEventListener("click", () => stepNumber(input, -1));
+    plus.addEventListener("click", () => stepNumber(input, 1));
+    wrap.append(minus, input, plus);
+    return wrap;
+  }
+
   function toast(message) {
     const box = $("toast");
     box.textContent = message;
@@ -83,7 +111,7 @@
     const wrap = el("span", { className: "discount-item" });
     const input = el("input", { className: "discount", type: "number", min: "0", max: "100", step: "1", placeholder: "%" });
     input.value = value || "";
-    wrap.appendChild(input);
+    wrap.appendChild(numberStepper(input, true));
 
     if (removable) {
       const remove = el("button", { className: "discount-remove", type: "button", title: "Remove discount", textContent: "-" });
@@ -263,7 +291,7 @@
     const qtyCell = el("td");
     const qty = el("input", { className: "qty", type: "number", min: "0", step: "1" });
     qty.value = data.qty ?? "";
-    qtyCell.appendChild(qty);
+    qtyCell.appendChild(numberStepper(qty));
 
     const rateCell = el("td");
     const rate = el("input", { className: "rate", type: "number", min: "0", step: "0.01" });
@@ -597,6 +625,10 @@
         rowsEl.querySelectorAll("tr").forEach(applyAutoQty);
         recalc();
       });
+    });
+    ["nights", "adults", "children", "infants"].forEach((id) => {
+      const input = $(id);
+      input.parentNode.appendChild(numberStepper(input));
     });
     ["ages", "spo"].forEach((id) => $(id).addEventListener("input", recalc));
 
