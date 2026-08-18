@@ -3,13 +3,11 @@ from pathlib import Path
 patch = Path('.github/patch_guest_gt.py')
 index = Path('index.html')
 p = patch.read_text(encoding='utf-8')
-
 repls = [
     ("function renderPicker(){\n    closePicker(); if(!pickerTarget)return;", "function renderPicker(){\n    if(picker){picker.remove();picker=null;} if(!pickerTarget)return;"),
     ("e.onclick=()=>{pickerTarget.value=val; pickerTarget.dispatchEvent(new Event('input',{bubbles:true})); closePicker();};", "e.onclick=()=>{const wasCheckin=pickerTarget.id==='checkin'; const selected=val; pickerTarget.value=selected; pickerTarget.dispatchEvent(new Event('input',{bubbles:true})); closePicker(); if(wasCheckin && $('checkout')) openPicker($('checkout'),selected);};"),
     ("function openPicker(input,monthHint){pickerTarget=input; const d=dateObj(input.value)||dateObj(monthHint)||new Date();", "function openPicker(input,monthHint){if(input.id==='checkout' && $('checkin').value)input.dataset.minDate=$('checkin').value; pickerTarget=input; const d=dateObj(input.value)||dateObj(monthHint)||new Date();"),
     ("} else if(id==='checkout') $('nights').value=calc(ci,co);", "} else if(id==='checkout'){if(ci&&co&&dateObj(co)<dateObj(ci)){$('checkout').value='';$('nights').value=0;}else $('nights').value=calc(ci,co);}"),
-    ("<td></td><td></td><td><input class=\"nights\"", "<td><input class=\"from\" type=\"text\"></td><td><input class=\"to\" type=\"text\"></td><td><input class=\"nights\"")
 ]
 for a,b in repls:
     p = p.replace(a,b)
@@ -22,3 +20,8 @@ p = p.replace(old,new)
 patch.write_text(p,encoding='utf-8')
 js_start=p.index("js = r'''")+len("js = r'''"); js_end=p.index("'''",js_start); js=p[js_start:js_end]
 s=index.read_text(encoding='utf-8'); marker='/* HOTEL CALCULATOR v2 override */'; start=s.index(marker); end=s.index('</script>',start); index.write_text(s[:start]+js+'\n'+s[end:],encoding='utf-8')
+
+# Repair the live embedded addRow template directly, even if the earlier patch text differs.
+s=index.read_text(encoding='utf-8')
+s=s.replace('<td></td><td></td><td><input class="nights"', '<td><input class="from" type="text"></td><td><input class="to" type="text"></td><td><input class="nights"')
+index.write_text(s,encoding='utf-8')
