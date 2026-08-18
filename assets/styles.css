@@ -315,120 +315,12 @@ td select {
   justify-content: space-between;
 }
 
-.share-tabs {
-  display: inline-flex;
-  gap: 4px;
-  margin: 6px 0 12px;
-  padding: 3px;
-  border-radius: 7px;
-  background: #eef3f8;
-}
-
-.share-tabs button {
-  min-width: 78px;
-  padding: 7px 10px;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--navy);
-  font-size: 12px;
-}
-
-.share-tabs button.active {
-  background: var(--navy);
-  color: #fff;
-}
-
 .share-preview {
   white-space: pre-wrap;
   border-radius: 7px;
   padding: 15px;
   background: #f7f8fa;
   font: 14px/1.45 Consolas, monospace;
-}
-
-.share-table-wrap {
-  overflow: auto;
-}
-
-.share-table-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 18px;
-  margin-bottom: 10px;
-  color: var(--navy);
-  font-size: 13px;
-}
-
-.share-table {
-  min-width: 760px;
-  border: 1px solid var(--line);
-}
-
-.share-rate-table {
-  border-collapse: separate;
-  border-spacing: 2px;
-  background: #c8cdd3;
-}
-
-.share-table th {
-  background: #fff;
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 400;
-  text-align: left;
-}
-
-.share-table td {
-  padding: 6px;
-  background: #fff;
-  color: #111;
-  font-size: 18px;
-  line-height: 1.15;
-}
-
-.share-rate-table th,
-.share-rate-table td {
-  border: 1px solid #aeb4bb;
-}
-
-.share-rate-table th:nth-child(2),
-.share-rate-table td:nth-child(2),
-.share-rate-table th:nth-child(5),
-.share-rate-table td:nth-child(5) {
-  width: 58px;
-}
-
-.share-rate-table th:nth-child(3),
-.share-rate-table td:nth-child(3),
-.share-rate-table th:nth-child(4),
-.share-rate-table td:nth-child(4) {
-  width: 130px;
-}
-
-.share-rate-table th:nth-child(6),
-.share-rate-table td:nth-child(6),
-.share-rate-table th:nth-child(7),
-.share-rate-table td:nth-child(7) {
-  width: 145px;
-}
-
-.share-rate-table td:nth-child(2),
-.share-rate-table td:nth-child(5) {
-  text-align: center;
-}
-
-.share-rate-table td:nth-child(6),
-.share-rate-table td:nth-child(7) {
-  text-align: right;
-}
-
-.share-rate-table .subtotal-row td,
-.share-rate-table .grand-row td {
-  height: 36px;
-}
-
-.share-rate-table .grand-row td {
-  font-weight: 700;
 }
 
 .calendar {
