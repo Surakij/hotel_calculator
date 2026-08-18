@@ -129,9 +129,13 @@
     return [...rowsEl.querySelectorAll("tr")].map(rowData).filter((row) => row.type || row.item || row.rate);
   }
 
+  function isPersonExtra(row) {
+    return row.type === "EXTRA" && /(adult|child)/i.test(row.item || "");
+  }
+
   function isGlobalDateRow(tr) {
     const data = rowData(tr);
-    return data.type === "ROOM" || data.type === "MEAL" || core.isGreenTax(data);
+    return data.type === "ROOM" || data.type === "MEAL" || core.isGreenTax(data) || isPersonExtra(data);
   }
 
   function applyAutoQty(tr) {
@@ -278,6 +282,7 @@
 
     const type = tr.querySelector(".type");
     type.addEventListener("change", () => {
+      item.value = "";
       item.setAttribute("list", type.value ? `list_${type.value}` : "");
       tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
       applyAutoQty(tr);
@@ -289,6 +294,7 @@
       applyAutoQty(tr);
       recalc();
     });
+    item.addEventListener("focus", () => item.select());
 
     tr.querySelectorAll(".from,.to").forEach((input) => {
       input.addEventListener("input", () => cleanDateInput(input));
@@ -537,6 +543,20 @@
     }
 
     picker.appendChild(grid);
+
+    const actions = el("div", { className: "calendar-actions" });
+    const clear = el("button", { type: "button", textContent: "Clear date" });
+    clear.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      pickerInput.value = "";
+      if (!GLOBAL_DATE_IDS.has(pickerInput.id)) pickerInput.closest("tr").dataset.followGlobal = "0";
+      closePicker();
+      recalc();
+    });
+    actions.appendChild(clear);
+    picker.appendChild(actions);
+
     positionPicker();
   }
 
