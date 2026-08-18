@@ -393,12 +393,15 @@
   }
 
   function shareTableHtml(table) {
-    const rows = table.rows.map((row) => `
-      <tr>
-        <td>${escapeHtml(row.dates)}</td>
-        <td>${escapeHtml(row.service)}</td>
-        <td>${escapeHtml(row.formula)}</td>
-        <td>${core.money(row.net)}</td>
+    const rows = table.layoutRows.map((row) => `
+      <tr class="${row.kind === "grand" ? "grand-row" : row.kind === "subtotal" ? "subtotal-row" : ""}">
+        <td>${escapeHtml(row.label)}</td>
+        <td>${escapeHtml(row.qty)}</td>
+        <td>${escapeHtml(row.arr)}</td>
+        <td>${escapeHtml(row.dep)}</td>
+        <td>${escapeHtml(row.nights)}</td>
+        <td>${escapeHtml(row.rate)}</td>
+        <td>${escapeHtml(row.total)}</td>
       </tr>
     `).join("");
 
@@ -408,22 +411,19 @@
         <span>${escapeHtml(table.stay)} · ${table.nights}N · ${escapeHtml(table.pax)}</span>
         ${table.spo ? `<span>SPO: ${escapeHtml(table.spo)}</span>` : ""}
       </div>
-      <table class="share-table">
+      <table class="share-table share-rate-table">
         <thead>
           <tr>
-            <th>DATES</th>
-            <th>SERVICE</th>
-            <th>CALCULATION</th>
-            <th>NET USD</th>
+            <th>Room type</th>
+            <th>QTY</th>
+            <th>ARR</th>
+            <th>DEP</th>
+            <th>Nights</th>
+            <th>Rate</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3">TOTAL</td>
-            <td>${core.money(table.total)}</td>
-          </tr>
-        </tfoot>
       </table>
     `;
   }
@@ -435,11 +435,10 @@
     ];
     if (table.spo) lines.push(["SPO", table.spo]);
     lines.push([]);
-    lines.push(["Dates", "Service", "Calculation", "Net USD"]);
-    table.rows.forEach((row) => {
-      lines.push([row.dates, row.service, row.formula, core.money(row.net)]);
+    lines.push(["Room type", "QTY", "ARR", "DEP", "Nights", "Rate", "Total"]);
+    table.layoutRows.forEach((row) => {
+      lines.push([row.label, row.qty, row.arr, row.dep, row.nights, row.rate, row.total]);
     });
-    lines.push(["", "", "TOTAL", core.money(table.total)]);
     return lines.map((row) => row.join("\t")).join("\n");
   }
 
