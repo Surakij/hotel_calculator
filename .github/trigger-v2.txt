@@ -1,1 +1,1 @@
-trigger calculator v2 final
+trigger calculator row init fix
