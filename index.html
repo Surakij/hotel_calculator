@@ -253,7 +253,7 @@ function closeShare(){shareModal.style.display="none"}async function copyShare()
   function addRow(data={}){
     const tr=document.createElement('tr'); tr.dataset.type=data.type||''; tr.dataset.defaultDates=(data.defaultDates?'1':'0');
     tr.dataset.autoDates=(data.type==='ROOM'||data.type==='MEAL'||data.type==='EXTRA'&&/^green tax$/i.test(data.item||''))?'1':'0';
-    tr.innerHTML=`<td><select class="type">${typeOptions(data.type||"")}</select></td><td><input class="item" value="${escapeHtml(data.item||"")}" placeholder="Choose or type manually"></td><td></td><td></td><td><input class="nights" readonly></td><td><input class="qty" type="number" min="0" step="1" value="${data.qty??""}"></td><td><input class="rate" type="number" min="0" step="0.01" value="${data.rate??""}"></td><td class="discounts"></td><td class="net">0.00</td><td><button class="delete">×</button></td>`;
+    tr.innerHTML=`<td><select class="type">${typeOptions(data.type||"")}</select></td><td><input class="item" value="${escapeHtml(data.item||"")}" placeholder="Choose or type manually"></td><td><input class="from" type="text"></td><td><input class="to" type="text"></td><td><input class="nights" readonly></td><td><input class="qty" type="number" min="0" step="1" value="${data.qty??""}"></td><td><input class="rate" type="number" min="0" step="0.01" value="${data.rate??""}"></td><td class="discounts"></td><td class="net">0.00</td><td><button class="delete">×</button></td>`;
     ROWS.appendChild(tr);
     const from=makeDateInput('from',data.from||'',()=>rowDateChanged(tr)); const to=makeDateInput('to',data.to||'',()=>rowDateChanged(tr)); tr.children[2].appendChild(from); tr.children[3].appendChild(to);
     setupDiscounts(tr,data);
