@@ -16,6 +16,7 @@
   let picker = null;
   let pickerInput = null;
   let pickerMonth = null;
+  let shareMode = "text";
   const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(2026, index, 1).toLocaleString("en-US", { month: "long" }));
 
   function el(tag, options = {}) {
@@ -370,6 +371,11 @@
     return core.buildShareText(sharePayload());
   }
 
+  function shareTable() {
+    recalc();
+    return core.buildShareTable(sharePayload());
+  }
+
   function shareHtml(text) {
     return text.split("\n").map((line) => {
       const escaped = escapeHtml(line);
@@ -386,13 +392,80 @@
     }).join("\n");
   }
 
-  function showShare() {
+  function shareTableHtml(table) {
+    const rows = table.rows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.dates)}</td>
+        <td>${escapeHtml(row.service)}</td>
+        <td>${escapeHtml(row.formula)}</td>
+        <td>${core.money(row.net)}</td>
+      </tr>
+    `).join("");
+
+    return `
+      <div class="share-table-meta">
+        <strong>${escapeHtml(table.hotel)}</strong>
+        <span>${escapeHtml(table.stay)} · ${table.nights}N · ${escapeHtml(table.pax)}</span>
+        ${table.spo ? `<span>SPO: ${escapeHtml(table.spo)}</span>` : ""}
+      </div>
+      <table class="share-table">
+        <thead>
+          <tr>
+            <th>DATES</th>
+            <th>SERVICE</th>
+            <th>CALCULATION</th>
+            <th>NET USD</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">TOTAL</td>
+            <td>${core.money(table.total)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+  }
+
+  function shareTableText(table) {
+    const lines = [
+      ["Hotel", table.hotel],
+      ["Stay", `${table.stay} · ${table.nights}N · ${table.pax}`],
+    ];
+    if (table.spo) lines.push(["SPO", table.spo]);
+    lines.push([]);
+    lines.push(["Dates", "Service", "Calculation", "Net USD"]);
+    table.rows.forEach((row) => {
+      lines.push([row.dates, row.service, row.formula, core.money(row.net)]);
+    });
+    lines.push(["", "", "TOTAL", core.money(table.total)]);
+    return lines.map((row) => row.join("\t")).join("\n");
+  }
+
+  function setShareMode(mode) {
+    shareMode = mode;
+    const isTable = mode === "table";
+    $("shareTextTab").classList.toggle("active", !isTable);
+    $("shareTableTab").classList.toggle("active", isTable);
+    $("shareText").hidden = isTable;
+    $("shareTable").hidden = !isTable;
+    $("downloadShareModal").textContent = isTable ? "DOWNLOAD .TSV" : "DOWNLOAD .TXT";
+  }
+
+  function renderShare() {
     $("shareText").innerHTML = shareHtml(shareText());
+    $("shareTable").innerHTML = shareTableHtml(shareTable());
+  }
+
+  function showShare() {
+    renderShare();
+    setShareMode(shareMode);
     $("shareModal").showModal();
   }
 
   async function copyShare() {
-    const text = shareText();
+    const text = shareMode === "table" ? shareTableText(shareTable()) : shareText();
     try {
       await navigator.clipboard.writeText(text);
       toast("Calculation copied to clipboard");
@@ -408,12 +481,13 @@
   }
 
   function downloadShare() {
-    const text = shareText();
+    const tableMode = shareMode === "table";
+    const text = tableMode ? shareTableText(shareTable()) : shareText();
     const hotel = (value("hotel") || "Hotel").replace(/[^a-z0-9]+/gi, "_");
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const link = el("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${hotel}_calculation.txt`;
+    link.download = `${hotel}_calculation.${tableMode ? "tsv" : "txt"}`;
     link.click();
     URL.revokeObjectURL(link.href);
     toast("Short calculation downloaded");
@@ -596,6 +670,8 @@
     $("copyShare").addEventListener("click", copyShare);
     $("downloadShare").addEventListener("click", downloadShare);
     $("downloadShareModal").addEventListener("click", downloadShare);
+    $("shareTextTab").addEventListener("click", () => setShareMode("text"));
+    $("shareTableTab").addEventListener("click", () => setShareMode("table"));
     $("closeShare").addEventListener("click", () => $("shareModal").close());
     document.addEventListener("click", (event) => {
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
@@ -607,5 +683,5 @@
   buildLists();
   wireEvents();
   createDefaultRows();
-  window.HotelCalculatorApp = { addRow, recalc, shareText };
+  window.HotelCalculatorApp = { addRow, recalc, shareText, shareTable };
 })();
