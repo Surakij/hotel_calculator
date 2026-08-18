@@ -1,822 +1,111 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hotel Calculation</title>
-<style>
-:root{--navy:#17365d;--blue:#2f80d1;--green:#4caf50;--purple:#8064c8;--orange:#ed7d31;--gold:#d4a500;--line:#d8dee6;--bg:#f4f7fa}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);font-family:Segoe UI,Arial,sans-serif;color:#1f2937}
-.app{max-width:1450px;margin:28px auto;padding:0 22px}
-.title{background:var(--navy);color:white;padding:18px 22px;font-size:22px;font-weight:700;border-radius:10px 10px 0 0}
-.cards{display:grid;grid-template-columns:1.6fr 1fr 1fr .65fr 1.25fr;gap:10px;background:white;padding:14px;border:1px solid var(--line);border-top:0}
-.card label,.guest label{display:block;font-size:11px;font-weight:700;color:var(--navy);margin-bottom:5px}
-.card input,.guest input{width:100%;height:38px;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:white}
-.total input{font-size:18px;font-weight:700;color:var(--navy)}
-.guests{display:grid;grid-template-columns:100px 110px 100px 1fr 1.4fr;gap:10px;background:white;padding:0 14px 14px;border:1px solid var(--line);border-top:0}
-.guest{background:#f8fafc;border:1px solid var(--line);padding:9px;border-radius:6px}
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:14px;background:white;border:1px solid var(--line);padding:10px 12px;border-radius:7px}
-.hint{font-size:12px;color:#6b7280}.actions{display:flex;gap:8px}
-button{border:0;border-radius:6px;padding:9px 14px;font-weight:700;cursor:pointer}
-.add{background:var(--navy);color:white}.clear{background:#b42318;color:white}.share{background:var(--green);color:white}.download{background:var(--blue);color:white}
-.table-wrap{margin-top:8px;background:white;border:1px solid var(--line);border-radius:7px;overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:1280px}
-th{background:var(--navy);color:white;font-size:11px;padding:9px 7px;text-align:center}
-td{border-top:1px solid var(--line);padding:5px 6px;background:white}
-tr:nth-child(even) td{background:#f8fafc}
-td input,td select{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px}.discounts{display:flex !important;flex-direction:row !important;align-items:center;gap:4px;min-width:0}.discount-item{display:flex;align-items:center;gap:2px;flex:0 0 auto}.discounts .discount{width:58px !important;min-width:58px !important;height:32px;padding:3px;text-align:center}.discount-add,.discount-remove{width:24px;height:24px;padding:0;border-radius:50%;font-size:15px;line-height:24px;text-align:center}.discount-add{background:#e9eef5;color:#17365d}.discount-remove{background:#f3f4f6;color:#b42318}.discounts .discount-item:first-child .discount-remove{display:none}
-.net{font-weight:700;text-align:right}.delete{background:#f3f4f6;color:#b42318;padding:5px 8px}
-.footer{display:flex;justify-content:flex-end;margin-top:10px}
-.grand{background:var(--navy);color:white;padding:11px 16px;border-radius:6px;font-weight:700}.grand span{font-size:18px;margin-left:14px}
-#toast{position:fixed;right:22px;bottom:22px;background:#17365d;color:white;padding:12px 16px;border-radius:7px;display:none;box-shadow:0 5px 20px #0002}
-.modal{display:none;position:fixed;inset:0;background:#0006;align-items:center;justify-content:center}
-.modal-box{background:white;width:min(900px,92vw);max-height:85vh;overflow:auto;border-radius:10px;padding:18px}
-.modal-head{display:flex;justify-content:space-between;align-items:center}.share-preview{white-space:pre-wrap;font:14px/1.45 Consolas,monospace;background:#f7f8fa;padding:15px;border-radius:7px}
-.close{background:#eee}
-@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.guests{grid-template-columns:1fr 1fr}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hotel Calculation</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/core.js" defer></script>
+  <script src="assets/app.js" defer></script>
 </head>
 <body>
-<div class="app">
-<div class="title">HOTEL CALCULATION</div>
-<div class="cards">
-  <div class="card"><label>HOTEL</label><input id="hotel" list="hotelList" value="" placeholder="Choose or type hotel"></div>
-  <div class="card"><label>CHECK-IN</label><input id="checkin" type="date" value=""></div>
-  <div class="card"><label>CHECK-OUT</label><input id="checkout" type="date" value=""></div>
-  <div class="card"><label>NIGHTS</label><input id="nights" readonly></div>
-  <div class="card total"><label>TOTAL NET (USD)</label><input id="topTotal" readonly></div>
-</div>
-<div class="guests">
-  <div class="guest"><label>ADULTS</label><input id="adults" type="number" min="0" value="0"></div>
-  <div class="guest"><label>CHILDREN</label><input id="children" type="number" min="0" value="0"></div>
-  <div class="guest"><label>INFANTS</label><input id="infants" type="number" min="0" value="0"></div>
-  <div class="guest"><label>CHILD AGES</label><input id="ages" value="" placeholder="e.g. 2, 6, 9"></div>
-  <div class="guest"><label>SPO</label><input id="spo" value="" placeholder="Enter SPO code"></div>
-</div>
-<div class="toolbar">
-  <div class="hint">One row = one charge / rate period. TYPE → ITEM. Manual entry is allowed.</div>
-  <div class="actions">
-    <button class="add" onclick="addRow()">+ ADD ROW</button><button class="clear" onclick="clearAll()">CLEAR ALL</button>
-    <button class="share" onclick="showShare()">COPY SHARE</button>
-    <button class="download" onclick="downloadShare()">DOWNLOAD SHARE</button>
-  </div>
-</div>
-<div class="table-wrap">
-<table><thead><tr><th>TYPE</th><th>ITEM / DESCRIPTION</th><th>FROM</th><th>TO</th><th>NIGHTS</th><th>QTY</th><th>RATE (USD)</th><th>DISCOUNTS %</th><th>NET (USD)</th><th></th></tr></thead><tbody id="rows"></tbody></table>
-</div>
-<div class="footer"><div class="grand">GRAND TOTAL NET <span id="grandTotal">$0.00</span></div></div>
-</div>
-<datalist id="hotelList"></datalist>
-<div id="toast"></div>
-<div class="modal" id="shareModal"><div class="modal-box"><div class="modal-head"><h2>Short Share Version</h2><button class="close" onclick="closeShare()">Close</button></div><div id="shareText" class="share-preview"></div><div class="actions"><button class="share" onclick="copyShare()">COPY TO CLIPBOARD</button><button class="download" onclick="downloadShare()">DOWNLOAD .TXT</button></div></div></div>
-<script>
-const LISTS={HOTEL:["Ozen Bolifushi","Ozen Life Maadhoo"],ROOM:["2 Bedroom Suite","Ocean Pool Suite SUNSET","Beach Pool Villa"],MEAL:["BB - Adult","BB - Child","HB - Adult","HB - Child","FB - Adult","FB - Child","AI - Adult","AI - Child","AI Luxury - Adult","AI Luxury - Child","Cristal AI - Adult","Cristal AI - Child"],TRANSFER:["Seaplane - Adult","Seaplane - Child","Seaplane OW - Adult","Seaplane OW - Child","Domestic - Adult","Domestic - Child","Domestic OW - Adult","Domestic OW - Child","Speedboat - Adult","Speedboat - Child","Speedboat OW - Adult","Speedboat OW - Child"],DINNER:["Christmas Gala Dinner - Adult","Christmas Gala Dinner - Child","New Year Gala Dinner - Adult","New Year Gala Dinner - Child"],EXTRA:["Extra Adult","Extra Child","Green Tax"]};
-const colors={ROOM:"#2f80d1",MEAL:"#4caf50",TRANSFER:"#8064c8",DINNER:"#ed7d31",EXTRA:"#d4a500"};
-function fmt(n){return Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
-function calcNights(a,b){if(!a||!b)return 0;const x=new Date(a+"T00:00:00"),y=new Date(b+"T00:00:00");return Math.max(0,Math.round((y-x)/86400000))}
-function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
-function typeOptions(selected=""){return `<option value=""></option>`+Object.keys(LISTS).filter(x=>x!=="HOTEL").map(x=>`<option ${x===selected?"selected":""}>${x}</option>`).join("")}
-function addDiscountField(container,value=0,removable=true){const wrap=document.createElement("span");wrap.className="discount-item";const input=document.createElement("input");input.className="discount";input.type="number";input.min="0";input.max="100";input.step="1";input.value=value;input.placeholder="%";wrap.appendChild(input);if(removable){const remove=document.createElement("button");remove.type="button";remove.className="discount-remove";remove.textContent="−";remove.title="Remove discount";remove.onclick=()=>{wrap.remove();recalc()};wrap.appendChild(remove)}container.appendChild(wrap);return input}
-function setupDiscounts(tr,data={}){const container=tr.querySelector(".discounts");container.innerHTML="";const values=[data.d1??data.discount??0,data.d2??0,data.d3??0,data.d4??0];let count=1;for(let i=1;i<values.length;i++)if(Number(values[i])>0)count=i+1;for(let i=0;i<count;i++)addDiscountField(container,values[i],i>0);const add=document.createElement("button");add.type="button";add.className="discount-add";add.textContent="+";add.title="Add another discount";add.onclick=()=>{if(container.querySelectorAll(".discount").length<4){addDiscountField(container,0,true);recalc()}};container.appendChild(add)}
-function addRow(data={}){const tr=document.createElement("tr");tr.dataset.type=data.type||"";tr.innerHTML=`<td><select class="type">${typeOptions(data.type||"")}</select></td><td><input class="item" list="" value="${escapeHtml(data.item||"")}" placeholder="Choose or type manually"></td><td><input class="from" type="date" value="${data.from||""}"></td><td><input class="to" type="date" value="${data.to||""}"></td><td><input class="nights" readonly></td><td><input class="qty" type="number" min="0" step="1" value="${data.qty??""}"></td><td><input class="rate" type="number" min="0" step="0.01" value="${data.rate??""}"></td><td class="discounts"></td><td class="net">0.00</td><td><button class="delete">×</button></td>`;document.getElementById("rows").appendChild(tr);setupDiscounts(tr,data);const type=tr.querySelector(".type"),item=tr.querySelector(".item");const setType=()=>{tr.dataset.type=type.value;item.setAttribute("list","list_"+type.value);applyAutoQty(tr);recalc()};type.addEventListener("change",setType);type.addEventListener("input",setType);item.addEventListener("input",()=>{applyAutoQty(tr);recalc()});tr.querySelector(".discounts").addEventListener("input",()=>recalc());[".from",".to",".qty",".rate"].forEach(sel=>tr.querySelector(sel).addEventListener("input",()=>recalc()));tr.querySelector(".delete").addEventListener("click",()=>{tr.remove();recalc()});item.setAttribute("list","list_"+(data.type||""));applyAutoQty(tr);recalc()}
-function applyAutoQty(tr){const type=tr.dataset.type,item=(tr.querySelector(".item").value||"").toLowerCase();if(["MEAL","TRANSFER","DINNER"].includes(type)){if(item.includes("adult"))tr.querySelector(".qty").value=document.getElementById("adults").value||0;else if(item.includes("child"))tr.querySelector(".qty").value=document.getElementById("children").value||0;else if(item.includes("infant"))tr.querySelector(".qty").value=document.getElementById("infants").value||0}if(type==="EXTRA"&&/^green tax$/i.test(tr.querySelector(".item").value||"")){const pax=(Number(document.getElementById("adults").value)||0)+(Number(document.getElementById("children").value)||0);tr.querySelector(".qty").value=pax;if(!tr.querySelector(".rate").value)tr.querySelector(".rate").value=12}}
-function getDiscounts(tr){return [...tr.querySelectorAll(".discount")].map(el=>parseFloat(el.value)||0).filter(x=>x>0)}
-function applyDiscounts(value,discounts){let result=value;discounts.forEach(d=>{result=result*(1-d/100)});return result}
-function syncStayDates(){const cin=document.getElementById("checkin").value,cout=document.getElementById("checkout").value;document.querySelectorAll("#rows tr").forEach(tr=>{const type=tr.dataset.type||tr.querySelector(".type").value;if(["ROOM","MEAL","EXTRA"].includes(type)){tr.querySelector(".from").value=cin;tr.querySelector(".to").value=cout}})}
-function recalc(){syncStayDates();document.getElementById("nights").value=calcNights(checkin.value,checkout.value);let total=0;document.querySelectorAll("#rows tr").forEach(tr=>{const n=calcNights(tr.querySelector(".from").value,tr.querySelector(".to").value);tr.querySelector(".nights").value=n;const q=parseFloat(tr.querySelector(".qty").value),rate=parseFloat(tr.querySelector(".rate").value),discounts=getDiscounts(tr),base=(isFinite(q)&&isFinite(rate))?(n||1)*q*rate:0,net=applyDiscounts(base,discounts);tr.querySelector(".net").textContent=fmt(net);total+=net;tr.querySelector(".type").style.background=colors[tr.dataset.type]||"";tr.querySelector(".type").style.color=tr.dataset.type?"white":""});grandTotal.textContent="$"+fmt(total);topTotal.value=fmt(total)}
-function currentRows(){return [...document.querySelectorAll("#rows tr")].map(tr=>{const type=tr.dataset.type||tr.querySelector(".type").value,item=tr.querySelector(".item").value,from=tr.querySelector(".from").value,to=tr.querySelector(".to").value,nights=calcNights(from,to),qty=parseFloat(tr.querySelector(".qty").value)||0,rate=parseFloat(tr.querySelector(".rate").value)||0,discounts=getDiscounts(tr),base=(nights||1)*qty*rate;return{type,item,from,to,nights,qty,rate,discounts,net:applyDiscounts(base,discounts)}}).filter(x=>x.type||x.item||x.rate)}
-function dshort(s){if(!s)return"";const [y,m,d]=s.split("-");return `${d}.${m}`}
-function expr(x){let s=`${x.rate?fmt(x.rate).replaceAll(",",""):"0"}*${x.qty}`;if(x.nights>0)s+=`*${x.nights}`;(x.discounts||[]).forEach(d=>s+=`-${d}%`);return s}
-function shareText(){
- recalc();
- const hotel=(document.getElementById("hotel").value||"Hotel").toUpperCase();
- const cin=dshort(checkin.value),cout=dshort(checkout.value),n=nights.value;
- const ad=adults.value||0,ch=children.value||0,inf=infants.value||0,ages=document.getElementById("ages").value,spo=document.getElementById("spo").value.trim();
- const rows=currentRows();
- let pax=`${ad}ADL`;
- if(Number(ch)>0)pax+=`+${ch}CHD${ages?"("+ages.replace(/\s+/g,"")+")":""}`;
- if(Number(inf)>0)pax+=`+${inf}INF`;
- const out=[hotel,`${cin}-${cout} · ${n}N · ${pax}`];
- if(spo)out.push(`SPO: ${spo}`);
- out.push("");
-
- const rooms=rows.filter(x=>x.type==="ROOM");
- const extras=rows.filter(x=>x.type==="EXTRA" && !/^green tax$/i.test(x.item));
- const green=rows.filter(x=>x.type==="EXTRA" && /^green tax$/i.test(x.item));
- const usedExtra=new Set();
-
- rooms.forEach(room=>{
-   out.push(`${dshort(room.from)} - ${dshort(room.to)} : ${room.item} : ${expr(room)} = ${fmt(room.net)}`);
-   const matching=extras.filter(x=>x.from===room.from && x.to===room.to && !usedExtra.has(x));
-   const adl=matching.filter(x=>/adult/i.test(x.item));
-   const chd=matching.filter(x=>/child/i.test(x.item));
-   const rest=matching.filter(x=>!adl.includes(x)&&!chd.includes(x));
-   [...adl,...chd,...rest].forEach(x=>{
-     const label=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
-     out.push(`${label} : ${expr(x)} = ${fmt(x.net)}`); usedExtra.add(x);
-   });
- });
- extras.filter(x=>!usedExtra.has(x)).forEach(x=>{
-   const label=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
-   out.push(`${label} : ${expr(x)} = ${fmt(x.net)}`);
- });
-
- const meals=rows.filter(x=>x.type==="MEAL");
- const mealGroups=[];
- meals.forEach(x=>{
-   const base=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
-   const key=[base,x.from,x.to,(x.discounts||[]).join(",")].join("|");
-   let g=mealGroups.find(z=>z.key===key); if(!g){g={key,base,rows:[]};mealGroups.push(g)} g.rows.push(x);
- });
- mealGroups.forEach(g=>{
-   const parts=g.rows.map(x=>`${fmt(x.rate).replaceAll(",","")}*${x.qty}`);
-   let formula=parts.length>1?`(${parts.join("+")})`:parts[0];
-   if(g.rows[0].nights>0)formula+=`*${g.rows[0].nights}`;
-   (g.rows[0].discounts||[]).forEach(d=>formula+=`-${d}%`);
-   const total=g.rows.reduce((sum,x)=>sum+x.net,0);
-   out.push(`${dshort(g.rows[0].from)} - ${dshort(g.rows[0].to)} : ${g.base} : ${formula} = ${fmt(total)}`);
- });
-
- const dinners=rows.filter(x=>x.type==="DINNER");
- const dinnerGroups=[];
- dinners.forEach(x=>{
-   const base=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
-   const key=[base,x.from,x.to,(x.discounts||[]).join(",")].join("|");
-   let g=dinnerGroups.find(z=>z.key===key); if(!g){g={key,base,rows:[]};dinnerGroups.push(g)} g.rows.push(x);
- });
- dinnerGroups.forEach(g=>{
-   const parts=g.rows.map(x=>`${fmt(x.rate).replaceAll(",","")}*${x.qty}`);
-   let formula=parts.length>1?`(${parts.join("+")})`:parts[0];
-   if(g.rows[0].nights>0)formula+=`*${g.rows[0].nights}`;
-   (g.rows[0].discounts||[]).forEach(d=>formula+=`-${d}%`);
-   const total=g.rows.reduce((sum,x)=>sum+x.net,0);
-   out.push(`${g.base} : ${formula} = ${fmt(total)}`);
- });
-
- const transfers=rows.filter(x=>x.type==="TRANSFER");
- const transferGroups=[];
- transfers.forEach(x=>{
-   const base=x.item.replace(/\s*-\s*(Adult|Child|Infant)\s*$/i,"").trim();
-   const key=[base,x.from,x.to,(x.discounts||[]).join(",")].join("|");
-   let g=transferGroups.find(z=>z.key===key); if(!g){g={key,base,rows:[]};transferGroups.push(g)} g.rows.push(x);
- });
- transferGroups.forEach(g=>{
-   const parts=g.rows.map(x=>`${fmt(x.rate).replaceAll(",","")}*${x.qty}`);
-   let formula=parts.length>1?`(${parts.join("+")})`:parts[0];
-   if(g.rows[0].nights>0)formula+=`*${g.rows[0].nights}`;
-   (g.rows[0].discounts||[]).forEach(d=>formula+=`-${d}%`);
-   const total=g.rows.reduce((sum,x)=>sum+x.net,0);
-   const isOW=/\bOW\b/i.test(g.base);
-   const prefix=isOW?`${dshort(g.rows[0].from)} - ${dshort(g.rows[0].to)} : `:"";
-   out.push(`${prefix}${g.base} : ${formula} = ${fmt(total)}`);
- });
-
- green.forEach(x=>out.push(`Green Tax : ${expr(x)} = ${fmt(x.net)}`));
- out.push("",`TOTAL: ${fmt(rows.reduce((s,x)=>s+x.net,0))} USD`);
- return out.join("\n");
-}
-
-function shareHtml(){
- const esc=s=>String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
- return shareText().split("\n").map(line=>{
-   if(!line.trim()||line.startsWith("SPO:")||line.startsWith("TOTAL:"))return esc(line);
-   let m=line.match(/^(\d{2}\.\d{2} - \d{2}\.\d{2}) : ([^:]+) : (.*)$/);
-   if(m)return `<strong>${esc(m[1])} : ${esc(m[2].trim())}</strong> : ${esc(m[3])}`;
-   m=line.match(/^([^:]+) : (.*)$/);
-   if(m)return `<strong>${esc(m[1].trim())}</strong> : ${esc(m[2])}`;
-   return esc(line);
- }).join("\n");
-}
-function showShare(){shareTextEl.innerHTML=shareHtml();shareModal.style.display="flex"}
-function closeShare(){shareModal.style.display="none"}async function copyShare(){const t=shareText();try{await navigator.clipboard.writeText(t);toast("Calculation copied to clipboard")}catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Calculation copied")}}function downloadShare(){const t=shareText(),hotel=(document.getElementById("hotel").value||"Hotel").replace(/[^a-z0-9]+/gi,"_");const blob=new Blob([t],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=hotel+"_calculation.txt";a.click();URL.revokeObjectURL(a.href);toast("Short calculation downloaded")}function clearAll(){if(!confirm("Clear the current calculation and start a new one?"))return;hotel.value="";checkin.value="";checkout.value="";adults.value=0;children.value=0;infants.value=0;ages.value="";spo.value="";createDefaultRows();recalc();toast("Calculation cleared")}function toast(s){const x=document.getElementById("toast");x.textContent=s;x.style.display="block";setTimeout(()=>x.style.display="none",2200)}function buildLists(){hotelList.innerHTML=LISTS.HOTEL.map(x=>`<option value="${escapeHtml(x)}">`).join("");Object.keys(LISTS).filter(x=>x!=="HOTEL").forEach(type=>{const d=document.createElement("datalist");d.id="list_"+type;d.innerHTML=LISTS[type].map(x=>`<option value="${escapeHtml(x)}">`).join("");document.body.appendChild(d)})}["checkin","checkout","adults","children","infants","ages","spo"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{document.querySelectorAll("#rows tr").forEach(applyAutoQty);recalc()}));buildLists();function createDefaultRows(){document.getElementById("rows").innerHTML="";addRow({type:"ROOM",item:"",from:"",to:"",qty:1});addRow({type:"TRANSFER",item:"",from:"",to:"",qty:1});addRow({type:"EXTRA",item:"Green Tax",from:"",to:"",qty:0,rate:12})}createDefaultRows();recalc();const shareTextEl=document.getElementById("shareText"),shareModal=document.getElementById("shareModal");
-
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-</script>
-<script>
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-</script>
-<script>
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-</script>
-<script>
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-</script>
-<script>
-</script>
-<script>
-
-/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
-  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
-
-  /* Nights: editable number plus compact +/- controls. */
-  const nights=$('nights');
-  if(nights&&!nights.dataset.stepperReady){
-    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
-    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
-    const controls=document.createElement('div');controls.className='nights-controls';
-    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
-    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
-    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
-    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
-    nights.addEventListener('input',()=>setN(nights.value));
-  }
-
-  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
-  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
-  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
-  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
-  window.syncStayDates=syncStayDefaults;
-
-  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
-  syncStayDefaults();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
-    wrapped.__stayWrapped=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
-
-  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
-
-  const style=document.createElement('style');style.textContent=`
-    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
-    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
-    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
-    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
-    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
-    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
-    .nights-controls button:hover{background:#dce6f2}
-  `;document.head.appendChild(style);
-})();
-
-</script>
-<script>
-/* HOTEL CALCULATOR DATE / CALENDAR REBUILT */
-(function(){
-  const $=id=>document.getElementById(id), ROWS=$('rows');
-  if(!ROWS)return;
-  const pad=n=>String(n).padStart(2,'0');
-  function parseDate(v){
-    v=String(v||'').trim(); let y,m,d,x;
-    if((x=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v))){d=+x[1];m=+x[2];y=+x[3]}
-    else if((x=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v))){y=+x[1];m=+x[2];d=+x[3]}
-    else return null;
-    const dt=new Date(y,m-1,d);
-    return dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===d?dt:null;
-  }
-  const display=d=>d?`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`:'';
-  const iso=d=>d?`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`:'';
-  const nights=(a,b)=>{const x=parseDate(a),y=parseDate(b);return x&&y?Math.max(0,Math.round((y-x)/86400000)):0};
-  const addDays=(v,n)=>{const d=parseDate(v);if(!d)return '';d.setDate(d.getDate()+Number(n||0));return display(d)};
-  const money=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const discounts=tr=>[...tr.querySelectorAll('.discount')].map(x=>+x.value||0).filter(x=>x>0);
-  const applyDiscounts=(v,ds)=>ds.reduce((x,d)=>x*(1-d/100),v);
-  const globalType=tr=>{const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item));};
-
-  let picker=null, pickerInput=null, pickerRow=null, pickerMode='global', pickerMonth=null;
-  function closePicker(){if(picker){picker.remove();picker=null;}}
-  function stop(e){e.preventDefault();e.stopPropagation();}
-
-  function setGlobalDate(input,value){
-    input.value=value;
-    const ci=$('checkin'),co=$('checkout'),n=$('nights');
-    if(input===ci){
-      const nn=+n.value||0;
-      if(nn>0)co.value=addDays(value,nn); else if(co.value&&parseDate(co.value)&&parseDate(co.value)>=parseDate(value))n.value=nights(value,co.value); else co.value='';
-    }else{
-      const a=parseDate(ci.value),b=parseDate(value);
-      if(a&&b&&b<a){co.value='';n.value=0;}else n.value=nights(ci.value,value);
-    }
-    syncDefaults(); recalcFinal();
-    if(input===ci){
-      // After check-in, open check-out as the next step.
-      openPicker(co,true);
-    }else closePicker();
-  }
-
-  function setRowDate(input,value){
-    input.value=value;
-    const tr=input.closest('tr');
-    if(tr)tr.dataset.defaultDates='0';
-    recalcFinal();
-    closePicker();
-  }
-
-  function renderCalendar(){
-    if(!picker)return;
-    picker.innerHTML='';
-    const head=document.createElement('div');head.className='hc-cal-head';
-    const prev=document.createElement('button'),next=document.createElement('button'),title=document.createElement('strong');
-    prev.type=next.type='button';prev.textContent='‹';next.textContent='›';
-    title.textContent=pickerMonth.toLocaleString('en-US',{month:'long',year:'numeric'});
-    prev.addEventListener('click',e=>{stop(e);pickerMonth=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()-1,1);renderCalendar()});
-    next.addEventListener('click',e=>{stop(e);pickerMonth=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()+1,1);renderCalendar()});
-    head.append(prev,title,next);picker.append(head);
-    const grid=document.createElement('div');grid.className='hc-cal-grid';
-    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(v=>{const s=document.createElement('span');s.textContent=v;grid.append(s)});
-    const first=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),1),offset=(first.getDay()+6)%7;
-    for(let i=0;i<offset;i++){const s=document.createElement('span');s.className='empty';grid.append(s)}
-    const count=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()+1,0).getDate();
-    const minDate=pickerMode==='row'&&pickerRow?.classList.contains('to')?parseDate(pickerRow.closest('tr')?.querySelector('.from')?.value):pickerInput?.id==='checkout'?parseDate($('checkin')?.value):null;
-    const selected=parseDate(pickerMode==='row'?pickerRow?.value:pickerInput?.value);
-    for(let day=1;day<=count;day++){
-      const d=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),day),b=document.createElement('button');
-      b.type='button';b.textContent=day;
-      if(minDate&&d<minDate)b.disabled=true;
-      if(selected&&d.getTime()===selected.getTime())b.classList.add('selected');
-      b.addEventListener('click',e=>{stop(e);const v=display(d);pickerMode==='global'?setGlobalDate(pickerInput,v):setRowDate(pickerRow,v)});
-      grid.append(b);
-    }
-    picker.append(grid);
-  }
-
-  function openPicker(input,autoNext=false){
-    closePicker();pickerMode='global';pickerInput=input;pickerRow=null;
-    const d=parseDate(input.value)||parseDate($('checkin')?.value)||new Date();pickerMonth=new Date(d.getFullYear(),d.getMonth(),1);
-    picker=document.createElement('div');picker.className='hc-calendar';document.body.append(picker);renderCalendar();positionPicker(input);
-  }
-  function openRowPicker(input){
-    closePicker();pickerMode='row';pickerRow=input;pickerInput=null;
-    const d=parseDate(input.value)||parseDate($('checkin')?.value)||new Date();pickerMonth=new Date(d.getFullYear(),d.getMonth(),1);
-    picker=document.createElement('div');picker.className='hc-calendar';document.body.append(picker);renderCalendar();positionPicker(input);
-  }
-  function positionPicker(input){
-    const r=input.getBoundingClientRect(),w=270;picker.style.width=w+'px';let left=Math.min(Math.max(8,r.left),window.innerWidth-w-8),top=r.bottom+6;if(top+picker.offsetHeight>window.innerHeight-8)top=Math.max(8,r.top-picker.offsetHeight-6);picker.style.left=left+'px';picker.style.top=top+'px';}
-
-  function replaceGlobal(id){
-    const old=$(id);if(!old)return null;
-    const fresh=old.cloneNode(true);fresh.type='text';fresh.removeAttribute('readonly');fresh.className='global-date-final';fresh.placeholder='DD.MM.YYYY';fresh.value=display(parseDate(old.value));old.replaceWith(fresh);
-    fresh.addEventListener('input',()=>{fresh.value=fresh.value.replace(/[^\d.]/g,'').slice(0,10)});
-    fresh.addEventListener('blur',()=>{if(fresh.value&&!parseDate(fresh.value))fresh.value='';else if(fresh.value)fresh.value=display(parseDate(fresh.value));globalChanged(fresh)});
-    fresh.addEventListener('click',e=>{e.stopPropagation();openPicker(fresh)});
-    return fresh;
-  }
-  function globalChanged(input){
-    if(!parseDate(input.value)){recalcFinal();return;}
-    const ci=$('checkin'),co=$('checkout'),n=$('nights');
-    if(input===ci){const nn=+n.value||0;if(nn>0)co.value=addDays(input.value,nn);else if(parseDate(co.value))n.value=nights(ci.value,co.value)}
-    else {const a=parseDate(ci.value),b=parseDate(co.value);if(a&&b&&b<a){co.value='';n.value=0}else n.value=nights(ci.value,co.value)}
-    syncDefaults();recalcFinal();
-  }
-
-  function decorateRowDate(input,cls){
-    if(!input)return;
-    const fresh=input.cloneNode(true);fresh.type='text';fresh.removeAttribute('readonly');fresh.placeholder='DD.MM.YYYY';fresh.value=display(parseDate(input.value));fresh.className=input.className;fresh.dataset.rebuiltDate='1';input.replaceWith(fresh);
-    fresh.addEventListener('input',()=>fresh.value=fresh.value.replace(/[^\d.]/g,'').slice(0,10));
-    fresh.addEventListener('blur',()=>{if(fresh.value&&!parseDate(fresh.value))fresh.value='';else if(fresh.value)fresh.value=display(parseDate(fresh.value));fresh.closest('tr').dataset.defaultDates='0';recalcFinal()});
-    fresh.addEventListener('click',e=>{e.stopPropagation();openRowPicker(fresh)});
-  }
-  function decorateRows(){
-    ROWS.querySelectorAll('tr').forEach(tr=>{
-      const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=tr.querySelector('.item')?.value||'';
-      if(tr.dataset.defaultDates===undefined)tr.dataset.defaultDates=globalType(tr)?'1':'0';
-      const f=tr.querySelector('.from'),t=tr.querySelector('.to');
-      if(f&&!f.dataset.rebuiltDate)decorateRowDate(f,'from');
-      if(t&&!t.dataset.rebuiltDate)decorateRowDate(t,'to');
-    });
-    syncDefaults();applyTypeColors();
-  }
-  function syncDefaults(){
-    ROWS.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.defaultDates!=='1')return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||'';});
-  }
-
-  function recalcFinal(){
-    const ci=$('checkin')?.value||'',co=$('checkout')?.value||'';
-    if($('nights'))$('nights').value=nights(ci,co);
-    let total=0;
-    ROWS.querySelectorAll('tr').forEach(tr=>{
-      const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=tr.querySelector('.item')?.value||'';
-      const f=tr.querySelector('.from')?.value||'',t=tr.querySelector('.to')?.value||'',nn=nights(f,t);
-      const q=+tr.querySelector('.qty')?.value||0,r=+tr.querySelector('.rate')?.value||0;
-      let base=q*r;
-      if(type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item)))base*=nn;
-      else if(type==='EXTRA'&&f&&t)base*=nn;
-      const net=applyDiscounts(base,discounts(tr));
-      if(tr.querySelector('.nights'))tr.querySelector('.nights').value=nn;
-      if(tr.querySelector('.net'))tr.querySelector('.net').textContent=money(net);
-      total+=net;
-    });
-    if($('grandTotal'))$('grandTotal').textContent='$'+money(total);
-    if($('topTotal'))$('topTotal').value=money(total);
-    applyTypeColors();
-  }
-  window.recalc=recalcFinal;
-
-  function applyTypeColors(){
-    const colors={ROOM:'#2f80d1',MEAL:'#4caf50',TRANSFER:'#8064c8',DINNER:'#ed7d31',EXTRA:'#d4a500'};
-    ROWS.querySelectorAll('tr').forEach(tr=>{const sel=tr.querySelector('.type');if(!sel)return;const c=colors[tr.dataset.type||sel.value]||'';sel.style.background=c;sel.style.color=c?'white':'';});
-  }
-
-  function init(){
-    const ci=replaceGlobal('checkin'),co=replaceGlobal('checkout');if(!ci||!co)return;
-    if($('nights')){$('nights').readOnly=false;$('nights').type='number';$('nights').min='0';$('nights').step='1';$('nights').placeholder='0';$('nights').classList.add('plain-nights');$('nights').addEventListener('input',()=>{const v=Math.max(0,+$('nights').value||0);$('nights').value=v;if(ci.value&&v>0)co.value=addDays(ci.value,v);else if(ci.value&&!v)co.value='';syncDefaults();recalcFinal()});}
-    // Preserve existing rows. Only decorate them; do not delete/recreate them.
-    decorateRows();recalcFinal();
-    ROWS.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')){tr.dataset.type=e.target.value;if(globalType(tr)){tr.dataset.defaultDates='1';syncDefaults()}else tr.dataset.defaultDates='0';applyTypeColors();recalcFinal()}if(e.target.classList.contains('item')){if(globalType(tr)){tr.dataset.defaultDates='1';syncDefaults()}applyTypeColors();recalcFinal()}});
-    document.addEventListener('click',e=>{if(picker&&!picker.contains(e.target)&&e.target!==ci&&e.target!==co&&!e.target.classList.contains('from')&&!e.target.classList.contains('to'))closePicker()});
-    window.addEventListener('resize',closePicker);window.addEventListener('scroll',closePicker,true);
-  }
-  const st=document.createElement('style');st.textContent=`
-    .global-date-final,.from,.to{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px;background:#fff;box-sizing:border-box}
-    .global-date-final{height:38px;border-color:var(--line);border-radius:6px;padding:7px 9px}
-    .plain-nights{appearance:auto!important;-webkit-appearance:auto!important}
-    .hc-calendar{position:fixed;z-index:100000;background:#fff;border:1px solid #d8dee6;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px;box-sizing:border-box}
-    .hc-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.hc-cal-head button{width:30px;height:30px;border:0;border-radius:5px;background:#f1f3f5;font-size:20px;padding:0;cursor:pointer}.hc-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.hc-cal-grid span,.hc-cal-grid button{height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;box-sizing:border-box}.hc-cal-grid span{color:#6b7280}.hc-cal-grid .empty{visibility:hidden}.hc-cal-grid button{border:0;border-radius:4px;background:#fff;padding:0;cursor:pointer;color:#111}.hc-cal-grid button:hover:not(:disabled),.hc-cal-grid button.selected{background:#17365d;color:#fff}.hc-cal-grid button:disabled{color:#c5cbd3;cursor:not-allowed}
-  `;document.head.append(st);init();
-})();
-
-</script>
-<script>
-/* HOTEL CALCULATOR - STAY ENHANCEMENTS */
-(function(){
-  const $=id=>document.getElementById(id), rows=$('rows');
-  if(!rows)return;
-  const pad=n=>String(n).padStart(2,'0');
-  const parse=v=>{v=String(v||'').trim();let m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v),y,mo,d;if(m){d=+m[1];mo=+m[2];y=+m[3]}else{m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v);if(!m)return null;y=+m[1];mo=+m[2];d=+m[3]}const x=new Date(y,mo-1,d);return x.getFullYear()===y&&x.getMonth()===mo-1&&x.getDate()===d?x:null};
-  const display=d=>d?`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`:'';
-  const addDays=(v,n)=>{const d=parse(v);if(!d)return '';d.setDate(d.getDate()+Number(n||0));return display(d)};
-  const globalType=tr=>{const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item));};
-  const colors={ROOM:'#2f80d1',MEAL:'#4caf50',TRANSFER:'#8064c8',DINNER:'#ed7d31',EXTRA:'#d4a500'};
-  function colorRows(){rows.querySelectorAll('tr').forEach(tr=>{const sel=tr.querySelector('.type');if(!sel)return;const c=colors[tr.dataset.type||sel.value]||'';sel.style.background=c;sel.style.color=c?'white':'';});}
-  function defaultDates(tr){if(!tr)return;if(tr.dataset.defaultDates===undefined)tr.dataset.defaultDates=globalType(tr)?'1':'0';if(tr.dataset.defaultDates==='1'){const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||'';}}
-  function markManual(tr){if(tr)tr.dataset.defaultDates='0';}
-  function setNights(v){const n=$('nights'),ci=$('checkin'),co=$('checkout');if(!n)return;v=Math.max(0,Math.min(365,parseInt(v,10)||0));n.value=v;if(ci&&co&&parse(ci.value))co.value=v?addDays(ci.value,v):'';if(typeof window.recalc==='function')window.recalc();}
-
-  const n=$('nights');
-  if(n){n.readOnly=false;n.type='number';n.min='0';n.max='365';n.step='1';n.addEventListener('input',()=>setNights(n.value));}
-
-  function rowCalendar(input){
-    let picker=document.querySelector('.hc-row-picker');if(picker)picker.remove();
-    const tr=input.closest('tr'),isTo=input.classList.contains('to');
-    const current=parse(input.value)||parse($('checkin')?.value)||new Date();let month=new Date(current.getFullYear(),current.getMonth(),1);
-    picker=document.createElement('div');picker.className='hc-row-picker';document.body.appendChild(picker);
-    function render(){
-      picker.innerHTML='';const head=document.createElement('div');head.className='hc-row-head';const prev=document.createElement('button'),title=document.createElement('strong'),next=document.createElement('button');
-      prev.type=next.type='button';prev.textContent='‹';next.textContent='›';title.textContent=month.toLocaleString('en-US',{month:'long',year:'numeric'});prev.onclick=e=>{e.preventDefault();month=new Date(month.getFullYear(),month.getMonth()-1,1);render()};next.onclick=e=>{e.preventDefault();month=new Date(month.getFullYear(),month.getMonth()+1,1);render()};head.append(prev,title,next);picker.append(head);
-      const grid=document.createElement('div');grid.className='hc-row-grid';['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(x=>{const s=document.createElement('span');s.textContent=x;grid.append(s)});
-      const first=new Date(month.getFullYear(),month.getMonth(),1),off=(first.getDay()+6)%7;for(let i=0;i<off;i++){const s=document.createElement('span');s.className='empty';grid.append(s)}
-      const min=isTo?parse(tr.querySelector('.from')?.value):null;
-      for(let day=1;day<=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();day++){const d=new Date(month.getFullYear(),month.getMonth(),day),b=document.createElement('button');b.type='button';b.textContent=day;if(min&&d<min)b.disabled=true;if(parse(input.value)?.getTime()===d.getTime())b.classList.add('selected');b.onclick=e=>{e.preventDefault();e.stopPropagation();input.value=display(d);markManual(tr);picker.remove();if(typeof window.recalc==='function')window.recalc()};grid.append(b)}
-      picker.append(grid);
-    }
-    render();const r=input.getBoundingClientRect();picker.style.left=Math.min(Math.max(8,r.left),window.innerWidth-300)+'px';picker.style.top=Math.min(r.bottom+5,window.innerHeight-340)+'px';
-  }
-  function prepareDate(input){
-    if(!input||input.dataset.stayDateReady)return;input.dataset.stayDateReady='1';const initial=parse(input.value);input.type='text';input.placeholder='DD.MM.YYYY';input.value=display(initial);
-    input.addEventListener('input',()=>{input.value=input.value.replace(/[^\d.]/g,'').slice(0,10)});
-    input.addEventListener('blur',()=>{if(input.value&&!parse(input.value))input.value='';markManual(input.closest('tr'));if(typeof window.recalc==='function')window.recalc()});
-    input.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();rowCalendar(input)});
-  }
-  function prepareRows(){rows.querySelectorAll('tr').forEach(tr=>{defaultDates(tr);tr.querySelectorAll('.from,.to').forEach(prepareDate)});colorRows();}
-  prepareRows();
-
-  if(typeof window.addRow==='function'&&!window.addRow.__stayDefaultsOnly){
-    const original=window.addRow;
-    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.defaultDates=globalType(tr)?'1':'0';defaultDates(tr);tr.querySelectorAll('.from,.to').forEach(prepareDate);colorRows();if(typeof window.recalc==='function')window.recalc();}return result;}
-    wrapped.__stayDefaultsOnly=true;window.addRow=wrapped;
-  }
-
-  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')){tr.dataset.type=e.target.value;tr.dataset.defaultDates=globalType(tr)?'1':'0';if(globalType(tr))defaultDates(tr);colorRows();if(typeof window.recalc==='function')window.recalc();}if(e.target.classList.contains('item')){if(globalType(tr)){tr.dataset.defaultDates='1';defaultDates(tr)}colorRows();if(typeof window.recalc==='function')window.recalc();}});
-  ['checkin','checkout'].forEach(id=>$(id)?.addEventListener('change',()=>{rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.defaultDates==='1')defaultDates(tr)});colorRows();}));
-  const style=document.createElement('style');style.textContent=`
-    .hc-row-picker{position:fixed;z-index:100001;width:290px;background:#fff;border:1px solid #d8dee6;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px}
-    .hc-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.hc-row-head button{width:28px;height:28px;padding:0;border:0;border-radius:5px;background:#f1f3f5;font-size:18px}
-    .hc-row-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.hc-row-grid span,.hc-row-grid button{height:28px;display:flex;align-items:center;justify-content:center;font-size:12px}.hc-row-grid span{color:#6b7280}.hc-row-grid .empty{visibility:hidden}.hc-row-grid button{border:0;background:#fff;border-radius:4px;cursor:pointer}.hc-row-grid button:hover:not(:disabled),.hc-row-grid button.selected{background:#17365d;color:#fff}.hc-row-grid button:disabled{color:#c5cbd3;cursor:not-allowed}
-    .nights-stepper{display:block!important}.nights-stepper>#nights{width:100%!important;border-radius:6px!important}.nights-controls{display:none!important}
-  `;document.head.appendChild(style);
-})();
-
-</script>
+  <main class="app">
+    <header class="title">HOTEL CALCULATION</header>
+
+    <section class="cards" aria-label="Stay details">
+      <div class="card">
+        <label for="hotel">HOTEL</label>
+        <input id="hotel" list="hotelList" placeholder="Choose or type hotel">
+      </div>
+      <div class="card">
+        <label for="checkin">CHECK-IN</label>
+        <input id="checkin" class="date-input" inputmode="numeric" placeholder="DD.MM.YYYY" autocomplete="off">
+      </div>
+      <div class="card">
+        <label for="checkout">CHECK-OUT</label>
+        <input id="checkout" class="date-input" inputmode="numeric" placeholder="DD.MM.YYYY" autocomplete="off">
+      </div>
+      <div class="card">
+        <label for="nights">NIGHTS</label>
+        <input id="nights" type="number" min="0" max="365" step="1" value="0">
+      </div>
+      <div class="card total">
+        <label for="topTotal">TOTAL NET (USD)</label>
+        <input id="topTotal" readonly value="0.00">
+      </div>
+    </section>
+
+    <section class="guests" aria-label="Guest details">
+      <div class="guest">
+        <label for="adults">ADULTS</label>
+        <input id="adults" type="number" min="0" step="1" value="0">
+      </div>
+      <div class="guest">
+        <label for="children">CHILDREN</label>
+        <input id="children" type="number" min="0" step="1" value="0">
+      </div>
+      <div class="guest">
+        <label for="infants">INFANTS</label>
+        <input id="infants" type="number" min="0" step="1" value="0">
+      </div>
+      <div class="guest">
+        <label for="ages">CHILD AGES</label>
+        <input id="ages" placeholder="e.g. 2, 6, 9">
+      </div>
+      <div class="guest">
+        <label for="spo">SPO</label>
+        <input id="spo" placeholder="Enter SPO code">
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Calculation actions">
+      <div class="hint">One row = one charge / rate period. TYPE -> ITEM. Manual entry is allowed.</div>
+      <div class="actions">
+        <button id="addRow" class="add" type="button">+ ADD ROW</button>
+        <button id="clearAll" class="clear" type="button">CLEAR ALL</button>
+        <button id="showShare" class="share" type="button">COPY SHARE</button>
+        <button id="downloadShare" class="download" type="button">DOWNLOAD SHARE</button>
+      </div>
+    </section>
+
+    <section class="table-wrap" aria-label="Calculation rows">
+      <table>
+        <thead>
+          <tr>
+            <th>TYPE</th>
+            <th>ITEM / DESCRIPTION</th>
+            <th>FROM</th>
+            <th>TO</th>
+            <th>NIGHTS</th>
+            <th>QTY</th>
+            <th>RATE (USD)</th>
+            <th>DISCOUNTS %</th>
+            <th>NET (USD)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+
+    <footer class="footer">
+      <div class="grand">GRAND TOTAL NET <span id="grandTotal">$0.00</span></div>
+    </footer>
+  </main>
+
+  <datalist id="hotelList"></datalist>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="shareModal" class="modal">
+    <div class="modal-head">
+      <h2>Short Share Version</h2>
+      <button id="closeShare" class="close" type="button">Close</button>
+    </div>
+    <pre id="shareText" class="share-preview"></pre>
+    <div class="actions">
+      <button id="copyShare" class="share" type="button">COPY TO CLIPBOARD</button>
+      <button id="downloadShareModal" class="download" type="button">DOWNLOAD .TXT</button>
+    </div>
+  </dialog>
 </body>
 </html>
