@@ -129,7 +129,11 @@ js = r'''/* HOTEL CALCULATOR v2 override */
     $('nights').addEventListener('input',()=>{let n=Math.max(0,parseInt($('nights').value,10)||0),ci=dateObj($('checkin').value);if(ci){$('checkout').value=n?fmtDate(new Date(ci.getTime()+n*86400000)):'';syncDefaultDates();recalc2()}});
     $('adults').value='0';$('children').value='0';$('infants').value='0';$('hotel').value='';$('ages').value='';$('spo').value='';
     ROWS.innerHTML='';
-    addRow({type:'ROOM',qty:1,autoDates:true}); addRow({type:'TRANSFER',qty:1,autoDates:false}); addRow({type:'EXTRA',item:'Green Tax',qty:0,rate:12,autoDates:true});
+    [{type:'ROOM',qty:1},{type:'TRANSFER',qty:1},{type:'EXTRA',item:'Green Tax',qty:0,rate:12}].forEach(data=>{try{addRow(data)}catch(e){console.error('Initial row error',e)}});
+    if(ROWS.querySelectorAll('tr').length<3){
+      ROWS.innerHTML='';
+      [{type:'ROOM',qty:1},{type:'TRANSFER',qty:1},{type:'EXTRA',item:'Green Tax',qty:0,rate:12}].forEach(data=>addRow(data));
+    }
     ['adults','children','infants'].forEach(id=>$(id).addEventListener('input',()=>{document.querySelectorAll('#rows tr').forEach(applyAutoQty2);recalc2()}));
     $('checkin').addEventListener('change',()=>globalDateChanged('checkin')); $('checkout').addEventListener('change',()=>globalDateChanged('checkout'));
     recalc2();
