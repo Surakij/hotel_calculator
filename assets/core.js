@@ -112,6 +112,12 @@
     return { rows: calculatedRows, total };
   }
 
+  function dateRangeLabel(from, to) {
+    const start = formatShort(from);
+    const end = formatShort(to);
+    return start && end ? `${start} - ${end}` : "";
+  }
+
   function baseLabel(item) {
     return String(item || "").replace(/\s*-\s*(Adult|Child|Infant)\s*$/i, "").trim();
   }
@@ -148,6 +154,60 @@
       formula += `-${discount}%`;
     });
     return formula;
+  }
+
+  function buildStaySummaries(inputRows) {
+    const rows = calculateRows(inputRows || []).rows.filter((row) => row.type || row.item || row.rate);
+    const rooms = rows.filter((row) => row.type === "ROOM");
+    const roomCounts = rooms.reduce((counts, row) => {
+      const label = row.item || "Room";
+      counts[label] = (counts[label] || 0) + 1;
+      return counts;
+    }, {});
+    const groups = [];
+
+    rooms.forEach((room) => {
+      const roomLabel = room.item || "Room";
+      const key = roomCounts[roomLabel] > 1 ? `room:${roomLabel}` : `stay:${room.from}:${room.to}:${roomLabel}`;
+      let group = groups.find((item) => item.key === key);
+      if (!group) {
+        group = {
+          key,
+          from: room.from,
+          to: room.to,
+          dates: new Set(),
+          room: roomLabel,
+          roomNet: 0,
+          mealNet: 0,
+          extraNet: 0,
+          total: 0,
+        };
+        groups.push(group);
+      }
+
+      group.dates.add(dateRangeLabel(room.from, room.to));
+      group.roomNet += room.net;
+
+      rows
+        .filter((row) => row.from === room.from && row.to === room.to)
+        .forEach((row) => {
+          if (row.type === "MEAL") group.mealNet += row.net;
+          if (row.type === "EXTRA" && /(adult|child)/i.test(row.item || "")) group.extraNet += row.net;
+        });
+    });
+
+    return groups.map((group) => {
+      const dates = [...group.dates].filter(Boolean).join("; ");
+      const total = group.roomNet + group.mealNet + group.extraNet;
+      return {
+        dates,
+        room: group.room,
+        roomNet: group.roomNet,
+        mealNet: group.mealNet,
+        extraNet: group.extraNet,
+        total,
+      };
+    });
   }
 
   function buildShareText(input) {
@@ -220,6 +280,7 @@
     addDays,
     applyDiscounts,
     buildShareText,
+    buildStaySummaries,
     calculateRow,
     calculateRows,
     formatDate,
