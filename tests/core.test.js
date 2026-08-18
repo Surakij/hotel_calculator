@@ -76,6 +76,8 @@ test("builds share table rows from priced services", () => {
   assert.equal(table.stay, "01.09-04.09");
   assert.equal(table.rows.length, 2);
   assert.deepEqual(table.rows.map((row) => row.service), ["Beach Pool Villa", "HB"]);
+  assert.deepEqual(table.layoutRows.map((row) => row.label), ["Beach Pool Villa", "", "Meal Plan - Adult", "Transfer - Adult", "", ""]);
+  assert.equal(table.layoutRows.at(-1).rate, "Total");
   assert.equal(table.total, 480);
 });
 
