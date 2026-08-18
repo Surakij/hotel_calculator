@@ -315,12 +315,72 @@ td select {
   justify-content: space-between;
 }
 
+.share-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin: 6px 0 12px;
+  padding: 3px;
+  border-radius: 7px;
+  background: #eef3f8;
+}
+
+.share-tabs button {
+  min-width: 78px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--navy);
+  font-size: 12px;
+}
+
+.share-tabs button.active {
+  background: var(--navy);
+  color: #fff;
+}
+
 .share-preview {
   white-space: pre-wrap;
   border-radius: 7px;
   padding: 15px;
   background: #f7f8fa;
   font: 14px/1.45 Consolas, monospace;
+}
+
+.share-table-wrap {
+  overflow: auto;
+}
+
+.share-table-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-bottom: 10px;
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.share-table {
+  min-width: 760px;
+  border: 1px solid var(--line);
+}
+
+.share-table th {
+  background: #eef3f8;
+  color: var(--navy);
+}
+
+.share-table td {
+  padding: 8px;
+}
+
+.share-table td:last-child,
+.share-table tfoot td {
+  text-align: right;
+  font-weight: 700;
+}
+
+.share-table tfoot td {
+  color: var(--navy);
 }
 
 .calendar {
