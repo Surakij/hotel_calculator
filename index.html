@@ -218,7 +218,7 @@ function closeShare(){shareModal.style.display="none"}async function copyShare()
   function openPicker(input,monthHint){if(input.id==='checkout' && $('checkin').value)input.dataset.minDate=$('checkin').value; pickerTarget=input; const d=dateObj(input.value)||dateObj(monthHint)||new Date(); pickerMonth=new Date(d.getFullYear(),d.getMonth(),1); renderPicker();}
   function closePicker(){if(picker){picker.remove();picker=null;pickerTarget=null}}
   function renderPicker(){
-    closePicker(); if(!pickerTarget)return;
+    if(picker){picker.remove();picker=null;} if(!pickerTarget)return;
     picker=document.createElement('div'); picker.className='hc-picker';
     const head=document.createElement('div'); head.className='hc-picker-head';
     const prev=document.createElement('button'); prev.type='button'; prev.textContent='‹';
@@ -232,7 +232,7 @@ function closeShare(){shareModal.style.display="none"}async function copyShare()
     const min=pickerTarget.dataset.minDate?dateObj(pickerTarget.dataset.minDate):null;
     const max=pickerTarget.dataset.maxDate?dateObj(pickerTarget.dataset.maxDate):null;
     const count=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()+1,0).getDate();
-    for(let day=1;day<=count;day++){const d=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),day),e=document.createElement('button');e.type='button';e.textContent=day;const val=`${pad(day)}.${pad(d.getMonth()+1)}.${d.getFullYear()}`; if((min&&d<min)||(max&&d>max)){e.disabled=true;e.className='disabled'} if(fmtDate(pickerTarget.value)===val)e.className='selected'; e.onclick=()=>{pickerTarget.value=val; pickerTarget.dispatchEvent(new Event('input',{bubbles:true})); closePicker();}; days.append(e)}
+    for(let day=1;day<=count;day++){const d=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),day),e=document.createElement('button');e.type='button';e.textContent=day;const val=`${pad(day)}.${pad(d.getMonth()+1)}.${d.getFullYear()}`; if((min&&d<min)||(max&&d>max)){e.disabled=true;e.className='disabled'} if(fmtDate(pickerTarget.value)===val)e.className='selected'; e.onclick=()=>{const wasCheckin=pickerTarget.id==='checkin'; const selected=val; pickerTarget.value=selected; pickerTarget.dispatchEvent(new Event('input',{bubbles:true})); closePicker(); if(wasCheckin && $('checkout')) openPicker($('checkout'),selected);}; days.append(e)}
     picker.append(days);
     const rect=pickerTarget.getBoundingClientRect(); picker.style.position='fixed'; picker.style.left=Math.min(rect.left,window.innerWidth-300)+'px'; picker.style.top=(rect.bottom+4)+'px'; document.body.append(picker);
   }
@@ -278,7 +278,10 @@ function closeShare(){shareModal.style.display="none"}async function copyShare()
   function currentRows2(){return [...document.querySelectorAll('#rows tr')].map(tr=>{const type=tr.dataset.type||tr.querySelector('.type').value,item=tr.querySelector('.item').value,from=tr.querySelector('.from').value,to=tr.querySelector('.to').value,nights=calc(from,to),qty=parseFloat(tr.querySelector('.qty').value)||0,rate=parseFloat(tr.querySelector('.rate').value)||0,discounts=getDiscounts(tr);let base=qty*rate;if(type==='ROOM'||type==='MEAL'||type==='DINNER'||type==='TRANSFER'&&/\bOW\b/i.test(item)||type==='EXTRA'&&from&&to)base*=nights;return{type,item,from,to,nights,qty,rate,discounts,net:applyDiscounts(base,discounts)}}).filter(x=>x.type||x.item||x.rate)}
   window.currentRows=currentRows2;
 
+  function sortRows(){const order={ROOM:0,EXTRA:1,MEAL:2,DINNER:3,TRANSFER:4};const rows=[...ROWS.querySelectorAll('tr')];rows.sort((a,b)=>{const ta=a.dataset.type||a.querySelector('.type').value,tb=b.dataset.type||b.querySelector('.type').value;const ga=/^green tax$/i.test(a.querySelector('.item').value||'')?99:(order[ta]??98);const gb=/^green tax$/i.test(b.querySelector('.item').value||'')?99:(order[tb]??98);return ga-gb});rows.forEach(r=>ROWS.appendChild(r))}
+
   function recalc2(){
+    sortRows();
     $('nights').value=calc($('checkin').value,$('checkout').value);
     let total=0; document.querySelectorAll('#rows tr').forEach(tr=>{const type=tr.dataset.type||tr.querySelector('.type').value;const n=calc(tr.querySelector('.from').value,tr.querySelector('.to').value);tr.querySelector('.nights').value=n;applyAutoQty2(tr);const q=parseFloat(tr.querySelector('.qty').value),rate=parseFloat(tr.querySelector('.rate').value),discounts=getDiscounts(tr);let base=0;if(isFinite(q)&&isFinite(rate)){base=q*rate;if(type==='ROOM'||type==='MEAL'||type==='DINNER'||type==='TRANSFER'&&/\bOW\b/i.test(tr.querySelector('.item').value)||type==='EXTRA'&&tr.querySelector('.from').value&&tr.querySelector('.to').value)base*=n}const net=applyDiscounts(base,discounts);tr.querySelector('.net').textContent=fmt(net);total+=net;tr.querySelector('.type').style.background=oldColors[type]||'';tr.querySelector('.type').style.color=type?'white':''});$('grandTotal').textContent='$'+fmt(total);$('topTotal').value=fmt(total)}
   window.recalc=recalc2;
