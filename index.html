@@ -107,5 +107,295 @@
       <button id="downloadShareModal" class="download" type="button">DOWNLOAD .TXT</button>
     </div>
   </dialog>
+<script>
+
+/* HOTEL CALCULATOR - STAY DEFAULTS + NIGHTS STEPPER */
+(function(){
+  const $=id=>document.getElementById(id), rows=$('rows');
+  if(!rows)return;
+  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
+  function addDays(v,n){if(!validDate(v))return '';const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+Number(n||0));return d.toISOString().slice(0,10)}
+
+  /* Nights: editable number plus compact +/- controls. */
+  const nights=$('nights');
+  if(nights&&!nights.dataset.stepperReady){
+    nights.dataset.stepperReady='1'; nights.readOnly=false; nights.type='number'; nights.min='0'; nights.max='365'; nights.step='1'; nights.value=nights.value||'0';
+    const wrap=document.createElement('div');wrap.className='nights-stepper';nights.parentNode.insertBefore(wrap,nights);wrap.appendChild(nights);
+    const controls=document.createElement('div');controls.className='nights-controls';
+    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.className='nights-minus';
+    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.className='nights-plus';controls.append(minus,plus);wrap.appendChild(controls);
+    function setN(n){n=Math.max(0,Math.min(365,parseInt(n,10)||0));nights.value=n;if(validDate($('checkin').value))$('checkout').value=n?addDays($('checkin').value,n):'';if(typeof recalc==='function')recalc()}
+    minus.onclick=()=>setN((parseInt(nights.value,10)||0)-1); plus.onclick=()=>setN((parseInt(nights.value,10)||0)+1);
+    nights.addEventListener('input',()=>setN(nights.value));
+  }
+
+  function isGlobal(tr){const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item))}
+  function applyDefaults(tr){if(tr.dataset.followGlobal!=='1'||!isGlobal(tr))return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||''}
+  function prepare(tr,makeDefault){if(!tr)return;if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=makeDefault?'1':'0';const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f&&!f.dataset.manualListener){f.dataset.manualListener='1';f.addEventListener('change',()=>tr.dataset.followGlobal='0');f.addEventListener('input',()=>tr.dataset.followGlobal='0')}if(t&&!t.dataset.manualListener){t.dataset.manualListener='1';t.addEventListener('change',()=>tr.dataset.followGlobal='0');t.addEventListener('input',()=>tr.dataset.followGlobal='0')}applyDefaults(tr)}
+  function syncStayDefaults(){rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.followGlobal===undefined)tr.dataset.followGlobal=isGlobal(tr)?'1':'0';applyDefaults(tr)})}
+  window.syncStayDates=syncStayDefaults;
+
+  rows.querySelectorAll('tr').forEach(tr=>prepare(tr,isGlobal(tr)));
+  syncStayDefaults();
+
+  if(typeof window.addRow==='function'&&!window.addRow.__stayWrapped){
+    const original=window.addRow;
+    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.followGlobal=isGlobal(tr)?'1':'0';prepare(tr,isGlobal(tr));applyDefaults(tr)}return result}
+    wrapped.__stayWrapped=true;window.addRow=wrapped;
+  }
+
+  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')||e.target.classList.contains('item')){if(isGlobal(tr)){tr.dataset.followGlobal='1';prepare(tr,true);applyDefaults(tr)}else tr.dataset.followGlobal='0';if(typeof recalc==='function')recalc()}});
+
+  ['checkin','checkout'].forEach(id=>{const el=$(id);if(!el||el.dataset.stayListener)return;el.dataset.stayListener='1';el.addEventListener('change',()=>{const ci=$('checkin').value,co=$('checkout').value;if(id==='checkin'){const n=parseInt($('nights').value,10)||0;if(validDate(ci)&&n>0)$('checkout').value=addDays(ci,n)}if(id==='checkout'&&validDate(ci)&&validDate(co)&&new Date(co)<new Date(ci))$('checkout').value='';if(typeof recalc==='function')recalc()})});
+
+  const style=document.createElement('style');style.textContent=`
+    .nights-stepper{display:flex;align-items:stretch;width:100%;height:38px}
+    .nights-stepper>#nights{flex:1;min-width:0;width:auto!important;height:38px!important;border-radius:6px 0 0 6px!important}
+    .nights-controls{display:flex;flex-direction:column;width:30px;flex:0 0 30px}
+    .nights-controls button{padding:0!important;margin:0!important;border-radius:0!important;height:19px;line-height:18px;font-size:13px;font-weight:700;background:#e9eef5;color:#17365d;border-left:1px solid #d8dee6}
+    .nights-controls .nights-plus{border-radius:0 5px 0 0!important;border-top:1px solid #d8dee6}
+    .nights-controls .nights-minus{border-radius:0 0 5px 0!important}
+    .nights-controls button:hover{background:#dce6f2}
+  `;document.head.appendChild(style);
+})();
+
+</script>
+<script>
+/* HOTEL CALCULATOR DATE / CALENDAR REBUILT */
+(function(){
+  const $=id=>document.getElementById(id), ROWS=$('rows');
+  if(!ROWS)return;
+  const pad=n=>String(n).padStart(2,'0');
+  function parseDate(v){
+    v=String(v||'').trim(); let y,m,d,x;
+    if((x=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v))){d=+x[1];m=+x[2];y=+x[3]}
+    else if((x=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v))){y=+x[1];m=+x[2];d=+x[3]}
+    else return null;
+    const dt=new Date(y,m-1,d);
+    return dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===d?dt:null;
+  }
+  const display=d=>d?`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`:'';
+  const iso=d=>d?`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`:'';
+  const nights=(a,b)=>{const x=parseDate(a),y=parseDate(b);return x&&y?Math.max(0,Math.round((y-x)/86400000)):0};
+  const addDays=(v,n)=>{const d=parseDate(v);if(!d)return '';d.setDate(d.getDate()+Number(n||0));return display(d)};
+  const money=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const discounts=tr=>[...tr.querySelectorAll('.discount')].map(x=>+x.value||0).filter(x=>x>0);
+  const applyDiscounts=(v,ds)=>ds.reduce((x,d)=>x*(1-d/100),v);
+  const globalType=tr=>{const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item));};
+
+  let picker=null, pickerInput=null, pickerRow=null, pickerMode='global', pickerMonth=null;
+  function closePicker(){if(picker){picker.remove();picker=null;}}
+  function stop(e){e.preventDefault();e.stopPropagation();}
+
+  function setGlobalDate(input,value){
+    input.value=value;
+    const ci=$('checkin'),co=$('checkout'),n=$('nights');
+    if(input===ci){
+      const nn=+n.value||0;
+      if(nn>0)co.value=addDays(value,nn); else if(co.value&&parseDate(co.value)&&parseDate(co.value)>=parseDate(value))n.value=nights(value,co.value); else co.value='';
+    }else{
+      const a=parseDate(ci.value),b=parseDate(value);
+      if(a&&b&&b<a){co.value='';n.value=0;}else n.value=nights(ci.value,value);
+    }
+    syncDefaults(); recalcFinal();
+    if(input===ci){
+      // After check-in, open check-out as the next step.
+      openPicker(co,true);
+    }else closePicker();
+  }
+
+  function setRowDate(input,value){
+    input.value=value;
+    const tr=input.closest('tr');
+    if(tr)tr.dataset.defaultDates='0';
+    recalcFinal();
+    closePicker();
+  }
+
+  function renderCalendar(){
+    if(!picker)return;
+    picker.innerHTML='';
+    const head=document.createElement('div');head.className='hc-cal-head';
+    const prev=document.createElement('button'),next=document.createElement('button'),title=document.createElement('strong');
+    prev.type=next.type='button';prev.textContent='‹';next.textContent='›';
+    title.textContent=pickerMonth.toLocaleString('en-US',{month:'long',year:'numeric'});
+    prev.addEventListener('click',e=>{stop(e);pickerMonth=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()-1,1);renderCalendar()});
+    next.addEventListener('click',e=>{stop(e);pickerMonth=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()+1,1);renderCalendar()});
+    head.append(prev,title,next);picker.append(head);
+    const grid=document.createElement('div');grid.className='hc-cal-grid';
+    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(v=>{const s=document.createElement('span');s.textContent=v;grid.append(s)});
+    const first=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),1),offset=(first.getDay()+6)%7;
+    for(let i=0;i<offset;i++){const s=document.createElement('span');s.className='empty';grid.append(s)}
+    const count=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth()+1,0).getDate();
+    const minDate=pickerMode==='row'&&pickerRow?.classList.contains('to')?parseDate(pickerRow.closest('tr')?.querySelector('.from')?.value):pickerInput?.id==='checkout'?parseDate($('checkin')?.value):null;
+    const selected=parseDate(pickerMode==='row'?pickerRow?.value:pickerInput?.value);
+    for(let day=1;day<=count;day++){
+      const d=new Date(pickerMonth.getFullYear(),pickerMonth.getMonth(),day),b=document.createElement('button');
+      b.type='button';b.textContent=day;
+      if(minDate&&d<minDate)b.disabled=true;
+      if(selected&&d.getTime()===selected.getTime())b.classList.add('selected');
+      b.addEventListener('click',e=>{stop(e);const v=display(d);pickerMode==='global'?setGlobalDate(pickerInput,v):setRowDate(pickerRow,v)});
+      grid.append(b);
+    }
+    picker.append(grid);
+  }
+
+  function openPicker(input,autoNext=false){
+    closePicker();pickerMode='global';pickerInput=input;pickerRow=null;
+    const d=parseDate(input.value)||parseDate($('checkin')?.value)||new Date();pickerMonth=new Date(d.getFullYear(),d.getMonth(),1);
+    picker=document.createElement('div');picker.className='hc-calendar';document.body.append(picker);renderCalendar();positionPicker(input);
+  }
+  function openRowPicker(input){
+    closePicker();pickerMode='row';pickerRow=input;pickerInput=null;
+    const d=parseDate(input.value)||parseDate($('checkin')?.value)||new Date();pickerMonth=new Date(d.getFullYear(),d.getMonth(),1);
+    picker=document.createElement('div');picker.className='hc-calendar';document.body.append(picker);renderCalendar();positionPicker(input);
+  }
+  function positionPicker(input){
+    const r=input.getBoundingClientRect(),w=270;picker.style.width=w+'px';let left=Math.min(Math.max(8,r.left),window.innerWidth-w-8),top=r.bottom+6;if(top+picker.offsetHeight>window.innerHeight-8)top=Math.max(8,r.top-picker.offsetHeight-6);picker.style.left=left+'px';picker.style.top=top+'px';}
+
+  function replaceGlobal(id){
+    const old=$(id);if(!old)return null;
+    const fresh=old.cloneNode(true);fresh.type='text';fresh.removeAttribute('readonly');fresh.className='global-date-final';fresh.placeholder='DD.MM.YYYY';fresh.value=display(parseDate(old.value));old.replaceWith(fresh);
+    fresh.addEventListener('input',()=>{fresh.value=fresh.value.replace(/[^\d.]/g,'').slice(0,10)});
+    fresh.addEventListener('blur',()=>{if(fresh.value&&!parseDate(fresh.value))fresh.value='';else if(fresh.value)fresh.value=display(parseDate(fresh.value));globalChanged(fresh)});
+    fresh.addEventListener('click',e=>{e.stopPropagation();openPicker(fresh)});
+    return fresh;
+  }
+  function globalChanged(input){
+    if(!parseDate(input.value)){recalcFinal();return;}
+    const ci=$('checkin'),co=$('checkout'),n=$('nights');
+    if(input===ci){const nn=+n.value||0;if(nn>0)co.value=addDays(input.value,nn);else if(parseDate(co.value))n.value=nights(ci.value,co.value)}
+    else {const a=parseDate(ci.value),b=parseDate(co.value);if(a&&b&&b<a){co.value='';n.value=0}else n.value=nights(ci.value,co.value)}
+    syncDefaults();recalcFinal();
+  }
+
+  function decorateRowDate(input,cls){
+    if(!input)return;
+    const fresh=input.cloneNode(true);fresh.type='text';fresh.removeAttribute('readonly');fresh.placeholder='DD.MM.YYYY';fresh.value=display(parseDate(input.value));fresh.className=input.className;fresh.dataset.rebuiltDate='1';input.replaceWith(fresh);
+    fresh.addEventListener('input',()=>fresh.value=fresh.value.replace(/[^\d.]/g,'').slice(0,10));
+    fresh.addEventListener('blur',()=>{if(fresh.value&&!parseDate(fresh.value))fresh.value='';else if(fresh.value)fresh.value=display(parseDate(fresh.value));fresh.closest('tr').dataset.defaultDates='0';recalcFinal()});
+    fresh.addEventListener('click',e=>{e.stopPropagation();openRowPicker(fresh)});
+  }
+  function decorateRows(){
+    ROWS.querySelectorAll('tr').forEach(tr=>{
+      const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=tr.querySelector('.item')?.value||'';
+      if(tr.dataset.defaultDates===undefined)tr.dataset.defaultDates=globalType(tr)?'1':'0';
+      const f=tr.querySelector('.from'),t=tr.querySelector('.to');
+      if(f&&!f.dataset.rebuiltDate)decorateRowDate(f,'from');
+      if(t&&!t.dataset.rebuiltDate)decorateRowDate(t,'to');
+    });
+    syncDefaults();applyTypeColors();
+  }
+  function syncDefaults(){
+    ROWS.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.defaultDates!=='1')return;const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||'';});
+  }
+
+  function recalcFinal(){
+    const ci=$('checkin')?.value||'',co=$('checkout')?.value||'';
+    if($('nights'))$('nights').value=nights(ci,co);
+    let total=0;
+    ROWS.querySelectorAll('tr').forEach(tr=>{
+      const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=tr.querySelector('.item')?.value||'';
+      const f=tr.querySelector('.from')?.value||'',t=tr.querySelector('.to')?.value||'',nn=nights(f,t);
+      const q=+tr.querySelector('.qty')?.value||0,r=+tr.querySelector('.rate')?.value||0;
+      let base=q*r;
+      if(type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item)))base*=nn;
+      else if(type==='EXTRA'&&f&&t)base*=nn;
+      const net=applyDiscounts(base,discounts(tr));
+      if(tr.querySelector('.nights'))tr.querySelector('.nights').value=nn;
+      if(tr.querySelector('.net'))tr.querySelector('.net').textContent=money(net);
+      total+=net;
+    });
+    if($('grandTotal'))$('grandTotal').textContent='$'+money(total);
+    if($('topTotal'))$('topTotal').value=money(total);
+    applyTypeColors();
+  }
+  window.recalc=recalcFinal;
+
+  function applyTypeColors(){
+    const colors={ROOM:'#2f80d1',MEAL:'#4caf50',TRANSFER:'#8064c8',DINNER:'#ed7d31',EXTRA:'#d4a500'};
+    ROWS.querySelectorAll('tr').forEach(tr=>{const sel=tr.querySelector('.type');if(!sel)return;const c=colors[tr.dataset.type||sel.value]||'';sel.style.background=c;sel.style.color=c?'white':'';});
+  }
+
+  function init(){
+    const ci=replaceGlobal('checkin'),co=replaceGlobal('checkout');if(!ci||!co)return;
+    if($('nights')){$('nights').readOnly=false;$('nights').type='number';$('nights').min='0';$('nights').step='1';$('nights').placeholder='0';$('nights').classList.add('plain-nights');$('nights').addEventListener('input',()=>{const v=Math.max(0,+$('nights').value||0);$('nights').value=v;if(ci.value&&v>0)co.value=addDays(ci.value,v);else if(ci.value&&!v)co.value='';syncDefaults();recalcFinal()});}
+    // Preserve existing rows. Only decorate them; do not delete/recreate them.
+    decorateRows();recalcFinal();
+    ROWS.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')){tr.dataset.type=e.target.value;if(globalType(tr)){tr.dataset.defaultDates='1';syncDefaults()}else tr.dataset.defaultDates='0';applyTypeColors();recalcFinal()}if(e.target.classList.contains('item')){if(globalType(tr)){tr.dataset.defaultDates='1';syncDefaults()}applyTypeColors();recalcFinal()}});
+    document.addEventListener('click',e=>{if(picker&&!picker.contains(e.target)&&e.target!==ci&&e.target!==co&&!e.target.classList.contains('from')&&!e.target.classList.contains('to'))closePicker()});
+    window.addEventListener('resize',closePicker);window.addEventListener('scroll',closePicker,true);
+  }
+  const st=document.createElement('style');st.textContent=`
+    .global-date-final,.from,.to{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:4px 6px;background:#fff;box-sizing:border-box}
+    .global-date-final{height:38px;border-color:var(--line);border-radius:6px;padding:7px 9px}
+    .plain-nights{appearance:auto!important;-webkit-appearance:auto!important}
+    .hc-calendar{position:fixed;z-index:100000;background:#fff;border:1px solid #d8dee6;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px;box-sizing:border-box}
+    .hc-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.hc-cal-head button{width:30px;height:30px;border:0;border-radius:5px;background:#f1f3f5;font-size:20px;padding:0;cursor:pointer}.hc-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.hc-cal-grid span,.hc-cal-grid button{height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;box-sizing:border-box}.hc-cal-grid span{color:#6b7280}.hc-cal-grid .empty{visibility:hidden}.hc-cal-grid button{border:0;border-radius:4px;background:#fff;padding:0;cursor:pointer;color:#111}.hc-cal-grid button:hover:not(:disabled),.hc-cal-grid button.selected{background:#17365d;color:#fff}.hc-cal-grid button:disabled{color:#c5cbd3;cursor:not-allowed}
+  `;document.head.append(st);init();
+})();
+
+</script>
+<script>
+/* HOTEL CALCULATOR - STAY ENHANCEMENTS */
+(function(){
+  const $=id=>document.getElementById(id), rows=$('rows');
+  if(!rows)return;
+  const pad=n=>String(n).padStart(2,'0');
+  const parse=v=>{v=String(v||'').trim();let m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v),y,mo,d;if(m){d=+m[1];mo=+m[2];y=+m[3]}else{m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v);if(!m)return null;y=+m[1];mo=+m[2];d=+m[3]}const x=new Date(y,mo-1,d);return x.getFullYear()===y&&x.getMonth()===mo-1&&x.getDate()===d?x:null};
+  const display=d=>d?`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`:'';
+  const addDays=(v,n)=>{const d=parse(v);if(!d)return '';d.setDate(d.getDate()+Number(n||0));return display(d)};
+  const globalType=tr=>{const type=tr.dataset.type||tr.querySelector('.type')?.value||'',item=(tr.querySelector('.item')?.value||'').trim();return type==='ROOM'||type==='MEAL'||(type==='EXTRA'&&/^green tax$/i.test(item));};
+  const colors={ROOM:'#2f80d1',MEAL:'#4caf50',TRANSFER:'#8064c8',DINNER:'#ed7d31',EXTRA:'#d4a500'};
+  function colorRows(){rows.querySelectorAll('tr').forEach(tr=>{const sel=tr.querySelector('.type');if(!sel)return;const c=colors[tr.dataset.type||sel.value]||'';sel.style.background=c;sel.style.color=c?'white':'';});}
+  function defaultDates(tr){if(!tr)return;if(tr.dataset.defaultDates===undefined)tr.dataset.defaultDates=globalType(tr)?'1':'0';if(tr.dataset.defaultDates==='1'){const f=tr.querySelector('.from'),t=tr.querySelector('.to');if(f)f.value=$('checkin')?.value||'';if(t)t.value=$('checkout')?.value||'';}}
+  function markManual(tr){if(tr)tr.dataset.defaultDates='0';}
+  function setNights(v){const n=$('nights'),ci=$('checkin'),co=$('checkout');if(!n)return;v=Math.max(0,Math.min(365,parseInt(v,10)||0));n.value=v;if(ci&&co&&parse(ci.value))co.value=v?addDays(ci.value,v):'';if(typeof window.recalc==='function')window.recalc();}
+
+  const n=$('nights');
+  if(n){n.readOnly=false;n.type='number';n.min='0';n.max='365';n.step='1';n.addEventListener('input',()=>setNights(n.value));}
+
+  function rowCalendar(input){
+    let picker=document.querySelector('.hc-row-picker');if(picker)picker.remove();
+    const tr=input.closest('tr'),isTo=input.classList.contains('to');
+    const current=parse(input.value)||parse($('checkin')?.value)||new Date();let month=new Date(current.getFullYear(),current.getMonth(),1);
+    picker=document.createElement('div');picker.className='hc-row-picker';document.body.appendChild(picker);
+    function render(){
+      picker.innerHTML='';const head=document.createElement('div');head.className='hc-row-head';const prev=document.createElement('button'),title=document.createElement('strong'),next=document.createElement('button');
+      prev.type=next.type='button';prev.textContent='‹';next.textContent='›';title.textContent=month.toLocaleString('en-US',{month:'long',year:'numeric'});prev.onclick=e=>{e.preventDefault();month=new Date(month.getFullYear(),month.getMonth()-1,1);render()};next.onclick=e=>{e.preventDefault();month=new Date(month.getFullYear(),month.getMonth()+1,1);render()};head.append(prev,title,next);picker.append(head);
+      const grid=document.createElement('div');grid.className='hc-row-grid';['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(x=>{const s=document.createElement('span');s.textContent=x;grid.append(s)});
+      const first=new Date(month.getFullYear(),month.getMonth(),1),off=(first.getDay()+6)%7;for(let i=0;i<off;i++){const s=document.createElement('span');s.className='empty';grid.append(s)}
+      const min=isTo?parse(tr.querySelector('.from')?.value):null;
+      for(let day=1;day<=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();day++){const d=new Date(month.getFullYear(),month.getMonth(),day),b=document.createElement('button');b.type='button';b.textContent=day;if(min&&d<min)b.disabled=true;if(parse(input.value)?.getTime()===d.getTime())b.classList.add('selected');b.onclick=e=>{e.preventDefault();e.stopPropagation();input.value=display(d);markManual(tr);picker.remove();if(typeof window.recalc==='function')window.recalc()};grid.append(b)}
+      picker.append(grid);
+    }
+    render();const r=input.getBoundingClientRect();picker.style.left=Math.min(Math.max(8,r.left),window.innerWidth-300)+'px';picker.style.top=Math.min(r.bottom+5,window.innerHeight-340)+'px';
+  }
+  function prepareDate(input){
+    if(!input||input.dataset.stayDateReady)return;input.dataset.stayDateReady='1';const initial=parse(input.value);input.type='text';input.placeholder='DD.MM.YYYY';input.value=display(initial);
+    input.addEventListener('input',()=>{input.value=input.value.replace(/[^\d.]/g,'').slice(0,10)});
+    input.addEventListener('blur',()=>{if(input.value&&!parse(input.value))input.value='';markManual(input.closest('tr'));if(typeof window.recalc==='function')window.recalc()});
+    input.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();rowCalendar(input)});
+  }
+  function prepareRows(){rows.querySelectorAll('tr').forEach(tr=>{defaultDates(tr);tr.querySelectorAll('.from,.to').forEach(prepareDate)});colorRows();}
+  prepareRows();
+
+  if(typeof window.addRow==='function'&&!window.addRow.__stayDefaultsOnly){
+    const original=window.addRow;
+    function wrapped(data){const result=original(data||{});const list=[...rows.querySelectorAll('tr')],tr=list[list.length-1];if(tr){tr.dataset.defaultDates=globalType(tr)?'1':'0';defaultDates(tr);tr.querySelectorAll('.from,.to').forEach(prepareDate);colorRows();if(typeof window.recalc==='function')window.recalc();}return result;}
+    wrapped.__stayDefaultsOnly=true;window.addRow=wrapped;
+  }
+
+  rows.addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;if(e.target.classList.contains('type')){tr.dataset.type=e.target.value;tr.dataset.defaultDates=globalType(tr)?'1':'0';if(globalType(tr))defaultDates(tr);colorRows();if(typeof window.recalc==='function')window.recalc();}if(e.target.classList.contains('item')){if(globalType(tr)){tr.dataset.defaultDates='1';defaultDates(tr)}colorRows();if(typeof window.recalc==='function')window.recalc();}});
+  ['checkin','checkout'].forEach(id=>$(id)?.addEventListener('change',()=>{rows.querySelectorAll('tr').forEach(tr=>{if(tr.dataset.defaultDates==='1')defaultDates(tr)});colorRows();}));
+  const style=document.createElement('style');style.textContent=`
+    .hc-row-picker{position:fixed;z-index:100001;width:290px;background:#fff;border:1px solid #d8dee6;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px}
+    .hc-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.hc-row-head button{width:28px;height:28px;padding:0;border:0;border-radius:5px;background:#f1f3f5;font-size:18px}
+    .hc-row-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.hc-row-grid span,.hc-row-grid button{height:28px;display:flex;align-items:center;justify-content:center;font-size:12px}.hc-row-grid span{color:#6b7280}.hc-row-grid .empty{visibility:hidden}.hc-row-grid button{border:0;background:#fff;border-radius:4px;cursor:pointer}.hc-row-grid button:hover:not(:disabled),.hc-row-grid button.selected{background:#17365d;color:#fff}.hc-row-grid button:disabled{color:#c5cbd3;cursor:not-allowed}
+    .nights-stepper{display:block!important}.nights-stepper>#nights{width:100%!important;border-radius:6px!important}.nights-controls{display:none!important}
+  `;document.head.appendChild(style);
+})();
+
+</script>
 </body>
 </html>
