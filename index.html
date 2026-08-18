@@ -103,7 +103,12 @@
       <h2>Short Share Version</h2>
       <button id="closeShare" class="close" type="button">Close</button>
     </div>
+    <div class="share-tabs" role="tablist" aria-label="Share format">
+      <button id="shareTextTab" class="active" type="button">TEXT</button>
+      <button id="shareTableTab" type="button">TABLE</button>
+    </div>
     <pre id="shareText" class="share-preview"></pre>
+    <div id="shareTable" class="share-table-wrap" hidden></div>
     <div class="actions">
       <button id="copyShare" class="share" type="button">COPY TO CLIPBOARD</button>
       <button id="downloadShareModal" class="download" type="button">DOWNLOAD .TXT</button>
