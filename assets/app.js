@@ -16,6 +16,7 @@
   let picker = null;
   let pickerInput = null;
   let pickerMonth = null;
+  const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(2026, index, 1).toLocaleString("en-US", { month: "long" }));
 
   function el(tag, options = {}) {
     const node = document.createElement(tag);
@@ -29,6 +30,14 @@
 
   function value(id) {
     return $(id).value;
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
   }
 
   function cleanDateInput(input) {
@@ -178,6 +187,47 @@
 
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
     $("topTotal").value = core.money(calculated.total);
+    renderStaySummary();
+  }
+
+  function renderStaySummary() {
+    const container = $("staySummary");
+    const summaries = core.buildStaySummaries(currentRows()).filter((row) => row.total > 0);
+
+    if (!summaries.length) {
+      container.innerHTML = "";
+      return;
+    }
+
+    const rows = summaries.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.dates)}</td>
+        <td>${escapeHtml(row.room)}</td>
+        <td>${core.money(row.roomNet)}</td>
+        <td>${core.money(row.mealNet)}</td>
+        <td>${core.money(row.extraNet)}</td>
+        <td>${core.money(row.total)}</td>
+      </tr>
+    `).join("");
+
+    container.innerHTML = `
+      <div class="summary-title">ROOM + MEAL CHECK</div>
+      <div class="summary-table-wrap">
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>DATES</th>
+              <th>ROOM</th>
+              <th>ROOM NET</th>
+              <th>MEAL NET</th>
+              <th>EXTRA ADL/CHD</th>
+              <th>TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
   }
 
   function addRow(data = {}) {
@@ -314,8 +364,24 @@
     return core.buildShareText(sharePayload());
   }
 
+  function shareHtml(text) {
+    return text.split("\n").map((line) => {
+      const escaped = escapeHtml(line);
+      if (/^TOTAL:/i.test(line)) return `<strong>${escaped}</strong>`;
+      const datedService = /^(\d{2}\.\d{2}(?:\s+-\s+\d{2}\.\d{2})?)\s+:\s+([^:]+)\s+:\s+(.*)$/.exec(line);
+      if (datedService) {
+        return `<strong>${escapeHtml(datedService[1])} : ${escapeHtml(datedService[2].trim())}</strong> : ${escapeHtml(datedService[3])}`;
+      }
+      const plainService = /^([^:]+)\s+:\s+(.*)$/.exec(line);
+      if (plainService && !/^SPO$/i.test(plainService[1].trim())) {
+        return `<strong>${escapeHtml(plainService[1].trim())}</strong> : ${escapeHtml(plainService[2])}`;
+      }
+      return escaped;
+    }).join("\n");
+  }
+
   function showShare() {
-    $("shareText").textContent = shareText();
+    $("shareText").innerHTML = shareHtml(shareText());
     $("shareModal").showModal();
   }
 
@@ -368,7 +434,7 @@
 
   function positionPicker() {
     const rect = pickerInput.getBoundingClientRect();
-    const width = 276;
+    const width = 330;
     const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
     let top = rect.bottom + 6;
     if (top + picker.offsetHeight > window.innerHeight - 8) top = Math.max(8, rect.top - picker.offsetHeight - 6);
@@ -379,23 +445,57 @@
   function renderPicker() {
     picker.innerHTML = "";
     const head = el("div", { className: "calendar-head" });
-    const prev = el("button", { type: "button", textContent: "<" });
-    const next = el("button", { type: "button", textContent: ">" });
-    const title = el("strong", { textContent: pickerMonth.toLocaleString("en-US", { month: "long", year: "numeric" }) });
+    const prevYear = el("button", { type: "button", title: "Previous year", textContent: "<<" });
+    const prevMonth = el("button", { type: "button", title: "Previous month", textContent: "<" });
+    const nextMonth = el("button", { type: "button", title: "Next month", textContent: ">" });
+    const nextYear = el("button", { type: "button", title: "Next year", textContent: ">>" });
+    const monthSelect = el("select", { className: "calendar-month", title: "Month" });
+    const yearInput = el("input", { className: "calendar-year", type: "number", min: "1900", max: "2100", step: "1", title: "Year" });
 
-    prev.addEventListener("click", (event) => {
+    MONTHS.forEach((month, index) => {
+      const option = el("option", { value: index, textContent: month });
+      option.selected = index === pickerMonth.getMonth();
+      monthSelect.appendChild(option);
+    });
+    yearInput.value = pickerMonth.getFullYear();
+
+    prevYear.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      pickerMonth = new Date(pickerMonth.getFullYear() - 1, pickerMonth.getMonth(), 1);
+      renderPicker();
+    });
+    prevMonth.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       pickerMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1, 1);
       renderPicker();
     });
-    next.addEventListener("click", (event) => {
+    nextMonth.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       pickerMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 1);
       renderPicker();
     });
-    head.append(prev, title, next);
+    nextYear.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      pickerMonth = new Date(pickerMonth.getFullYear() + 1, pickerMonth.getMonth(), 1);
+      renderPicker();
+    });
+    monthSelect.addEventListener("change", (event) => {
+      event.stopPropagation();
+      pickerMonth = new Date(pickerMonth.getFullYear(), Number(monthSelect.value), 1);
+      renderPicker();
+    });
+    yearInput.addEventListener("change", (event) => {
+      event.stopPropagation();
+      const year = Math.max(1900, Math.min(2100, Number(yearInput.value) || new Date().getFullYear()));
+      pickerMonth = new Date(year, pickerMonth.getMonth(), 1);
+      renderPicker();
+    });
+
+    head.append(prevYear, prevMonth, monthSelect, yearInput, nextMonth, nextYear);
     picker.appendChild(head);
 
     const grid = el("div", { className: "calendar-grid" });
@@ -409,6 +509,7 @@
       ? core.parseDate(pickerInput.closest("tr")?.querySelector(".from")?.value || value("checkin"))
       : null;
     const selected = core.parseDate(pickerInput.value);
+    const today = new Date();
     const days = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 0).getDate();
 
     for (let day = 1; day <= days; day += 1) {
@@ -416,6 +517,13 @@
       const button = el("button", { type: "button", textContent: day });
       if (minDate && date < minDate) button.disabled = true;
       if (selected && selected.getTime() === date.getTime()) button.classList.add("selected");
+      if (
+        date.getFullYear() === today.getFullYear()
+        && date.getMonth() === today.getMonth()
+        && date.getDate() === today.getDate()
+      ) {
+        button.classList.add("today");
+      }
       button.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -435,7 +543,7 @@
   function openPicker(input) {
     closePicker();
     pickerInput = input;
-    const base = core.parseDate(input.value) || core.parseDate(value("checkin")) || new Date();
+    const base = core.parseDate(input.value) || (input.id === "checkin" ? null : core.parseDate(value("checkin"))) || new Date();
     pickerMonth = new Date(base.getFullYear(), base.getMonth(), 1);
     picker = el("div", { className: "calendar" });
     document.body.appendChild(picker);
