@@ -11,9 +11,11 @@ jobs:
         run: python .github/patch_guest_gt.py
       - name: Fix calendar
         run: python .github/calendar_fix.py
+      - name: Apply stay enhancements
+        run: python .github/stay_enhancements.py
       - name: Commit patched index
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Fix calculator calendar' && git push)
+          git diff --cached --quiet || (git commit -m 'Add Nights stepper and service date defaults' && git push)
