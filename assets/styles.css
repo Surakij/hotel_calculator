@@ -413,6 +413,19 @@ td select {
   cursor: not-allowed;
 }
 
+.calendar-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.calendar-actions button {
+  padding: 6px 10px;
+  background: #f3f4f6;
+  color: var(--red);
+  font-size: 12px;
+}
+
 @media (max-width: 900px) {
   .app { padding: 0 12px; }
   .cards,
