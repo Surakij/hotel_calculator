@@ -1,1 +1,1 @@
-trigger direct row template fix
+trigger robust initial rows fallback
