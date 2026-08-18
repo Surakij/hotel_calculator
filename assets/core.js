@@ -255,7 +255,8 @@
 
   function buildShareTable(input) {
     const calculated = calculateRows(input.rows || []);
-    const rows = calculated.rows.filter((row) => (row.type || row.item || row.rate) && row.rate > 0);
+    const allRows = calculated.rows.filter((row) => row.type || row.item || row.rate);
+    const rows = allRows.filter((row) => row.rate > 0);
     const hotel = String(input.hotel || "Hotel").toUpperCase();
     const guests = input.guests || {};
     const ages = String(guests.ages || "").replace(/\s+/g, "");
@@ -306,6 +307,27 @@
       shareRows.push({ dates: "", service: "Green Tax", formula: expression(row), net: row.net });
     });
 
+    const roomRows = allRows.filter((row) => row.type === "ROOM");
+    const personExtras = allRows.filter((row) => row.type === "EXTRA" && /(adult|child)/i.test(row.item || ""));
+    const otherExtras = allRows.filter((row) => row.type === "EXTRA" && !isGreenTax(row) && !/(adult|child)/i.test(row.item || ""));
+    const serviceRows = allRows.filter((row) => ["MEAL", "TRANSFER", "DINNER"].includes(row.type));
+    const greenTaxRows = allRows.filter(isGreenTax);
+    const layoutRows = [
+      ...roomRows.map((row) => tableLayoutRow(row, row.item || "Room")),
+      ...personExtras.map((row) => tableLayoutRow(row, `${baseLabel(row.item)} Supplement`)),
+      ...otherExtras.map((row) => tableLayoutRow(row, row.item || "Extra")),
+    ];
+    const staySubtotal = layoutRows.reduce((sum, row) => sum + row.net, 0);
+    if (spo && layoutRows.length) layoutRows.push(tableNoteRow("SPO", spo));
+    if (layoutRows.length) layoutRows.push(tableTotalRow("", staySubtotal, "subtotal"));
+
+    greenTaxRows.forEach((row) => layoutRows.push(tableLayoutRow(row, "Green Tax")));
+    serviceRows.forEach((row) => layoutRows.push(tableLayoutRow(row, serviceTableLabel(row))));
+
+    const serviceSubtotal = [...greenTaxRows, ...serviceRows].reduce((sum, row) => sum + row.net, 0);
+    if (serviceSubtotal > 0) layoutRows.push(tableTotalRow("", serviceSubtotal, "subtotal"));
+    layoutRows.push(tableTotalRow("Total", calculated.total, "grand"));
+
     return {
       hotel,
       stay: `${formatShort(input.checkin)}-${formatShort(input.checkout)}`,
@@ -313,8 +335,75 @@
       pax,
       spo,
       rows: shareRows,
+      layoutRows,
       total: calculated.total,
     };
+  }
+
+  function tableMoney(value) {
+    return Number(value || 0) > 0 ? money(value) : "-";
+  }
+
+  function tableLayoutRow(row, label) {
+    return {
+      label,
+      qty: row.qty || "",
+      arr: formatDate(row.from),
+      dep: formatDate(row.to),
+      nights: row.nights || "",
+      rate: tableMoney(row.rate),
+      total: tableMoney(row.net),
+      net: row.net,
+      kind: "item",
+    };
+  }
+
+  function tableTotalRow(label, total, kind) {
+    return {
+      label: "",
+      qty: "",
+      arr: "",
+      dep: "",
+      nights: "",
+      rate: label,
+      total: tableMoney(total),
+      net: total,
+      kind,
+    };
+  }
+
+  function tableNoteRow(label, value) {
+    return {
+      label: "",
+      qty: "",
+      arr: "",
+      dep: "",
+      nights: label,
+      rate: value,
+      total: "",
+      net: 0,
+      kind: "note",
+    };
+  }
+
+  function serviceTableLabel(row) {
+    const item = row.item || row.type || "Service";
+    if (row.type === "MEAL") {
+      if (/adult/i.test(item)) return "Meal Plan - Adult";
+      if (/child/i.test(item)) return "Meal Plan - Child";
+      return "Meal Plan";
+    }
+    if (row.type === "TRANSFER") {
+      if (/adult/i.test(item)) return "Transfer - Adult";
+      if (/child/i.test(item)) return "Transfer - Child";
+      return "Transfer";
+    }
+    if (row.type === "DINNER") {
+      if (/adult/i.test(item)) return "Dinner - Adult";
+      if (/child/i.test(item)) return "Dinner - Child";
+      return "Dinner";
+    }
+    return item;
   }
 
   return {
