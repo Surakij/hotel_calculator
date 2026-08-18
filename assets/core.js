@@ -118,6 +118,17 @@
     return start && end ? `${start} - ${end}` : "";
   }
 
+  function overlapNights(aFrom, aTo, bFrom, bTo) {
+    const startA = parseDate(aFrom);
+    const endA = parseDate(aTo);
+    const startB = parseDate(bFrom);
+    const endB = parseDate(bTo);
+    if (!startA || !endA || !startB || !endB) return 0;
+    const start = Math.max(startA.getTime(), startB.getTime());
+    const end = Math.min(endA.getTime(), endB.getTime());
+    return Math.max(0, Math.round((end - start) / DAY));
+  }
+
   function baseLabel(item) {
     return String(item || "").replace(/\s*-\s*(Adult|Child|Infant)\s*$/i, "").trim();
   }
@@ -157,7 +168,9 @@
   }
 
   function buildStaySummaries(inputRows) {
-    const rows = calculateRows(inputRows || []).rows.filter((row) => row.type || row.item || row.rate);
+    const rows = calculateRows(inputRows || []).rows
+      .map((row, index) => ({ ...row, sourceIndex: index }))
+      .filter((row) => row.type || row.item || row.rate);
     const rooms = rows.filter((row) => row.type === "ROOM");
     const roomCounts = rooms.reduce((counts, row) => {
       const label = row.item || "Room";
@@ -176,6 +189,8 @@
           from: room.from,
           to: room.to,
           dates: new Set(),
+          rooms: [],
+          includedRows: new Set(),
           room: roomLabel,
           roomNet: 0,
           mealNet: 0,
@@ -186,14 +201,22 @@
       }
 
       group.dates.add(dateRangeLabel(room.from, room.to));
+      group.rooms.push(room);
       group.roomNet += room.net;
+    });
 
-      rows
-        .filter((row) => row.from === room.from && row.to === room.to)
-        .forEach((row) => {
-          if (row.type === "MEAL") group.mealNet += row.net;
-          if (row.type === "EXTRA" && /(adult|child)/i.test(row.item || "")) group.extraNet += row.net;
-        });
+    const extrasAndMeals = rows.filter((row) => row.type === "MEAL" || (row.type === "EXTRA" && /(adult|child)/i.test(row.item || "")));
+    groups.forEach((group) => {
+      extrasAndMeals.forEach((row) => {
+        const overlap = group.rooms.reduce((sum, room) => sum + overlapNights(room.from, room.to, row.from, row.to), 0);
+        if (overlap <= 0 || row.nights <= 0) return;
+        if (group.includedRows.has(row.sourceIndex)) return;
+
+        const amount = row.net * Math.min(1, overlap / row.nights);
+        if (row.type === "MEAL") group.mealNet += amount;
+        else group.extraNet += amount;
+        group.includedRows.add(row.sourceIndex);
+      });
     });
 
     return groups.map((group) => {
@@ -212,7 +235,7 @@
 
   function buildShareText(input) {
     const calculated = calculateRows(input.rows || []);
-    const rows = calculated.rows.filter((row) => row.type || row.item || row.rate);
+    const rows = calculated.rows.filter((row) => (row.type || row.item || row.rate) && row.rate > 0);
     const hotel = String(input.hotel || "Hotel").toUpperCase();
     const guests = input.guests || {};
     const ages = String(guests.ages || "").replace(/\s+/g, "");
