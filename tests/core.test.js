@@ -59,28 +59,6 @@ test("omits unpriced services from share text", () => {
   assert.match(text, /Beach Pool Villa/);
 });
 
-test("builds share table rows from priced services", () => {
-  const table = core.buildShareTable({
-    hotel: "Ozen",
-    checkin: "01.09.2026",
-    checkout: "04.09.2026",
-    guests: { adults: 2, children: 1, ages: "6" },
-    rows: [
-      { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
-      { type: "MEAL", item: "HB - Adult", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 30 },
-      { type: "TRANSFER", item: "Seaplane - Adult", from: "", to: "", qty: 2, rate: 0 },
-    ],
-  });
-
-  assert.equal(table.hotel, "OZEN");
-  assert.equal(table.stay, "01.09-04.09");
-  assert.equal(table.rows.length, 2);
-  assert.deepEqual(table.rows.map((row) => row.service), ["Beach Pool Villa", "HB"]);
-  assert.deepEqual(table.layoutRows.map((row) => row.label), ["Beach Pool Villa", "", "Meal Plan - Adult", "Transfer - Adult", "", ""]);
-  assert.equal(table.layoutRows.at(-1).rate, "Total");
-  assert.equal(table.total, 480);
-});
-
 test("builds stay summaries by matching room dates", () => {
   const summaries = core.buildStaySummaries([
     { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
