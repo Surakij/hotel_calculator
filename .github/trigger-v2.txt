@@ -1,1 +1,1 @@
-trigger calculator row init fix
+trigger direct row template fix
