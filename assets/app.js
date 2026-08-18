@@ -1,0 +1,483 @@
+(function () {
+  const core = window.HotelCalcCore;
+  const LISTS = {
+    HOTEL: ["Ozen Bolifushi", "Ozen Life Maadhoo"],
+    ROOM: ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"],
+    MEAL: ["BB - Adult", "BB - Child", "HB - Adult", "HB - Child", "FB - Adult", "FB - Child", "AI - Adult", "AI - Child", "AI Luxury - Adult", "AI Luxury - Child", "Cristal AI - Adult", "Cristal AI - Child"],
+    TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
+    DINNER: ["Christmas Gala Dinner - Adult", "Christmas Gala Dinner - Child", "New Year Gala Dinner - Adult", "New Year Gala Dinner - Child"],
+    EXTRA: ["Extra Adult", "Extra Child", "Green Tax"],
+  };
+  const COLORS = { ROOM: "#2f80d1", MEAL: "#4caf50", TRANSFER: "#8064c8", DINNER: "#ed7d31", EXTRA: "#d4a500" };
+  const GLOBAL_DATE_IDS = new Set(["checkin", "checkout"]);
+
+  const $ = (id) => document.getElementById(id);
+  const rowsEl = $("rows");
+  let picker = null;
+  let pickerInput = null;
+  let pickerMonth = null;
+
+  function el(tag, options = {}) {
+    const node = document.createElement(tag);
+    Object.entries(options).forEach(([key, value]) => {
+      if (key === "className") node.className = value;
+      else if (key === "textContent") node.textContent = value;
+      else if (value !== undefined && value !== null) node.setAttribute(key, value);
+    });
+    return node;
+  }
+
+  function value(id) {
+    return $(id).value;
+  }
+
+  function cleanDateInput(input) {
+    input.value = input.value.replace(/[^\d.]/g, "").slice(0, 10);
+  }
+
+  function normalizeDateInput(input) {
+    if (!input.value) return;
+    input.value = core.formatDate(input.value);
+  }
+
+  function toast(message) {
+    const box = $("toast");
+    box.textContent = message;
+    box.style.display = "block";
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => {
+      box.style.display = "none";
+    }, 2200);
+  }
+
+  function buildLists() {
+    $("hotelList").innerHTML = LISTS.HOTEL.map((item) => `<option value="${item}">`).join("");
+    Object.keys(LISTS).filter((type) => type !== "HOTEL").forEach((type) => {
+      const datalist = el("datalist", { id: `list_${type}` });
+      datalist.innerHTML = LISTS[type].map((item) => `<option value="${item}">`).join("");
+      document.body.appendChild(datalist);
+    });
+  }
+
+  function createTypeSelect(selected = "") {
+    const select = el("select", { className: "type" });
+    select.appendChild(el("option", { value: "" }));
+    Object.keys(LISTS).filter((type) => type !== "HOTEL").forEach((type) => {
+      const option = el("option", { value: type, textContent: type });
+      option.selected = type === selected;
+      select.appendChild(option);
+    });
+    return select;
+  }
+
+  function addDiscount(container, value = 0, removable = true) {
+    const wrap = el("span", { className: "discount-item" });
+    const input = el("input", { className: "discount", type: "number", min: "0", max: "100", step: "1", placeholder: "%" });
+    input.value = value || "";
+    wrap.appendChild(input);
+
+    if (removable) {
+      const remove = el("button", { className: "discount-remove", type: "button", title: "Remove discount", textContent: "-" });
+      remove.addEventListener("click", () => {
+        wrap.remove();
+        recalc();
+      });
+      wrap.appendChild(remove);
+    }
+
+    container.appendChild(wrap);
+  }
+
+  function setupDiscounts(container, data = {}) {
+    const values = [data.d1 ?? data.discount ?? 0, data.d2 ?? 0, data.d3 ?? 0, data.d4 ?? 0];
+    const lastFilled = values.reduce((last, item, index) => (Number(item) > 0 ? index : last), 0);
+
+    for (let index = 0; index <= lastFilled; index += 1) addDiscount(container, values[index], index > 0);
+
+    const add = el("button", { className: "discount-add", type: "button", title: "Add another discount", textContent: "+" });
+    add.addEventListener("click", () => {
+      if (container.querySelectorAll(".discount").length < 4) {
+        addDiscount(container, 0, true);
+        recalc();
+      }
+    });
+    container.appendChild(add);
+  }
+
+  function rowData(tr) {
+    return {
+      type: tr.querySelector(".type").value,
+      item: tr.querySelector(".item").value.trim(),
+      from: tr.querySelector(".from").value,
+      to: tr.querySelector(".to").value,
+      qty: Number(tr.querySelector(".qty").value || 0),
+      rate: Number(tr.querySelector(".rate").value || 0),
+      discounts: [...tr.querySelectorAll(".discount")].map((input) => Number(input.value || 0)).filter((item) => item > 0),
+    };
+  }
+
+  function currentRows() {
+    return [...rowsEl.querySelectorAll("tr")].map(rowData).filter((row) => row.type || row.item || row.rate);
+  }
+
+  function isGlobalDateRow(tr) {
+    const data = rowData(tr);
+    return data.type === "ROOM" || data.type === "MEAL" || core.isGreenTax(data);
+  }
+
+  function applyAutoQty(tr) {
+    const data = rowData(tr);
+    const item = data.item.toLowerCase();
+    const qty = tr.querySelector(".qty");
+    const rate = tr.querySelector(".rate");
+
+    if (["MEAL", "TRANSFER", "DINNER"].includes(data.type)) {
+      if (data.type === "MEAL" && !item) qty.value = value("adults") || 0;
+      else if (item.includes("adult")) qty.value = value("adults") || 0;
+      else if (item.includes("child")) qty.value = value("children") || 0;
+      else if (item.includes("infant")) qty.value = value("infants") || 0;
+    }
+
+    if (core.isGreenTax(data)) {
+      qty.value = Number(value("adults") || 0) + Number(value("children") || 0);
+      if (!rate.value) rate.value = 12;
+    }
+  }
+
+  function applyGlobalDates(tr) {
+    if (tr.dataset.followGlobal !== "1" || !isGlobalDateRow(tr)) return;
+    tr.querySelector(".from").value = value("checkin");
+    tr.querySelector(".to").value = value("checkout");
+  }
+
+  function syncGlobalRows() {
+    rowsEl.querySelectorAll("tr").forEach((tr) => {
+      if (tr.dataset.followGlobal === undefined) tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
+      applyGlobalDates(tr);
+    });
+  }
+
+  function updateTypeColor(tr) {
+    const select = tr.querySelector(".type");
+    const color = COLORS[select.value] || "";
+    select.style.background = color;
+    select.style.color = color ? "#fff" : "";
+  }
+
+  function recalc() {
+    syncGlobalRows();
+    $("nights").value = core.nightsBetween(value("checkin"), value("checkout"));
+
+    const calculated = core.calculateRows(currentRows());
+    rowsEl.querySelectorAll("tr").forEach((tr) => {
+      const row = core.calculateRow(rowData(tr));
+      tr.querySelector(".nights").value = row.nights;
+      tr.querySelector(".net").textContent = core.money(row.net);
+      updateTypeColor(tr);
+    });
+
+    $("grandTotal").textContent = `$${core.money(calculated.total)}`;
+    $("topTotal").value = core.money(calculated.total);
+  }
+
+  function addRow(data = {}) {
+    const tr = el("tr");
+    tr.dataset.followGlobal = "0";
+
+    const typeCell = el("td");
+    typeCell.appendChild(createTypeSelect(data.type || ""));
+
+    const itemCell = el("td");
+    const item = el("input", { className: "item", placeholder: "Choose or type manually" });
+    item.value = data.item || "";
+    item.setAttribute("list", data.type ? `list_${data.type}` : "");
+    itemCell.appendChild(item);
+
+    const fromCell = el("td");
+    const from = el("input", { className: "from", inputmode: "numeric", placeholder: "DD.MM.YYYY", autocomplete: "off" });
+    from.value = core.formatDate(data.from || "");
+    fromCell.appendChild(from);
+
+    const toCell = el("td");
+    const to = el("input", { className: "to", inputmode: "numeric", placeholder: "DD.MM.YYYY", autocomplete: "off" });
+    to.value = core.formatDate(data.to || "");
+    toCell.appendChild(to);
+
+    const nightsCell = el("td");
+    nightsCell.appendChild(el("input", { className: "nights", readonly: "", value: "0" }));
+
+    const qtyCell = el("td");
+    const qty = el("input", { className: "qty", type: "number", min: "0", step: "1" });
+    qty.value = data.qty ?? "";
+    qtyCell.appendChild(qty);
+
+    const rateCell = el("td");
+    const rate = el("input", { className: "rate", type: "number", min: "0", step: "0.01" });
+    rate.value = data.rate ?? "";
+    rateCell.appendChild(rate);
+
+    const discountsCell = el("td", { className: "discounts" });
+    setupDiscounts(discountsCell, data);
+
+    const netCell = el("td", { className: "net", textContent: "0.00" });
+    const deleteCell = el("td");
+    deleteCell.appendChild(el("button", { className: "delete", type: "button", textContent: "x" }));
+
+    [typeCell, itemCell, fromCell, toCell, nightsCell, qtyCell, rateCell, discountsCell, netCell, deleteCell].forEach((cell) => tr.appendChild(cell));
+    rowsEl.appendChild(tr);
+
+    const type = tr.querySelector(".type");
+    type.addEventListener("change", () => {
+      item.setAttribute("list", type.value ? `list_${type.value}` : "");
+      tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
+      applyAutoQty(tr);
+      recalc();
+    });
+
+    item.addEventListener("input", () => {
+      if (isGlobalDateRow(tr)) tr.dataset.followGlobal = "1";
+      applyAutoQty(tr);
+      recalc();
+    });
+
+    tr.querySelectorAll(".from,.to").forEach((input) => {
+      input.addEventListener("input", () => cleanDateInput(input));
+      input.addEventListener("blur", () => {
+        normalizeDateInput(input);
+        tr.dataset.followGlobal = "0";
+        recalc();
+      });
+      input.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        openPicker(input);
+      });
+    });
+
+    tr.querySelectorAll(".qty,.rate").forEach((input) => input.addEventListener("input", recalc));
+    tr.querySelector(".discounts").addEventListener("input", recalc);
+    tr.querySelector(".delete").addEventListener("click", () => {
+      tr.remove();
+      recalc();
+    });
+
+    tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
+    applyAutoQty(tr);
+    recalc();
+  }
+
+  function createDefaultRows() {
+    rowsEl.innerHTML = "";
+    addRow({ type: "ROOM", qty: 1 });
+    addRow({ type: "MEAL", qty: Number(value("adults") || 0) });
+    addRow({ type: "TRANSFER", qty: 1 });
+    addRow({ type: "EXTRA", item: "Green Tax", qty: 0, rate: 12 });
+  }
+
+  function setCheckoutFromNights() {
+    const nights = Number(value("nights") || 0);
+    $("checkout").value = value("checkin") && nights > 0 ? core.addDays(value("checkin"), nights) : "";
+    recalc();
+  }
+
+  function handleGlobalDate(input) {
+    normalizeDateInput(input);
+    const checkin = value("checkin");
+    const checkout = value("checkout");
+
+    if (input.id === "checkin" && checkin && Number(value("nights") || 0) > 0) {
+      $("checkout").value = core.addDays(checkin, value("nights"));
+    } else if (input.id === "checkout" && checkin && checkout && core.parseDate(checkout) < core.parseDate(checkin)) {
+      $("checkout").value = "";
+    }
+
+    recalc();
+  }
+
+  function sharePayload() {
+    return {
+      hotel: value("hotel"),
+      checkin: value("checkin"),
+      checkout: value("checkout"),
+      guests: {
+        adults: value("adults"),
+        children: value("children"),
+        infants: value("infants"),
+        ages: value("ages"),
+      },
+      spo: value("spo"),
+      rows: currentRows(),
+    };
+  }
+
+  function shareText() {
+    recalc();
+    return core.buildShareText(sharePayload());
+  }
+
+  function showShare() {
+    $("shareText").textContent = shareText();
+    $("shareModal").showModal();
+  }
+
+  async function copyShare() {
+    const text = shareText();
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Calculation copied to clipboard");
+    } catch {
+      const textarea = el("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+      toast("Calculation copied");
+    }
+  }
+
+  function downloadShare() {
+    const text = shareText();
+    const hotel = (value("hotel") || "Hotel").replace(/[^a-z0-9]+/gi, "_");
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const link = el("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${hotel}_calculation.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast("Short calculation downloaded");
+  }
+
+  function clearAll() {
+    if (!window.confirm("Clear the current calculation and start a new one?")) return;
+    ["hotel", "checkin", "checkout", "ages", "spo"].forEach((id) => {
+      $(id).value = "";
+    });
+    ["adults", "children", "infants", "nights"].forEach((id) => {
+      $(id).value = "0";
+    });
+    createDefaultRows();
+    recalc();
+    toast("Calculation cleared");
+  }
+
+  function closePicker() {
+    if (picker) picker.remove();
+    picker = null;
+    pickerInput = null;
+  }
+
+  function positionPicker() {
+    const rect = pickerInput.getBoundingClientRect();
+    const width = 276;
+    const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+    let top = rect.bottom + 6;
+    if (top + picker.offsetHeight > window.innerHeight - 8) top = Math.max(8, rect.top - picker.offsetHeight - 6);
+    picker.style.left = `${left}px`;
+    picker.style.top = `${top}px`;
+  }
+
+  function renderPicker() {
+    picker.innerHTML = "";
+    const head = el("div", { className: "calendar-head" });
+    const prev = el("button", { type: "button", textContent: "<" });
+    const next = el("button", { type: "button", textContent: ">" });
+    const title = el("strong", { textContent: pickerMonth.toLocaleString("en-US", { month: "long", year: "numeric" }) });
+
+    prev.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      pickerMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1, 1);
+      renderPicker();
+    });
+    next.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      pickerMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 1);
+      renderPicker();
+    });
+    head.append(prev, title, next);
+    picker.appendChild(head);
+
+    const grid = el("div", { className: "calendar-grid" });
+    ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach((day) => grid.appendChild(el("span", { textContent: day })));
+
+    const first = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), 1);
+    const offset = (first.getDay() + 6) % 7;
+    for (let index = 0; index < offset; index += 1) grid.appendChild(el("span", { className: "empty" }));
+
+    const minDate = pickerInput.id === "checkout" || pickerInput.classList.contains("to")
+      ? core.parseDate(pickerInput.closest("tr")?.querySelector(".from")?.value || value("checkin"))
+      : null;
+    const selected = core.parseDate(pickerInput.value);
+    const days = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 0).getDate();
+
+    for (let day = 1; day <= days; day += 1) {
+      const date = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), day);
+      const button = el("button", { type: "button", textContent: day });
+      if (minDate && date < minDate) button.disabled = true;
+      if (selected && selected.getTime() === date.getTime()) button.classList.add("selected");
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        pickerInput.value = core.formatDate(date);
+        if (!GLOBAL_DATE_IDS.has(pickerInput.id)) pickerInput.closest("tr").dataset.followGlobal = "0";
+        else handleGlobalDate(pickerInput);
+        closePicker();
+        recalc();
+      });
+      grid.appendChild(button);
+    }
+
+    picker.appendChild(grid);
+    positionPicker();
+  }
+
+  function openPicker(input) {
+    closePicker();
+    pickerInput = input;
+    const base = core.parseDate(input.value) || core.parseDate(value("checkin")) || new Date();
+    pickerMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+    picker = el("div", { className: "calendar" });
+    document.body.appendChild(picker);
+    renderPicker();
+  }
+
+  function wireEvents() {
+    ["checkin", "checkout"].forEach((id) => {
+      const input = $(id);
+      input.addEventListener("input", () => cleanDateInput(input));
+      input.addEventListener("blur", () => handleGlobalDate(input));
+      input.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        openPicker(input);
+      });
+    });
+
+    $("nights").addEventListener("input", setCheckoutFromNights);
+    ["adults", "children", "infants"].forEach((id) => {
+      $(id).addEventListener("input", () => {
+        rowsEl.querySelectorAll("tr").forEach(applyAutoQty);
+        recalc();
+      });
+    });
+    ["ages", "spo"].forEach((id) => $(id).addEventListener("input", recalc));
+
+    $("addRow").addEventListener("click", () => addRow());
+    $("clearAll").addEventListener("click", clearAll);
+    $("showShare").addEventListener("click", showShare);
+    $("copyShare").addEventListener("click", copyShare);
+    $("downloadShare").addEventListener("click", downloadShare);
+    $("downloadShareModal").addEventListener("click", downloadShare);
+    $("closeShare").addEventListener("click", () => $("shareModal").close());
+    document.addEventListener("click", (event) => {
+      if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
+    });
+    window.addEventListener("resize", closePicker);
+    window.addEventListener("scroll", closePicker, true);
+  }
+
+  buildLists();
+  wireEvents();
+  createDefaultRows();
+  window.HotelCalculatorApp = { addRow, recalc, shareText };
+})();
