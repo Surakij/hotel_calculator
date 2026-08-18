@@ -1,1 +1,1 @@
-trigger robust initial rows fallback
+trigger fallback scope fix
