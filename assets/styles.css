@@ -74,6 +74,61 @@ body {
   background: #fff;
 }
 
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.number-stepper {
+  display: grid;
+  grid-template-columns: 36px minmax(42px, 1fr) 36px;
+  width: 100%;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.number-stepper input {
+  height: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0 5px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.number-stepper .step-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 100%;
+  border-radius: 0;
+  padding: 0;
+  background: #e9f0f8;
+  color: var(--navy);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.number-stepper .step-button:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
+.number-stepper .step-button:active {
+  background: var(--blue);
+}
+
 .guest {
   padding: 9px;
   border: 1px solid var(--line);
@@ -169,6 +224,23 @@ td select {
   background: #fff;
 }
 
+td .number-stepper {
+  height: 36px;
+  grid-template-columns: 34px minmax(38px, 1fr) 34px;
+}
+
+td .number-stepper input {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 0 4px;
+}
+
+td .number-stepper .step-button {
+  min-width: 34px;
+  font-size: 18px;
+}
+
 .discounts {
   display: flex;
   align-items: center;
@@ -182,9 +254,20 @@ td select {
 }
 
 .discounts .discount {
-  width: 58px;
-  min-width: 58px;
+  width: 46px;
+  min-width: 46px;
   text-align: center;
+}
+
+.discounts .number-stepper {
+  width: 104px;
+  min-width: 104px;
+  grid-template-columns: 28px 48px 28px;
+}
+
+.discounts .number-stepper .step-button {
+  min-width: 28px;
+  font-size: 16px;
 }
 
 .discount-add,
