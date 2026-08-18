@@ -20,8 +20,33 @@ p = p.replace(old,new)
 patch.write_text(p,encoding='utf-8')
 js_start=p.index("js = r'''")+len("js = r'''"); js_end=p.index("'''",js_start); js=p[js_start:js_end]
 s=index.read_text(encoding='utf-8'); marker='/* HOTEL CALCULATOR v2 override */'; start=s.index(marker); end=s.index('</script>',start); index.write_text(s[:start]+js+'\n'+s[end:],encoding='utf-8')
-
-# Repair the live embedded addRow template directly, even if the earlier patch text differs.
 s=index.read_text(encoding='utf-8')
 s=s.replace('<td></td><td></td><td><input class="nights"', '<td><input class="from" type="text"></td><td><input class="to" type="text"></td><td><input class="nights"')
+
+fallback = r'''/* Ensure required initial rows exist even if the earlier row builder fails. */
+(function(){
+  const rows=document.getElementById('rows');
+  if(!rows || rows.querySelectorAll('tr').length>=3)return;
+  const first=rows.querySelector('tr');
+  if(!first)return;
+  function bind(tr){
+    const type=tr.querySelector('.type'), item=tr.querySelector('.item');
+    type.addEventListener('change',()=>{tr.dataset.type=type.value;item.setAttribute('list','list_'+type.value);applyAutoQty(tr);recalc()});
+    item.addEventListener('input',()=>{applyAutoQty(tr);recalc()});
+    ['.from','.to','.qty','.rate'].forEach(sel=>tr.querySelector(sel).addEventListener('input',()=>recalc()));
+    tr.querySelector('.discounts').addEventListener('input',()=>recalc());
+    tr.querySelector('.delete').addEventListener('click',()=>{tr.remove();recalc()});
+  }
+  function cloneRow(type,item,qty,rate){
+    const tr=first.cloneNode(true);tr.dataset.type=type;tr.dataset.autoDates=(type==='ROOM'||type==='MEAL'||type==='EXTRA'&&/^green tax$/i.test(item))?'1':'0';
+    tr.querySelector('.type').value=type;tr.querySelector('.item').value=item;tr.querySelector('.from').value='';tr.querySelector('.to').value='';tr.querySelector('.nights').value='';tr.querySelector('.qty').value=qty;tr.querySelector('.rate').value=rate;
+    tr.querySelectorAll('.discount').forEach((d,i)=>{if(i>0)d.parentElement.remove();else d.value=0});
+    rows.appendChild(tr);bind(tr);applyAutoQty(tr);applyDefaultDates(tr);return tr;
+  }
+  if(rows.querySelectorAll('tr').length<2)cloneRow('TRANSFER','',1,'');
+  if(rows.querySelectorAll('tr').length<3)cloneRow('EXTRA','Green Tax',0,12);
+  recalc();
+})();'''
+if 'Ensure required initial rows exist' not in s:
+    s=s.replace('</script>',fallback+'\n</script>',1)
 index.write_text(s,encoding='utf-8')
