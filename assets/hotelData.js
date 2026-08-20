@@ -1,6 +1,7 @@
 (function () {
   window.HotelCalculatorHotelData = {
-    "Aanugandu Island Resort": [],
+    "Aanugandu Island Resort": [
+    ],
     "Adaaran Club Rannalhi": [
       "Classic Ocean View Rooms",
       "Classic Beach View Rooms",
@@ -36,13 +37,13 @@
       "Meedhupparu Residence with Pool",
     ],
     "Alila Kothaifaru Maldives": [
-      "One-Bedroom Lagoon Overwater Pool Villa, 1 King Bed",
-      "One-Bedroom Ocean Overwater Pool Villa, 1 King Bed",
-      "One-Bedroom Sunset Overwater Pool Villa, 1 King Bed",
-      "One-Bedroom Beach Pool Villa, 1 King Bed",
-      "One-Bedroom Sunset Beach Pool Villa, 1 King Bed",
-      "Two-Bedroom Beach Pool Villa, 1 King Bed & 2 Twin Beds",
-      "Two Bedroom Boduge Residence, 1 King Bed & 2 Twin Beds, Additional Service Room",
+      "One-Bedroom Lagoon Overwater Pool Villa",
+      "One-Bedroom Ocean Overwater Pool Villa",
+      "One-Bedroom Sunset Overwater Pool Villa",
+      "One-Bedroom Beach Pool Villa",
+      "One-Bedroom Sunset Beach Pool Villa",
+      "Two-Bedroom Beach Pool Villa",
+      "Two Bedroom Boduge Residence",
     ],
     "Alimatha Aquatic Resort": [
       "Over Water",
@@ -50,7 +51,8 @@
       "Garden Villa",
       "Garden Room",
     ],
-    "Ananea Madivaru Maldives": [],
+    "Ananea Madivaru Maldives": [
+    ],
     "Anantara Kihavah Villas": [
       "Beach Pool Villa",
       "Sunset Beach Pool Villa",
@@ -87,7 +89,8 @@
       "Superior Water Bungalow",
       "Premium Water Bungalow",
     ],
-    "Angsana Resort & Spa Maldives - Velavaru": [],
+    "Angsana Resort & Spa Maldives - Velavaru": [
+    ],
     "Atmosphere Kanifushi Maldives": [
       "Kanifushi Grand Pool Villa",
       "Two Bedroom Sunset Family Beach Villa",
@@ -166,7 +169,8 @@
       "Baros Villas",
       "Deluxe Beach Villas",
     ],
-    "Bolifushi Island Resort": [],
+    "Bolifushi Island Resort": [
+    ],
     "Brennia Kottefaru": [
       "Bougain Villa",
       "Beach Villa",
@@ -239,6 +243,301 @@
       "Sunset Water Bungalow with Jacuzzi",
       "Water Suite with Pool",
     ],
-    "Club Med Finolhu Villas": [],
+    "Club Med Finolhu Villas": [
+    ],
+    "Club Med Kanifinolhu": [
+    ],
+    "Coco Bodu Hithi": [
+    ],
+    "Coco Palm Dhunikolhu": [
+    ],
+    "Cocoa Island": [
+    ],
+    "Cocogiri Island Resort": [
+    ],
+    "Cocoon Maldives": [
+    ],
+    "Como Maalifushi": [
+    ],
+    "Conrad Maldives Rangali Island": [
+    ],
+    "Constance Halaveli Resort": [
+    ],
+    "Constance Moofushi Resort": [
+    ],
+    "Cora Cora Maldives": [
+    ],
+    "Dhawa Ihuru": [
+    ],
+    "Dheruhfinolhu by Jawakara Islands Maldives": [
+    ],
+    "Dhiggiri Tourist Resort": [
+    ],
+    "Dhigufaru Island Resort": [
+    ],
+    "Diamonds Athuruga Beach & Water Villas": [
+    ],
+    "Diamonds Thudufushi Beach and Water Villas": [
+    ],
+    "Dreamland - The Unique Sea & Lake Resort/Spa": [
+    ],
+    "Drift Theluveliga Retreat": [
+    ],
+    "Dusit Thani Maldives": [
+    ],
+    "dusitD2": [
+    ],
+    "Ellaidhoo Maldives By Cinnamon": [
+    ],
+    "Embudhu Village": [
+    ],
+    "Emerald Faarufushi Resort & Spa": [
+    ],
+    "Emerald Maldives Resort & Spa Fasmendho": [
+    ],
+    "Eri Maldives": [
+    ],
+    "Fihaalhohi Maldives": [
+    ],
+    "Filitheyo Island Resort": [
+    ],
+    "Finolhu": [
+    ],
+    "Four Seasons Private Island Maldives at Voavah": [
+    ],
+    "Four Seasons Resort Maldives at Kuda Huraa": [
+    ],
+    "Four Seasons Resort Maldives at Landaa Giraavaru": [
+    ],
+    "Furaveri Maldives": [
+    ],
+    "Fushifaru Maldives": [
+    ],
+    "Gangehi Island Resort": [
+    ],
+    "Gili Lankanfushi": [
+    ],
+    "Grand Park Kodhipparu Maldives": [
+    ],
+    "Hard Rock Hotel Maldives": [
+    ],
+    "Heritance Aarah": [
+    ],
+    "Hilton Maldives Amingiri Resort & Spa": [
+    ],
+    "Holiday Inn Resort Kandooma Maldives": [
+    ],
+    "Hondaafushi Island Resort": [
+    ],
+    "Hurawalhi Island Resort": [
+    ],
+    "Huvafenfushi Maldives": [
+    ],
+    "Inter Continental Maldives Maamunagau": [
+    ],
+    "JA Manafaru": [
+    ],
+    "Joali Being Bodufushi": [
+    ],
+    "Joali Muravandhoo": [
+    ],
+    "Joy Island": [
+    ],
+    "Jumeirah Maldives Olhahali Island": [
+    ],
+    "JW Marriott": [
+    ],
+    "JW Marriott Maldives Resort & Spa": [
+    ],
+    "Kagi Maldives Resort and Spa": [
+    ],
+    "Kandima Maldives": [
+    ],
+    "Kandolhu Maldives": [
+    ],
+    "Komandoo Island Resort": [
+    ],
+    "Kuda Villingili Resort Maldives": [
+    ],
+    "Kudadoo Maldives Private island": [
+    ],
+    "Kudafushi Resort & Spa": [
+    ],
+    "Kuredhivaru Resort and Spa": [
+    ],
+    "Kuredu Island Resort": [
+    ],
+    "Kurumba Maldives": [
+    ],
+    "Le Méridien Maldives Resort and Spa": [
+    ],
+    "Lily Beach Resort": [
+    ],
+    "Lux* South Ari Atoll, Maldives": [
+    ],
+    "Maayafushi Tourist Resort": [
+    ],
+    "Mabinhura by Jawakara Islands Maldives": [
+    ],
+    "Machchafushi Island Resort & Spa Maldives, The Centara Collection": [
+    ],
+    "Madifushi Private Island": [
+    ],
+    "Makunudu Island": [
+    ],
+    "Malahini Kuda Bandos": [
+    ],
+    "Medhufushi Island Resort": [
+    ],
+    "Meeru Maldives Resort Island": [
+    ],
+    "Melia Whale Lagoon Maldives": [
+    ],
+    "Meyyafushi Maldives": [
+    ],
+    "Milaidhoo Island Maldives": [
+    ],
+    "Nala Maldives by Jawakara": [
+    ],
+    "NH Collection Maldives Havodda Resort": [
+    ],
+    "NH Collection Maldives Reethi Resort": [
+    ],
+    "nH Maldives Kuda Rah Resort": [
+    ],
+    "Nika Island Resort and Spa": [
+    ],
+    "Niva Dhigali Maldives": [
+    ],
+    "Niva Kuramathi Maldives": [
+    ],
+    "Niva Velassaru Maldives": [
+    ],
+    "Niyama Maldives": [
+    ],
+    "Noku Maldives Vignette Collection": [
+    ],
+    "Nooe Maldives Kunavashi": [
+    ],
+    "Nova Maldives": [
+    ],
+    "Oaga Art Resort": [
+    ],
+    "Oblu By Atmosphere at Helengeli": [
+    ],
+    "Oblu Select by Atmosphere at Sangeli": [
+    ],
+    "One & Only Reethi Rah, Maldives": [
+    ],
+    "Outrigger Maldives Maafushivaru Resort": [
+    ],
+    "Ozen By Atmosphere At Maadhoo": [
+    ],
+    "Park Hyatt Maldives Hadahaa": [
+    ],
+    "Patina Maldives, Fari Islands": [
+    ],
+    "Pullman Maldives Maamutaa Resort": [
+    ],
+    "Raaya by Atmosphere": [
+    ],
+    "Radisson Blu Resort Maldives": [
+    ],
+    "Rah Gili Maldives": [
+    ],
+    "Rahaa Resort": [
+    ],
+    "Reethi Faru Resort": [
+    ],
+    "Riu Atoll and Riu Palace Maldivas": [
+    ],
+    "Robinson Maldives": [
+    ],
+    "Robinson": [
+    ],
+    "Royal Island Resort and Spa": [
+    ],
+    "Saii Lagoon Maldives": [
+    ],
+    "Sandies Bathala": [
+    ],
+    "Shangri-la Villingili Maldives": [
+    ],
+    "Sheraton Maldives Full Moon Resort & Spa": [
+    ],
+    "Sirru Fen Fushi Private Lagoon Resort": [
+    ],
+    "Six Senses Kanuhura": [
+    ],
+    "Six Senses": [
+    ],
+    "Siyam World Maldives": [
+    ],
+    "SO/ Maldives": [
+    ],
+    "Soneva Fushi Resort": [
+    ],
+    "Soneva Jani": [
+    ],
+    "Soneva Secret": [
+    ],
+    "South Palm Resort Maldives": [
+    ],
+    "Summer Island Maldives": [
+    ],
+    "Sun Siyam Iru Fushi Maldives": [
+    ],
+    "Sun Siyam Iru Veli Maldives": [
+    ],
+    "Sun Siyam Olhuveli Maldives": [
+    ],
+    "Sun Siyam Vilu Reef Maldives": [
+    ],
+    "Taj Coral Reef Resort and Spa": [
+    ],
+    "Taj Exotica Resort & Spa Maldives": [
+    ],
+    "The Halcyon Private Isles Maldives Autograph Collection": [
+    ],
+    "The Nautilus Maldives": [
+    ],
+    "The Residence Maldives": [
+    ],
+    "The Residence Maldives At Dhigurah": [
+    ],
+    "The Ritz Carlton Maldives Fari Islands": [
+    ],
+    "The St. Regis Vommuli Resort, Maldives": [
+    ],
+    "The Standard Huruvalhi Maldives": [
+    ],
+    "The Westin Maldives Miriandhoo Resort": [
+    ],
+    "Thulhagiri Island Resort & Spa": [
+    ],
+    "V Villas Maldives at Mirihi-Mgallery Collection": [
+    ],
+    "Vakkaru Maldives": [
+    ],
+    "Varu Island Resort": [
+    ],
+    "Velaa Private Island Maldives": [
+    ],
+    "Veligandu Maldives Resort Island": [
+    ],
+    "Vilamendhoo Island Resort": [
+    ],
+    "Villa Nautica Paradise Island": [
+    ],
+    "Villa Park Sun Island": [
+    ],
+    "W Maldives": [
+    ],
+    "Waldorf Astoria Maldives Ithaafushi": [
+    ],
+    "Yash Nature Resort": [
+    ],
+    "You & Me Maldives": [
+    ],
   };
 })();
