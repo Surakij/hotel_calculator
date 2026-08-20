@@ -74,57 +74,6 @@ body {
   background: #fff;
 }
 
-.field-with-action {
-  position: relative;
-}
-
-.hotel-field input {
-  padding-right: 9px;
-}
-
-.hotel-menu {
-  position: absolute;
-  z-index: 10000;
-  top: calc(100% + 4px);
-  left: 0;
-  display: none;
-  width: 100%;
-  max-height: 260px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  overflow: auto;
-  background: #fff;
-  box-shadow: 0 10px 26px rgba(23, 54, 93, .18);
-}
-
-.hotel-menu.open {
-  display: block;
-}
-
-.hotel-option {
-  display: block;
-  width: 100%;
-  min-height: 34px;
-  border-radius: 0;
-  padding: 8px 10px;
-  background: #fff;
-  color: var(--text);
-  font-weight: 500;
-  text-align: left;
-}
-
-.hotel-option:hover,
-.hotel-option:focus {
-  outline: 0;
-  background: #e9f0f8;
-  color: var(--navy);
-}
-
-.hotel-option.empty {
-  color: var(--muted);
-  cursor: default;
-}
-
 input[type="number"] {
   -moz-appearance: textfield;
 }
