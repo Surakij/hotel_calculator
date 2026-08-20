@@ -74,6 +74,42 @@ body {
   background: #fff;
 }
 
+.field-with-action {
+  position: relative;
+}
+
+.field-with-action input {
+  padding-right: 38px;
+}
+
+.field-clear {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  display: none;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: #e9f0f8;
+  color: var(--navy);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.field-clear.visible {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-clear:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
 input[type="number"] {
   -moz-appearance: textfield;
 }
