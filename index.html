@@ -8,7 +8,7 @@
   <script src="assets/core.js" defer></script>
   <script src="assets/hotelData.js" defer></script>
   <script src="assets/app.js" defer></script>
-  <script src="assets/hotelSelect.js" defer></script>
+  <script src="assets/hotelReselect.js" defer></script>
 </head>
 <body>
   <main class="app">
@@ -17,10 +17,7 @@
     <section class="cards" aria-label="Stay details">
       <div class="card">
         <label for="hotel">HOTEL</label>
-        <div class="field-with-action hotel-field">
-          <input id="hotel" placeholder="Choose or type hotel" autocomplete="off" aria-haspopup="listbox">
-          <div id="hotelMenu" class="hotel-menu" role="listbox"></div>
-        </div>
+        <input id="hotel" list="hotelList" placeholder="Choose or type hotel" autocomplete="off">
       </div>
       <div class="card">
         <label for="checkin">CHECK-IN</label>
