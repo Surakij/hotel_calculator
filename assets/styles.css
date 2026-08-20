@@ -74,30 +74,6 @@ body {
   background: #fff;
 }
 
-.hotel-letters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-.hotel-letter {
-  min-width: 26px;
-  height: 24px;
-  border-radius: 5px;
-  padding: 0 6px;
-  background: #e9f0f8;
-  color: var(--navy);
-  font-size: 11px;
-  line-height: 24px;
-}
-
-.hotel-letter.active,
-.hotel-letter:hover {
-  background: var(--navy);
-  color: #fff;
-}
-
 input[type="number"] {
   -moz-appearance: textfield;
 }
@@ -403,6 +379,108 @@ td .number-stepper .step-button {
   background: var(--navy);
   color: #fff;
   box-shadow: 0 5px 20px #0002;
+}
+
+.hotel-picker {
+  position: fixed;
+  z-index: 100001;
+  display: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(23, 54, 93, .22);
+}
+
+.hotel-picker.open {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.hotel-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.hotel-picker-title {
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hotel-picker-close {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 0;
+  background: #f3f4f6;
+  color: var(--red);
+}
+
+.hotel-picker-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: #f8fafc;
+}
+
+.hotel-picker-letters button {
+  min-width: 26px;
+  height: 24px;
+  border-radius: 5px;
+  padding: 0 6px;
+  background: #e9f0f8;
+  color: var(--navy);
+  font-size: 11px;
+  line-height: 24px;
+}
+
+.hotel-picker-letters button:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
+.hotel-picker-list {
+  min-height: 160px;
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+.hotel-group h3 {
+  position: sticky;
+  top: 0;
+  margin: 0;
+  padding: 7px 12px;
+  background: #eef3f8;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hotel-choice {
+  display: block;
+  width: 100%;
+  min-height: 34px;
+  border-radius: 0;
+  padding: 8px 12px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 500;
+  text-align: left;
+}
+
+.hotel-choice:hover,
+.hotel-choice:focus {
+  outline: 0;
+  background: #e9f0f8;
+  color: var(--navy);
 }
 
 .modal {
