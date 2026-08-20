@@ -1,8 +1,12 @@
 (function () {
   const core = window.HotelCalcCore;
+  const HOTEL_DATA = window.HotelCalculatorHotelData || {};
+  const HOTEL_NAMES = Object.keys(HOTEL_DATA);
+  const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
+  const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const LISTS = {
-    HOTEL: ["Ozen Bolifushi", "Ozen Life Maadhoo"],
-    ROOM: ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"],
+    HOTEL: [...new Set([...DEFAULT_HOTELS, ...HOTEL_NAMES])].sort((a, b) => a.localeCompare(b)),
+    ROOM: DEFAULT_ROOMS,
     MEAL: ["BB - Adult", "BB - Child", "HB - Adult", "HB - Child", "FB - Adult", "FB - Child", "AI - Adult", "AI - Child", "AI Luxury - Adult", "AI Luxury - Child", "Cristal AI - Adult", "Cristal AI - Child"],
     TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
     DINNER: ["Christmas Gala Dinner - Adult", "Christmas Gala Dinner - Child", "New Year Gala Dinner - Adult", "New Year Gala Dinner - Child"],
@@ -87,13 +91,31 @@
     }, 2200);
   }
 
+  function renderDatalist(id, items) {
+    $(id).innerHTML = items.map((item) => `<option value="${escapeHtml(item)}">`).join("");
+  }
+
+  function selectedHotelRecord() {
+    const hotel = value("hotel").trim().toLowerCase();
+    const name = HOTEL_NAMES.find((item) => item.toLowerCase() === hotel);
+    return name ? HOTEL_DATA[name] : null;
+  }
+
+  function updateRoomList() {
+    const record = selectedHotelRecord();
+    const rooms = record ? record : DEFAULT_ROOMS;
+    renderDatalist("list_ROOM", rooms);
+  }
+
   function buildLists() {
-    $("hotelList").innerHTML = LISTS.HOTEL.map((item) => `<option value="${item}">`).join("");
+    renderDatalist("hotelList", LISTS.HOTEL);
     Object.keys(LISTS).filter((type) => type !== "HOTEL").forEach((type) => {
       const datalist = el("datalist", { id: `list_${type}` });
-      datalist.innerHTML = LISTS[type].map((item) => `<option value="${item}">`).join("");
+      datalist.innerHTML = "";
       document.body.appendChild(datalist);
+      renderDatalist(`list_${type}`, LISTS[type]);
     });
+    updateRoomList();
   }
 
   function createTypeSelect(selected = "") {
@@ -609,6 +631,11 @@
   }
 
   function wireEvents() {
+    $("hotel").addEventListener("input", () => {
+      updateRoomList();
+      recalc();
+    });
+
     ["checkin", "checkout"].forEach((id) => {
       const input = $(id);
       input.addEventListener("input", () => cleanDateInput(input));
