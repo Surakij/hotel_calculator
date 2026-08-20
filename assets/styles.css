@@ -385,61 +385,105 @@ td .number-stepper .step-button {
   position: fixed;
   z-index: 100001;
   display: none;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 16px 40px rgba(23, 54, 93, .22);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, .16), 0 8px 10px -6px rgba(15, 23, 42, .16);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .18s ease-out, transform .18s ease-out;
 }
 
 .hotel-picker.open {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hotel-picker-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--line);
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
   background: #fff;
 }
 
-.hotel-picker-title {
-  color: var(--navy);
+.hotel-picker-search {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid #d8e1eb;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.hotel-picker-search:focus-within {
+  border-color: #58c7cf;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(88, 199, 207, .15);
+}
+
+.hotel-picker-search span {
+  color: #64748b;
   font-size: 12px;
   font-weight: 700;
+  text-align: center;
+}
+
+.hotel-picker-input {
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  padding: 0 10px 0 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
 }
 
 .hotel-picker-close {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   padding: 0;
   background: #f3f4f6;
   color: var(--red);
 }
 
+.hotel-picker-body {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  min-height: 0;
+}
+
 .hotel-picker-letters {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
   gap: 4px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--line);
+  min-height: 0;
+  padding: 10px 0;
+  border-right: 1px solid #e2e8f0;
   background: #f8fafc;
+  overflow: auto;
 }
 
 .hotel-picker-letters button {
-  min-width: 26px;
-  height: 24px;
-  border-radius: 5px;
-  padding: 0 6px;
-  background: #e9f0f8;
-  color: var(--navy);
-  font-size: 11px;
-  line-height: 24px;
+  width: 30px;
+  height: 28px;
+  border-radius: 7px;
+  padding: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 28px;
 }
 
 .hotel-picker-letters button:hover {
@@ -457,30 +501,60 @@ td .number-stepper .step-button {
   position: sticky;
   top: 0;
   margin: 0;
-  padding: 7px 12px;
-  background: #eef3f8;
-  color: var(--navy);
-  font-size: 11px;
+  z-index: 1;
+  padding: 7px 16px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .hotel-choice {
-  display: block;
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  min-height: 34px;
+  min-height: 38px;
   border-radius: 0;
-  padding: 8px 12px;
+  padding: 9px 16px;
   background: #fff;
   color: var(--text);
+  font-size: 13px;
   font-weight: 500;
   text-align: left;
+  transition: background .15s ease-out, color .15s ease-out;
 }
 
 .hotel-choice:hover,
 .hotel-choice:focus {
   outline: 0;
-  background: #e9f0f8;
-  color: var(--navy);
+  background: #eff6ff;
+  color: #0f172a;
+}
+
+.hotel-marker {
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+}
+
+.hotel-marker.blue { background: #3b82f6; }
+.hotel-marker.green { background: #10b981; }
+.hotel-marker.purple { background: #8b5cf6; }
+.hotel-marker.gold { background: #f59e0b; }
+
+.hotel-match {
+  border-radius: 3px;
+  padding: 0 2px;
+  background: #b7f2f0;
+  color: #0f4f57;
+}
+
+.hotel-empty {
+  padding: 18px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .modal {
