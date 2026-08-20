@@ -7,6 +7,7 @@ const filesToCheck = [
   "assets/core.js",
   "assets/hotelData.js",
   "assets/app.js",
+  "assets/hotelClear.js",
   "tools/lint.js",
   "tests/core.test.js",
 ];
@@ -24,10 +25,10 @@ for (const file of filesToCheck) {
 
 const html = readFileSync(join(root, "index.html"), "utf8");
 const scriptTags = [...html.matchAll(/<script\b/g)].length;
-if (scriptTags !== 3) fail(`Expected exactly 3 script tags, found ${scriptTags}.`);
+if (scriptTags !== 4) fail(`Expected exactly 4 script tags, found ${scriptTags}.`);
 if (/onclick=|onchange=|oninput=/.test(html)) fail("Inline event handlers are not allowed.");
-if (!html.includes("assets/core.js") || !html.includes("assets/hotelData.js") || !html.includes("assets/app.js")) {
-  fail("HTML must load core.js, hotelData.js, and app.js.");
+if (!html.includes("assets/core.js") || !html.includes("assets/hotelData.js") || !html.includes("assets/app.js") || !html.includes("assets/hotelClear.js")) {
+  fail("HTML must load core.js, hotelData.js, app.js, and hotelClear.js.");
 }
 
 const app = readFileSync(join(root, "assets/app.js"), "utf8");
