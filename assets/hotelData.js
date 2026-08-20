@@ -58,7 +58,7 @@
       "Sunset Over Water Pool Villa",
       "One Bedroom Family Over Water Pool Villa",
       "One Bedroom Family Beach Pool Villa",
-      "Two Bedroom Family Over Water Pool Villa",
+      "Two Bedroom Family Beach Pool Villa",
       "Two Bedroom Beach Pool Residence",
       "Two Bedroom Sunset Over Water Pool Residence",
       "Three Bedroom Beach Pool Residence",
