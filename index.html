@@ -8,6 +8,7 @@
   <script src="assets/core.js" defer></script>
   <script src="assets/hotelData.js" defer></script>
   <script src="assets/app.js" defer></script>
+  <script src="assets/hotelClear.js" defer></script>
 </head>
 <body>
   <main class="app">
@@ -16,7 +17,10 @@
     <section class="cards" aria-label="Stay details">
       <div class="card">
         <label for="hotel">HOTEL</label>
-        <input id="hotel" list="hotelList" placeholder="Choose or type hotel">
+        <div class="field-with-action">
+          <input id="hotel" list="hotelList" placeholder="Choose or type hotel">
+          <button id="clearHotel" class="field-clear" type="button" aria-label="Clear hotel" title="Clear hotel">x</button>
+        </div>
       </div>
       <div class="card">
         <label for="checkin">CHECK-IN</label>
