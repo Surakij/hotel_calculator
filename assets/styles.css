@@ -74,6 +74,30 @@ body {
   background: #fff;
 }
 
+.hotel-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.hotel-letter {
+  min-width: 26px;
+  height: 24px;
+  border-radius: 5px;
+  padding: 0 6px;
+  background: #e9f0f8;
+  color: var(--navy);
+  font-size: 11px;
+  line-height: 24px;
+}
+
+.hotel-letter.active,
+.hotel-letter:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
 input[type="number"] {
   -moz-appearance: textfield;
 }
