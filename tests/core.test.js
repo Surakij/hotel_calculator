@@ -25,6 +25,11 @@ test("applies stacked discounts sequentially", () => {
   assert.equal(core.calculateRow({ type: "ROOM", from: "01.09.2026", to: "02.09.2026", qty: 1, rate: 100, discounts: [10, 10] }).net, 81);
 });
 
+test("ignores discounts for green tax and dinners", () => {
+  assert.equal(core.calculateRow({ type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "02.09.2026", qty: 2, rate: 12, discounts: [50] }).net, 24);
+  assert.equal(core.calculateRow({ type: "DINNER", item: "New Year Gala Dinner - Adult", qty: 2, rate: 100, discounts: [50] }).net, 200);
+});
+
 test("builds share text with display-format dates", () => {
   const text = core.buildShareText({
     hotel: "Ozen",
