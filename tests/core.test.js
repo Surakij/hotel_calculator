@@ -17,7 +17,8 @@ test("calculates nights between dates", () => {
 test("calculates stay-based and one-time rows", () => {
   assert.equal(core.calculateRow({ type: "ROOM", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 }).net, 300);
   assert.equal(core.calculateRow({ type: "TRANSFER", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 50 }).net, 100);
-  assert.equal(core.calculateRow({ type: "EXTRA", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 12 }).net, 72);
+  assert.equal(core.calculateRow({ type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 12 }).net, 72);
+  assert.equal(core.calculateRow({ type: "EXTRA", item: "Manual Surcharge", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 12 }).net, 72);
 });
 
 test("applies stacked discounts sequentially", () => {
@@ -32,7 +33,7 @@ test("builds share text with display-format dates", () => {
     guests: { adults: 2, children: 1, ages: "6" },
     rows: [
       { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
-      { type: "EXTRA", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 3, rate: 12 },
+      { type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 3, rate: 12 },
     ],
   });
 
@@ -64,7 +65,7 @@ test("builds stay summaries by matching room dates", () => {
     { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
     { type: "MEAL", item: "HB - Adult", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 30 },
     { type: "EXTRA", item: "Extra Adult", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 20 },
-    { type: "EXTRA", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 3, rate: 12 },
+    { type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 3, rate: 12 },
   ]);
 
   assert.equal(summaries.length, 1);
