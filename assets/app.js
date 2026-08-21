@@ -288,6 +288,7 @@
 
     if (["MEAL", "TRANSFER", "DINNER"].includes(data.type)) {
       if (data.type === "MEAL" && !item) qty.value = value("adults") || 0;
+      else if (data.type === "TRANSFER" && !item) qty.value = value("adults") || 0;
       else if (item.includes("adult")) qty.value = value("adults") || 0;
       else if (item.includes("child")) qty.value = value("children") || 0;
       else if (item.includes("infant")) qty.value = value("infants") || 0;
@@ -539,7 +540,7 @@
     rowsEl.innerHTML = "";
     addRow({ type: "ROOM", qty: 1 });
     addRow({ type: "MEAL", qty: Number(value("adults") || 0) });
-    addRow({ type: "TRANSFER", qty: 1 });
+    addRow({ type: "TRANSFER", qty: Number(value("adults") || 0) });
     addRow({ type: "GREEN_TAX", item: "Green Tax", qty: 0, rate: 12 });
   }
 
