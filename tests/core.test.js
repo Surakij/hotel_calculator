@@ -43,7 +43,7 @@ test("builds share text with display-format dates", () => {
   });
 
   assert.match(text, /OZEN/);
-  assert.match(text, /01\.09-04\.09 · 3N · 2ADL\+1CHD\(6\)/);
+  assert.match(text, /01\.09\.2026-04\.09\.2026 · 3N · 2ADL\+1CHD\(6\)/);
   assert.match(text, /Beach Pool Villa : 100\.00\*1\*3 = 300\.00/);
   assert.match(text, /Green Tax : 12\.00\*3\*3 = 108\.00/);
   assert.match(text, /TOTAL: 408\.00 USD/);
