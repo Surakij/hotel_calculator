@@ -510,10 +510,7 @@ td .number-stepper .step-button {
 }
 
 .hotel-choice {
-  display: grid;
-  grid-template-columns: 3px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
+  display: block;
   width: 100%;
   min-height: 38px;
   border-radius: 0;
@@ -532,17 +529,6 @@ td .number-stepper .step-button {
   background: #eff6ff;
   color: #0f172a;
 }
-
-.hotel-marker {
-  width: 3px;
-  height: 18px;
-  border-radius: 2px;
-}
-
-.hotel-marker.blue { background: #3b82f6; }
-.hotel-marker.green { background: #10b981; }
-.hotel-marker.purple { background: #8b5cf6; }
-.hotel-marker.gold { background: #f59e0b; }
 
 .hotel-match {
   border-radius: 3px;
