@@ -322,12 +322,27 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 1px solid transparent;
   border-radius: 7px;
   padding: 9px 15px;
   font-weight: 800;
   cursor: pointer;
   transition: box-shadow .12s ease-out, background .12s ease-out, border-color .12s ease-out, color .12s ease-out;
+}
+
+.button-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .actions button:hover,
@@ -614,64 +629,9 @@ td .number-stepper .step-button {
 
 .hotel-picker.open {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   opacity: 1;
   transform: translateY(0);
-}
-
-.hotel-picker-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 30px;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-bottom: 1px solid var(--line-soft);
-  background: var(--panel);
-}
-
-.hotel-picker-search {
-  display: grid;
-  grid-template-columns: 62px minmax(0, 1fr);
-  align-items: center;
-  min-width: 0;
-  height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--field);
-}
-
-.hotel-picker-search:focus-within {
-  border-color: #5aa7ff;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
-}
-
-.hotel-picker-search span {
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.hotel-picker-input {
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  padding: 0 10px 0 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-}
-
-.hotel-picker-close {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  padding: 0;
-  background: #fff1f2;
-  color: var(--red);
 }
 
 .hotel-picker-body {
@@ -714,8 +674,7 @@ td .number-stepper .step-button {
   scroll-behavior: smooth;
 }
 
-.hotel-group h3,
-.hotel-recent h3 {
+.hotel-group h3 {
   position: sticky;
   top: 0;
   margin: 0;
