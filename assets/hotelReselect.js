@@ -15,10 +15,6 @@
     return (hotel[0] || "#").toUpperCase();
   }
 
-  function markerClass(index) {
-    return ["blue", "green", "purple", "gold"][index % 4];
-  }
-
   function highlightMatch(value, query) {
     const text = String(value || "");
     const needle = String(query || "").trim();
@@ -87,13 +83,7 @@
           ${letters.map((letter) => `
             <section class="hotel-group" data-group="${escapeHtml(letter)}">
               <h3>${escapeHtml(letter)}</h3>
-              ${groups.get(letter).map((hotel) => {
-                const hotelIndex = HOTELS.indexOf(hotel);
-                return `<button class="hotel-choice" type="button" data-hotel="${escapeHtml(hotel)}">
-                  <span class="hotel-marker ${markerClass(hotelIndex)}" aria-hidden="true"></span>
-                  <span>${highlightMatch(hotel, query)}</span>
-                </button>`;
-              }).join("")}
+              ${groups.get(letter).map((hotel) => `<button class="hotel-choice" type="button" data-hotel="${escapeHtml(hotel)}">${highlightMatch(hotel, query)}</button>`).join("")}
             </section>
           `).join("")}
       ` : '<div class="hotel-empty">No hotels found</div>';
