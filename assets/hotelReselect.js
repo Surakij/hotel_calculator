@@ -2,6 +2,8 @@
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTELS = [...new Set([...DEFAULT_HOTELS, ...Object.keys(HOTEL_DATA)])].sort((a, b) => a.localeCompare(b));
+  const RECENT_KEY = "hotelCalculatorRecentHotels";
+  const RECENT_LIMIT = 5;
 
   function escapeHtml(value) {
     return String(value || "")
@@ -32,6 +34,24 @@
 
   function isKnownHotel(value) {
     return HOTELS.some((hotel) => hotel.toLowerCase() === String(value || "").trim().toLowerCase());
+  }
+
+  function recentHotels() {
+    try {
+      const recent = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      return recent.filter((hotel) => HOTELS.includes(hotel)).slice(0, RECENT_LIMIT);
+    } catch {
+      return [];
+    }
+  }
+
+  function saveRecentHotel(hotel) {
+    const recent = [hotel, ...recentHotels().filter((item) => item !== hotel)].slice(0, RECENT_LIMIT);
+    try {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+    } catch {
+      // Recent hotels are a convenience only.
+    }
   }
 
   function initHotelPicker() {
@@ -77,9 +97,16 @@
       const groups = groupedHotels();
       const letters = [...groups.keys()];
       const list = picker.querySelector(".hotel-picker-list");
+      const recent = query.trim() ? [] : recentHotels();
       if (!list) return;
 
       list.innerHTML = letters.length ? `
+          ${recent.length ? `
+            <section class="hotel-recent">
+              <h3>RECENT</h3>
+              ${recent.map((hotel) => `<button class="hotel-choice" type="button" data-hotel="${escapeHtml(hotel)}">${escapeHtml(hotel)}</button>`).join("")}
+            </section>
+          ` : ""}
           ${letters.map((letter) => `
             <section class="hotel-group" data-group="${escapeHtml(letter)}">
               <h3>${escapeHtml(letter)}</h3>
@@ -130,6 +157,7 @@
 
     function chooseHotel(hotel) {
       input.value = hotel;
+      saveRecentHotel(hotel);
       input.dispatchEvent(new Event("input", { bubbles: true }));
       closePicker();
       input.focus();
