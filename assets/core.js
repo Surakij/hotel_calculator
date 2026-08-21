@@ -75,7 +75,7 @@
   }
 
   function isGreenTax(row) {
-    return row.type === "EXTRA" && /^green tax$/i.test(row.item || "");
+    return row.type === "GREEN_TAX" || (row.type === "EXTRA" && /^green tax$/i.test(row.item || ""));
   }
 
   function isStayBased(row) {
