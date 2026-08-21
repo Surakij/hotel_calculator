@@ -31,6 +31,7 @@
     DINNER: { bg: "#fff1f2", fg: "#be123c", border: "#fecdd3" },
   };
   const GLOBAL_DATE_IDS = new Set(["checkin", "checkout"]);
+  const DATE_RANGE_TYPES = new Set(["ROOM", "EXTRA", "MEAL", "GREEN_TAX"]);
 
   const $ = (id) => document.getElementById(id);
   const rowsEl = $("rows");
@@ -137,9 +138,10 @@
 
   function createTypeSelect(selected = "") {
     const select = el("select", { className: "type" });
-    const placeholder = el("option", { value: "", textContent: "TYPE" });
+    const placeholder = el("option", { value: "", textContent: "" });
     placeholder.selected = !selected;
     placeholder.disabled = true;
+    placeholder.hidden = true;
     select.appendChild(placeholder);
     ROW_TYPE_ORDER.forEach((type) => {
       const option = el("option", { value: type, textContent: TYPE_LABELS[type] || type });
@@ -195,6 +197,63 @@
     };
   }
 
+  function isDateRangeType(type) {
+    return DATE_RANGE_TYPES.has(type);
+  }
+
+  function isOneWayTransfer(row) {
+    return row.type === "TRANSFER" && /\bOW\b/i.test(row.item || "");
+  }
+
+  function dinnerDate(row) {
+    const year = core.parseDate(value("checkin"))?.getFullYear() || new Date().getFullYear();
+    if (/new year/i.test(row.item || "")) return `31.12.${year}`;
+    if (/christmas|xmas/i.test(row.item || "")) return `24.12.${year}`;
+    return "";
+  }
+
+  function clampDateValue(dateValue, minValue, maxValue) {
+    const date = core.parseDate(dateValue);
+    if (!date) return "";
+    const min = core.parseDate(minValue);
+    const max = core.parseDate(maxValue);
+    if (min && date < min) return core.formatDate(min);
+    if (max && date > max) return core.formatDate(max);
+    return core.formatDate(date);
+  }
+
+  function clampRowDates(tr) {
+    const data = rowData(tr);
+    if (!data.type) return;
+
+    const from = tr.querySelector(".from");
+    const to = tr.querySelector(".to");
+    const checkin = value("checkin");
+    const checkout = value("checkout");
+
+    if (data.type === "DINNER") {
+      const fixedDate = dinnerDate(data);
+      const fixed = core.parseDate(fixedDate);
+      const min = core.parseDate(checkin);
+      const max = core.parseDate(checkout);
+      const insideStay = fixed && (!min || fixed >= min) && (!max || fixed <= max);
+      from.value = insideStay ? fixedDate : "";
+      to.value = insideStay ? fixedDate : "";
+      return;
+    }
+
+    if (data.type === "TRANSFER" && !isOneWayTransfer(data)) {
+      from.value = "";
+      to.value = "";
+      return;
+    }
+
+    if (!isDateRangeType(data.type) && !isOneWayTransfer(data)) return;
+
+    from.value = clampDateValue(from.value, checkin, checkout);
+    to.value = clampDateValue(to.value, from.value || checkin, checkout);
+  }
+
   function currentRows() {
     return [...rowsEl.querySelectorAll("tr")].map(rowData).filter((row) => row.type);
   }
@@ -239,6 +298,12 @@
       qty.value = Number(value("adults") || 0) + Number(value("children") || 0);
       if (!rate.value) rate.value = 12;
     }
+
+    if (data.type === "DINNER") {
+      const fixedDate = dinnerDate(data);
+      tr.querySelector(".from").value = fixedDate;
+      tr.querySelector(".to").value = fixedDate;
+    }
   }
 
   function applyGlobalDates(tr) {
@@ -262,8 +327,42 @@
     select.style.borderColor = color ? color.border : "";
   }
 
+  function updateRowState(tr) {
+    const data = rowData(tr);
+    const item = tr.querySelector(".item");
+    const from = tr.querySelector(".from");
+    const to = tr.querySelector(".to");
+    const nights = tr.querySelector(".nights");
+    const qty = tr.querySelector(".qty");
+    const rate = tr.querySelector(".rate");
+    const discountControls = tr.querySelectorAll(".discount, .discount-add, .discount-remove");
+    const hasType = Boolean(data.type);
+    const hideItem = core.isGreenTax(data);
+    const hideNights = data.type === "TRANSFER" || data.type === "DINNER";
+    const lockDates = data.type === "DINNER" || (data.type === "TRANSFER" && !isOneWayTransfer(data));
+    const allowDiscounts = hasType && core.isDiscountable(data);
+
+    tr.classList.toggle("inactive-row", !hasType);
+    tr.querySelectorAll("td").forEach((cell) => cell.classList.remove("muted-cell"));
+
+    item.disabled = !hasType || hideItem;
+    from.disabled = !hasType || lockDates;
+    to.disabled = !hasType || lockDates;
+    nights.disabled = !hasType || hideNights;
+    qty.disabled = !hasType;
+    rate.disabled = !hasType;
+    discountControls.forEach((control) => {
+      control.disabled = !allowDiscounts;
+    });
+
+    item.closest("td").classList.toggle("muted-cell", hideItem);
+    nights.closest("td").classList.toggle("muted-cell", hideNights);
+    tr.querySelector(".discounts").classList.toggle("muted-cell", !allowDiscounts);
+  }
+
   function recalc() {
     syncGlobalRows();
+    rowsEl.querySelectorAll("tr").forEach(clampRowDates);
     $("nights").value = core.nightsBetween(value("checkin"), value("checkout"));
 
     const calculated = core.calculateRows(currentRows());
@@ -273,12 +372,14 @@
         tr.querySelector(".nights").value = "0";
         tr.querySelector(".net").textContent = "0.00";
         updateTypeColor(tr);
+        updateRowState(tr);
         return;
       }
       const row = core.calculateRow(data);
       tr.querySelector(".nights").value = row.nights;
       tr.querySelector(".net").textContent = core.money(row.net);
       updateTypeColor(tr);
+      updateRowState(tr);
     });
 
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
@@ -350,7 +451,8 @@
     toCell.appendChild(to);
 
     const nightsCell = el("td");
-    nightsCell.appendChild(el("input", { className: "nights", readonly: "", value: "0" }));
+    const nights = el("input", { className: "nights", type: "number", min: "0", step: "1", readonly: "", value: "0" });
+    nightsCell.appendChild(numberStepper(nights));
 
     const qtyCell = el("td");
     const qty = el("input", { className: "qty", type: "number", min: "0", step: "1" });
@@ -378,6 +480,8 @@
       item.setAttribute("list", type.value ? `list_${type.value}` : "");
       tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
       applyAutoQty(tr);
+      clampRowDates(tr);
+      updateRowState(tr);
       groupRowsByType();
       recalc();
     });
@@ -385,6 +489,8 @@
     item.addEventListener("input", () => {
       if (isGlobalDateRow(tr)) tr.dataset.followGlobal = "1";
       applyAutoQty(tr);
+      clampRowDates(tr);
+      updateRowState(tr);
       recalc();
     });
     item.addEventListener("focus", () => item.select());
@@ -394,6 +500,7 @@
       input.addEventListener("blur", () => {
         normalizeDateInput(input);
         tr.dataset.followGlobal = "0";
+        clampRowDates(tr);
         recalc();
       });
       input.addEventListener("mousedown", (event) => {
@@ -402,6 +509,17 @@
       });
     });
 
+    tr.querySelector(".nights").addEventListener("input", () => {
+      const data = rowData(tr);
+      if (!isDateRangeType(data.type)) return recalc();
+      const fromInput = tr.querySelector(".from");
+      const toInput = tr.querySelector(".to");
+      if (!fromInput.value) fromInput.value = value("checkin");
+      toInput.value = core.addDays(fromInput.value, tr.querySelector(".nights").value);
+      tr.dataset.followGlobal = "0";
+      clampRowDates(tr);
+      recalc();
+    });
     tr.querySelectorAll(".qty,.rate").forEach((input) => input.addEventListener("input", recalc));
     tr.querySelector(".discounts").addEventListener("input", recalc);
     tr.querySelector(".delete").addEventListener("click", () => {
@@ -411,6 +529,8 @@
 
     tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
     applyAutoQty(tr);
+    clampRowDates(tr);
+    updateRowState(tr);
     if (data.type) groupRowsByType();
     recalc();
   }
@@ -440,6 +560,7 @@
       $("checkout").value = "";
     }
 
+    rowsEl.querySelectorAll("tr").forEach(clampRowDates);
     recalc();
   }
 
@@ -615,9 +736,13 @@
     const offset = (first.getDay() + 6) % 7;
     for (let index = 0; index < offset; index += 1) grid.appendChild(el("span", { className: "empty" }));
 
+    const row = pickerInput.closest("tr");
     const minDate = pickerInput.id === "checkout" || pickerInput.classList.contains("to")
-      ? core.parseDate(pickerInput.closest("tr")?.querySelector(".from")?.value || value("checkin"))
-      : null;
+      ? core.parseDate(row?.querySelector(".from")?.value || value("checkin"))
+      : pickerInput.classList.contains("from")
+        ? core.parseDate(value("checkin"))
+        : null;
+    const maxDate = GLOBAL_DATE_IDS.has(pickerInput.id) ? null : core.parseDate(value("checkout"));
     const selected = core.parseDate(pickerInput.value);
     const today = new Date();
     const days = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 0).getDate();
@@ -625,7 +750,7 @@
     for (let day = 1; day <= days; day += 1) {
       const date = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), day);
       const button = el("button", { type: "button", textContent: day });
-      if (minDate && date < minDate) button.disabled = true;
+      if ((minDate && date < minDate) || (maxDate && date > maxDate)) button.disabled = true;
       if (selected && selected.getTime() === date.getTime()) button.classList.add("selected");
       if (
         date.getFullYear() === today.getFullYear()
@@ -640,6 +765,7 @@
         pickerInput.value = core.formatDate(date);
         if (!GLOBAL_DATE_IDS.has(pickerInput.id)) pickerInput.closest("tr").dataset.followGlobal = "0";
         else handleGlobalDate(pickerInput);
+        if (!GLOBAL_DATE_IDS.has(pickerInput.id)) clampRowDates(pickerInput.closest("tr"));
         closePicker();
         recalc();
       });
