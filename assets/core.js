@@ -82,6 +82,10 @@
     return row.type === "ROOM" || row.type === "MEAL" || isGreenTax(row);
   }
 
+  function isDiscountable(row) {
+    return row.type !== "DINNER" && !isGreenTax(row);
+  }
+
   function applyDiscounts(value, discounts) {
     return (discounts || []).reduce((result, discount) => result * (1 - Number(discount || 0) / 100), value);
   }
@@ -95,7 +99,7 @@
     if (isStayBased(row)) base *= nights;
     else if (row.type === "EXTRA" && row.from && row.to) base *= nights;
 
-    const discounts = (row.discounts || []).map(Number).filter((item) => item > 0);
+    const discounts = isDiscountable(row) ? (row.discounts || []).map(Number).filter((item) => item > 0) : [];
     return {
       ...row,
       qty,
@@ -309,6 +313,7 @@
     formatDate,
     formatShort,
     isGreenTax,
+    isDiscountable,
     isStayBased,
     money,
     nightsBetween,
