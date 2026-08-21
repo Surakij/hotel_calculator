@@ -86,7 +86,7 @@ body::before {
 }
 
 .cards {
-  grid-template-columns: 1.6fr 1fr 1fr .65fr 1.25fr;
+  grid-template-columns: minmax(420px, 2.35fr) 1fr 1fr .65fr 1.25fr;
   margin-top: 18px;
   padding: 22px 24px;
   border-radius: 8px;
@@ -169,7 +169,7 @@ body::before {
   background: transparent;
   padding: 2px 0;
   color: var(--text);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
 }
 
@@ -477,6 +477,20 @@ td .number-stepper .step-button {
   text-align: center;
 }
 
+tr.inactive-row td:not(:first-child):not(:last-child) {
+  opacity: .58;
+}
+
+td.muted-cell > * {
+  visibility: hidden;
+}
+
+td input:disabled,
+td select:disabled,
+td button:disabled {
+  cursor: not-allowed;
+}
+
 .discount-add {
   background: #e9eef5;
   color: var(--navy);
@@ -713,6 +727,11 @@ td .number-stepper .step-button {
   padding: 16px;
   background: #f8fafc;
   font: 14px/1.45 Consolas, monospace;
+}
+
+.share-preview strong {
+  color: var(--navy);
+  font-weight: 900;
 }
 
 .calendar {
