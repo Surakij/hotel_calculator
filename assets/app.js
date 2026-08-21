@@ -298,6 +298,10 @@
     const qty = tr.querySelector(".qty");
     const rate = tr.querySelector(".rate");
 
+    if (["ROOM", "EXTRA"].includes(data.type) && Number(qty.value || 0) <= 0) {
+      qty.value = 1;
+    }
+
     if (["MEAL", "TRANSFER", "DINNER"].includes(data.type)) {
       if (data.type === "MEAL" && !item) qty.value = value("adults") || 0;
       else if (data.type === "TRANSFER" && !item) qty.value = value("adults") || 0;
