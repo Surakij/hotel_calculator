@@ -71,6 +71,18 @@
     input.value = core.formatDate(input.value);
   }
 
+  function handleDateKeydown(input, event, onApply) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      normalizeDateInput(input);
+      onApply();
+      closePicker();
+      input.blur();
+    } else if (event.key === "Escape") {
+      closePicker();
+    }
+  }
+
   function numberPrecision(value) {
     const match = String(value || "1").match(/\.(\d+)/);
     return match ? match[1].length : 0;
@@ -504,9 +516,16 @@
         clampRowDates(tr);
         recalc();
       });
-      input.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-        openPicker(input);
+      input.addEventListener("focus", () => openPicker(input));
+      input.addEventListener("click", () => {
+        if (!picker || pickerInput !== input) openPicker(input);
+      });
+      input.addEventListener("keydown", (event) => {
+        handleDateKeydown(input, event, () => {
+          tr.dataset.followGlobal = "0";
+          clampRowDates(tr);
+          recalc();
+        });
       });
     });
 
@@ -811,10 +830,11 @@
       const input = $(id);
       input.addEventListener("input", () => cleanDateInput(input));
       input.addEventListener("blur", () => handleGlobalDate(input));
-      input.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-        openPicker(input);
+      input.addEventListener("focus", () => openPicker(input));
+      input.addEventListener("click", () => {
+        if (!picker || pickerInput !== input) openPicker(input);
       });
+      input.addEventListener("keydown", (event) => handleDateKeydown(input, event, () => handleGlobalDate(input)));
     });
 
     $("nights").addEventListener("input", setCheckoutFromNights);
