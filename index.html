@@ -12,7 +12,18 @@
 </head>
 <body>
   <main class="app">
-    <header class="title">HOTEL CALCULATOR</header>
+    <header class="title">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span>HOTEL CALCULATOR</span>
+      </div>
+      <nav class="top-actions" aria-label="Workspace actions">
+        <button type="button">History</button>
+        <button type="button">Templates</button>
+        <button type="button">Settings</button>
+        <span class="avatar" aria-hidden="true">SK</span>
+      </nav>
+    </header>
 
     <section class="cards" aria-label="Stay details">
       <div class="card">
@@ -55,7 +66,7 @@
         <input id="ages" placeholder="e.g. 2, 6, 9">
       </div>
       <div class="guest">
-        <label for="spo">SPO</label>
+        <label for="spo">SPO CODE</label>
         <input id="spo" placeholder="Enter SPO code">
       </div>
     </section>
@@ -63,10 +74,10 @@
     <section class="toolbar" aria-label="Calculation actions">
       <div class="hint">One row = one charge / rate period. TYPE -> ITEM. Manual entry is allowed.</div>
       <div class="actions">
-        <button id="addRow" class="add" type="button">+ ADD ROW</button>
-        <button id="clearAll" class="clear" type="button">CLEAR ALL</button>
-        <button id="showShare" class="share" type="button">COPY SHARE</button>
-        <button id="downloadShare" class="download" type="button">DOWNLOAD SHARE</button>
+        <button id="addRow" class="add" type="button">+ Add row</button>
+        <button id="clearAll" class="clear" type="button">Clear all</button>
+        <button id="showShare" class="share" type="button">Copy Share</button>
+        <button id="downloadShare" class="download" type="button">Download Share</button>
       </div>
     </section>
 
