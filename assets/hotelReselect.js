@@ -2,8 +2,6 @@
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTELS = [...new Set([...DEFAULT_HOTELS, ...Object.keys(HOTEL_DATA)])].sort((a, b) => a.localeCompare(b));
-  const RECENT_KEY = "hotelCalculatorRecentHotels";
-  const RECENT_LIMIT = 5;
 
   function escapeHtml(value) {
     return String(value || "")
@@ -36,24 +34,6 @@
     return HOTELS.some((hotel) => hotel.toLowerCase() === String(value || "").trim().toLowerCase());
   }
 
-  function recentHotels() {
-    try {
-      const recent = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
-      return recent.filter((hotel) => HOTELS.includes(hotel)).slice(0, RECENT_LIMIT);
-    } catch {
-      return [];
-    }
-  }
-
-  function saveRecentHotel(hotel) {
-    const recent = [hotel, ...recentHotels().filter((item) => item !== hotel)].slice(0, RECENT_LIMIT);
-    try {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
-    } catch {
-      // Recent hotels are a convenience only.
-    }
-  }
-
   function initHotelPicker() {
     const input = document.getElementById("hotel");
     const picker = document.getElementById("hotelPicker");
@@ -77,13 +57,6 @@
     function renderShell() {
       const letters = [...new Set(HOTELS.map(firstLetter))];
       picker.innerHTML = `
-        <div class="hotel-picker-head">
-          <label class="hotel-picker-search">
-            <span aria-hidden="true">Search</span>
-            <input class="hotel-picker-input" type="text" autocomplete="off" placeholder="Type hotel name">
-          </label>
-          <button class="hotel-picker-close" type="button" aria-label="Close hotel list">x</button>
-        </div>
         <div class="hotel-picker-body">
           <div class="hotel-picker-letters">
             ${letters.map((letter) => `<button type="button" data-letter="${escapeHtml(letter)}">${escapeHtml(letter)}</button>`).join("")}
@@ -97,16 +70,9 @@
       const groups = groupedHotels();
       const letters = [...groups.keys()];
       const list = picker.querySelector(".hotel-picker-list");
-      const recent = query.trim() ? [] : recentHotels();
       if (!list) return;
 
       list.innerHTML = letters.length ? `
-          ${recent.length ? `
-            <section class="hotel-recent">
-              <h3>RECENT</h3>
-              ${recent.map((hotel) => `<button class="hotel-choice" type="button" data-hotel="${escapeHtml(hotel)}">${escapeHtml(hotel)}</button>`).join("")}
-            </section>
-          ` : ""}
           ${letters.map((letter) => `
             <section class="hotel-group" data-group="${escapeHtml(letter)}">
               <h3>${escapeHtml(letter)}</h3>
@@ -118,14 +84,10 @@
 
     function positionPicker() {
       const rect = input.getBoundingClientRect();
-      const width = Math.min(520, window.innerWidth - 16);
+      const width = Math.min(Math.max(rect.width, 360), window.innerWidth - 16);
       const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
-      let top = rect.bottom + 6;
-      const height = Math.min(440, window.innerHeight - 24);
-
-      if (top + height > window.innerHeight - 8) {
-        top = Math.max(8, rect.top - height - 6);
-      }
+      const top = rect.bottom + 6;
+      const height = Math.min(420, Math.max(220, window.innerHeight - top - 12));
 
       picker.style.left = `${left}px`;
       picker.style.top = `${top}px`;
@@ -133,15 +95,9 @@
       picker.style.maxHeight = `${height}px`;
     }
 
-    function syncSearchField() {
-      const search = picker.querySelector(".hotel-picker-input");
-      if (search && search.value !== query) search.value = query;
-    }
-
     function openPicker(options = {}) {
       if (!picker.innerHTML) renderShell();
       if (options.fromClick && isKnownHotel(input.value)) query = "";
-      syncSearchField();
       renderList();
       picker.classList.add("open");
       input.setAttribute("aria-expanded", "true");
@@ -157,7 +113,6 @@
 
     function chooseHotel(hotel) {
       input.value = hotel;
-      saveRecentHotel(hotel);
       input.dispatchEvent(new Event("input", { bubbles: true }));
       closePicker();
       input.focus();
@@ -165,7 +120,6 @@
 
     function scrollToLetter(letter) {
       query = "";
-      syncSearchField();
       renderList();
       const list = picker.querySelector(".hotel-picker-list");
       const group = [...picker.querySelectorAll(".hotel-group")].find((item) => item.dataset.group === letter);
@@ -188,19 +142,7 @@
       }
     });
 
-    picker.addEventListener("input", (event) => {
-      const search = event.target.closest(".hotel-picker-input");
-      if (!search) return;
-      query = search.value;
-      input.value = query;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      renderList();
-    });
-
     picker.addEventListener("click", (event) => {
-      const close = event.target.closest(".hotel-picker-close");
-      if (close) closePicker();
-
       const letter = event.target.closest(".hotel-picker-letters button");
       if (letter) scrollToLetter(letter.dataset.letter);
 
