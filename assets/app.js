@@ -137,9 +137,13 @@
 
   function createTypeSelect(selected = "") {
     const select = el("select", { className: "type" });
+    const placeholder = el("option", { value: "", textContent: "TYPE" });
+    placeholder.selected = !selected;
+    placeholder.disabled = true;
+    select.appendChild(placeholder);
     ROW_TYPE_ORDER.forEach((type) => {
       const option = el("option", { value: type, textContent: TYPE_LABELS[type] || type });
-      option.selected = type === (selected || "ROOM");
+      option.selected = type === selected;
       select.appendChild(option);
     });
     return select;
@@ -192,7 +196,7 @@
   }
 
   function currentRows() {
-    return [...rowsEl.querySelectorAll("tr")].map(rowData).filter((row) => row.type || row.item || row.rate);
+    return [...rowsEl.querySelectorAll("tr")].map(rowData).filter((row) => row.type);
   }
 
   function rowTypeRank(tr) {
@@ -264,7 +268,14 @@
 
     const calculated = core.calculateRows(currentRows());
     rowsEl.querySelectorAll("tr").forEach((tr) => {
-      const row = core.calculateRow(rowData(tr));
+      const data = rowData(tr);
+      if (!data.type) {
+        tr.querySelector(".nights").value = "0";
+        tr.querySelector(".net").textContent = "0.00";
+        updateTypeColor(tr);
+        return;
+      }
+      const row = core.calculateRow(data);
       tr.querySelector(".nights").value = row.nights;
       tr.querySelector(".net").textContent = core.money(row.net);
       updateTypeColor(tr);
@@ -317,7 +328,6 @@
 
   function addRow(data = {}) {
     const tr = el("tr");
-    data.type = data.type || "ROOM";
     tr.dataset.followGlobal = "0";
 
     const typeCell = el("td");
@@ -401,7 +411,7 @@
 
     tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
     applyAutoQty(tr);
-    groupRowsByType();
+    if (data.type) groupRowsByType();
     recalc();
   }
 
