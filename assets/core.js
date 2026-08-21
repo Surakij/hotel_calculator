@@ -251,7 +251,7 @@
 
     const out = [
       hotel,
-      `${formatShort(input.checkin)}-${formatShort(input.checkout)} · ${nightsBetween(input.checkin, input.checkout)}N · ${pax}`,
+      `${formatDate(input.checkin)}-${formatDate(input.checkout)} · ${nightsBetween(input.checkin, input.checkout)}N · ${pax}`,
     ];
 
     if (spo) out.push(`SPO: ${spo}`);
