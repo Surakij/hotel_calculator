@@ -4,12 +4,12 @@
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
-  const ROW_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "EXTRA", "GREEN_TAX", "DINNER"];
+  const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const TYPE_LABELS = {
     ROOM: "ROOM",
     MEAL: "MEAL",
     TRANSFER: "TRANSFER",
-    EXTRA: "EXTRA ADL/CHD",
+    EXTRA: "EXTRA",
     GREEN_TAX: "GREEN TAX",
     DINNER: "DINNER",
   };
@@ -137,10 +137,9 @@
 
   function createTypeSelect(selected = "") {
     const select = el("select", { className: "type" });
-    select.appendChild(el("option", { value: "" }));
     ROW_TYPE_ORDER.forEach((type) => {
       const option = el("option", { value: type, textContent: TYPE_LABELS[type] || type });
-      option.selected = type === selected;
+      option.selected = type === (selected || "ROOM");
       select.appendChild(option);
     });
     return select;
@@ -306,7 +305,7 @@
               <th>ROOM</th>
               <th>ROOM NET</th>
               <th>MEAL NET</th>
-              <th>EXTRA ADL/CHD</th>
+              <th>EXTRA</th>
               <th>TOTAL</th>
             </tr>
           </thead>
@@ -318,6 +317,7 @@
 
   function addRow(data = {}) {
     const tr = el("tr");
+    data.type = data.type || "ROOM";
     tr.dataset.followGlobal = "0";
 
     const typeCell = el("td");
@@ -401,6 +401,7 @@
 
     tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
     applyAutoQty(tr);
+    groupRowsByType();
     recalc();
   }
 
