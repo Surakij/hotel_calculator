@@ -1,15 +1,20 @@
 :root {
-  --navy: #17365d;
-  --blue: #2f80d1;
-  --green: #4caf50;
-  --purple: #8064c8;
-  --orange: #ed7d31;
-  --gold: #d4a500;
-  --red: #b42318;
-  --line: #d8dee6;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --bg: #f4f7fa;
+  --navy: #082758;
+  --navy-2: #123a68;
+  --blue: #2563eb;
+  --green: #24a148;
+  --purple: #6d5dd3;
+  --orange: #d97706;
+  --gold: #b88700;
+  --red: #dc2626;
+  --line: #dce5ef;
+  --line-soft: #edf2f7;
+  --text: #0f1f38;
+  --muted: #66758a;
+  --bg: #f5f8fc;
+  --panel: #fff;
+  --field: #fbfdff;
+  --shadow: 0 12px 30px rgba(8, 39, 88, .08);
 }
 
 * { box-sizing: border-box; }
@@ -18,60 +23,94 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: Segoe UI, Arial, sans-serif;
+  font-family: "Segoe UI", Inter, Arial, sans-serif;
+  font-size: 14px;
 }
 
 .app {
-  max-width: 1450px;
-  margin: 28px auto;
-  padding: 0 22px;
+  max-width: 1560px;
+  margin: 26px auto;
+  padding: 0 26px 26px;
 }
 
 .title {
   background: var(--navy);
   color: #fff;
-  padding: 18px 22px;
-  border-radius: 8px 8px 0 0;
+  padding: 20px 24px;
+  border-radius: 10px 10px 0 0;
+  box-shadow: var(--shadow);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 .cards,
 .guests {
   display: grid;
-  gap: 10px;
-  background: #fff;
+  gap: 0;
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-top: 0;
+  box-shadow: var(--shadow);
 }
 
 .cards {
   grid-template-columns: 1.6fr 1fr 1fr .65fr 1.25fr;
-  padding: 14px;
+  padding: 16px 18px;
+  border-top: 0;
 }
 
 .guests {
-  grid-template-columns: 130px 130px 130px 1fr 1.4fr;
-  padding: 0 14px 14px;
+  grid-template-columns: 1fr 1fr 1fr 2fr 2.8fr;
+  margin-top: 14px;
+  padding: 14px 18px;
+  border-radius: 8px;
+}
+
+.card,
+.guest {
+  min-width: 0;
+  padding: 0 18px;
+  border-right: 1px solid var(--line-soft);
+}
+
+.card:first-child,
+.guest:first-child { padding-left: 0; }
+
+.card:last-child,
+.guest:last-child {
+  padding-right: 0;
+  border-right: 0;
 }
 
 .card label,
 .guest label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 7px;
   color: var(--navy);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .card input,
 .guest input {
   width: 100%;
-  height: 38px;
+  height: 40px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 7px 9px;
+  border-radius: 7px;
+  padding: 7px 11px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  transition: border-color .15s ease-out, box-shadow .15s ease-out, background .15s ease-out;
+}
+
+input:focus,
+select:focus {
+  outline: 0;
+  border-color: #5aa7ff;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
 }
 
 input[type="number"] {
@@ -86,14 +125,13 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .number-stepper {
   display: grid;
-  grid-template-columns: 36px minmax(28px, 1fr) 36px;
+  grid-template-columns: 42px minmax(36px, 1fr) 42px;
   width: 100%;
   height: 42px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 7px;
   overflow: hidden;
-  background: #fff;
-  box-shadow: inset 0 0 0 1px #fff;
+  background: var(--field);
 }
 
 .number-stepper input {
@@ -110,36 +148,29 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
+  min-width: 42px;
   height: 100%;
   border-radius: 0;
   padding: 0;
-  background: #e9f0f8;
+  background: #edf3fa;
   color: var(--navy);
-  font-size: 19px;
+  font-size: 20px;
   line-height: 1;
 }
 
 .number-stepper .step-button:hover {
-  background: var(--navy);
-  color: #fff;
+  background: #dce9f8;
+  color: var(--navy);
 }
 
 .number-stepper .step-button:active {
   background: var(--blue);
 }
 
-.guest {
-  padding: 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #f8fafc;
-}
-
 .total input {
   color: var(--navy);
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
 }
 
 .toolbar {
@@ -147,11 +178,12 @@ input[type="number"]::-webkit-outer-spin-button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 14px;
-  padding: 10px 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
 .hint {
@@ -166,11 +198,24 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 button {
-  border: 0;
-  border-radius: 6px;
-  padding: 9px 14px;
-  font-weight: 700;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 9px 15px;
+  font-weight: 800;
   cursor: pointer;
+  transition: box-shadow .12s ease-out, background .12s ease-out, border-color .12s ease-out, color .12s ease-out;
+}
+
+.actions button:hover,
+.toolbar button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(8, 39, 88, .10);
+}
+
+.actions button:active,
+.toolbar button:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 button:disabled {
@@ -179,17 +224,18 @@ button:disabled {
 }
 
 .add { background: var(--navy); color: #fff; }
-.clear { background: var(--red); color: #fff; }
+.clear { background: #cf2f2f; color: #fff; }
 .share { background: var(--green); color: #fff; }
 .download { background: var(--blue); color: #fff; }
 .close { background: #eee; color: var(--text); }
 
 .table-wrap {
-  margin-top: 8px;
+  margin-top: 12px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: 8px;
+  background: var(--panel);
   overflow: auto;
+  box-shadow: var(--shadow);
 }
 
 table {
@@ -199,34 +245,43 @@ table {
 }
 
 th {
-  padding: 9px 7px;
+  padding: 12px 8px;
   background: var(--navy);
   color: #fff;
   font-size: 11px;
+  font-weight: 800;
   text-align: center;
+  text-transform: uppercase;
 }
 
 td {
   border-top: 1px solid var(--line);
-  padding: 5px 6px;
-  background: #fff;
+  padding: 6px 7px;
+  background: var(--panel);
 }
 
-tr:nth-child(even) td { background: #f8fafc; }
+tr:nth-child(even) td { background: #fbfdff; }
 
 td input,
 td select {
   width: 100%;
-  height: 32px;
-  border: 1px solid #dfe4ea;
-  border-radius: 5px;
-  padding: 4px 6px;
-  background: #fff;
+  height: 36px;
+  border: 1px solid #dfe7f0;
+  border-radius: 7px;
+  padding: 4px 9px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+}
+
+td select.type {
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 td .number-stepper {
   height: 36px;
-  grid-template-columns: 34px minmax(38px, 1fr) 34px;
+  grid-template-columns: 38px minmax(42px, 1fr) 38px;
 }
 
 td .number-stepper input {
@@ -237,7 +292,7 @@ td .number-stepper input {
 }
 
 td .number-stepper .step-button {
-  min-width: 34px;
+  min-width: 38px;
   font-size: 18px;
 }
 
@@ -260,24 +315,24 @@ td .number-stepper .step-button {
 }
 
 .discounts .number-stepper {
-  width: 104px;
-  min-width: 104px;
-  grid-template-columns: 28px 48px 28px;
+  width: 116px;
+  min-width: 116px;
+  grid-template-columns: 32px 52px 32px;
 }
 
 .discounts .number-stepper .step-button {
-  min-width: 28px;
+  min-width: 32px;
   font-size: 16px;
 }
 
 .discount-add,
 .discount-remove {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   padding: 0;
   font-size: 15px;
-  line-height: 24px;
+  line-height: 28px;
   text-align: center;
 }
 
@@ -297,9 +352,9 @@ td .number-stepper .step-button {
 }
 
 .delete {
-  background: #f3f4f6;
+  background: #fff1f2;
   color: var(--red);
-  padding: 5px 8px;
+  padding: 6px 9px;
 }
 
 .footer {
@@ -327,8 +382,9 @@ td .number-stepper .step-button {
 .summary-table-wrap {
   border: 1px solid var(--line);
   border-radius: 0 7px 7px 7px;
-  background: #fff;
+  background: var(--panel);
   overflow: auto;
+  box-shadow: var(--shadow);
 }
 
 .summary-table {
@@ -357,11 +413,12 @@ td .number-stepper .step-button {
 }
 
 .grand {
-  padding: 11px 16px;
-  border-radius: 6px;
+  padding: 13px 18px;
+  border-radius: 7px;
   background: var(--navy);
   color: #fff;
-  font-weight: 700;
+  font-weight: 800;
+  box-shadow: var(--shadow);
 }
 
 .grand span {
@@ -378,18 +435,18 @@ td .number-stepper .step-button {
   border-radius: 7px;
   background: var(--navy);
   color: #fff;
-  box-shadow: 0 5px 20px #0002;
+  box-shadow: var(--shadow);
 }
 
 .hotel-picker {
   position: fixed;
   z-index: 100001;
   display: none;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, .16), 0 8px 10px -6px rgba(15, 23, 42, .16);
+  background: var(--panel);
+  box-shadow: 0 18px 45px rgba(8, 39, 88, .18);
   opacity: 0;
   transform: translateY(4px);
   transition: opacity .18s ease-out, transform .18s ease-out;
@@ -404,30 +461,30 @@ td .number-stepper .step-button {
 
 .hotel-picker-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 28px;
+  grid-template-columns: minmax(0, 1fr) 30px;
   align-items: center;
   gap: 8px;
   padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
-  background: #fff;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--panel);
 }
 
 .hotel-picker-search {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
+  grid-template-columns: 62px minmax(0, 1fr);
   align-items: center;
   min-width: 0;
-  height: 38px;
-  border: 1px solid #d8e1eb;
-  border-radius: 9px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   overflow: hidden;
-  background: #f8fafc;
+  background: var(--field);
 }
 
 .hotel-picker-search:focus-within {
-  border-color: #58c7cf;
+  border-color: #5aa7ff;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(88, 199, 207, .15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
 }
 
 .hotel-picker-search span {
@@ -449,11 +506,11 @@ td .number-stepper .step-button {
 }
 
 .hotel-picker-close {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   padding: 0;
-  background: #f3f4f6;
+  background: #fff1f2;
   color: var(--red);
 }
 
@@ -470,8 +527,8 @@ td .number-stepper .step-button {
   gap: 4px;
   min-height: 0;
   padding: 10px 0;
-  border-right: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-right: 1px solid var(--line);
+  background: #f7fafe;
   overflow: auto;
 }
 
@@ -497,44 +554,46 @@ td .number-stepper .step-button {
   scroll-behavior: smooth;
 }
 
-.hotel-group h3 {
+.hotel-group h3,
+.hotel-recent h3 {
   position: sticky;
   top: 0;
   margin: 0;
   z-index: 1;
   padding: 7px 16px;
-  background: #f1f5f9;
-  color: #475569;
+  background: #f2f6fb;
+  color: var(--navy);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .hotel-choice {
   display: block;
   width: 100%;
-  min-height: 38px;
+  min-height: 39px;
   border-radius: 0;
   padding: 9px 16px;
-  background: #fff;
+  background: var(--panel);
   color: var(--text);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
+  border-bottom: 1px solid var(--line-soft);
   transition: background .15s ease-out, color .15s ease-out;
 }
 
 .hotel-choice:hover,
 .hotel-choice:focus {
   outline: 0;
-  background: #eff6ff;
+  background: #eaf3ff;
   color: #0f172a;
 }
 
 .hotel-match {
   border-radius: 3px;
   padding: 0 2px;
-  background: #b7f2f0;
-  color: #0f4f57;
+  background: #dbeafe;
+  color: var(--navy);
 }
 
 .hotel-empty {
@@ -546,10 +605,12 @@ td .number-stepper .step-button {
 .modal {
   width: min(900px, 92vw);
   max-height: 85vh;
-  border: 0;
-  border-radius: 10px;
-  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
   overflow: auto;
+  color: var(--text);
+  box-shadow: 0 24px 60px rgba(8, 39, 88, .22);
 }
 
 .modal::backdrop { background: #0006; }
@@ -562,9 +623,10 @@ td .number-stepper .step-button {
 
 .share-preview {
   white-space: pre-wrap;
-  border-radius: 7px;
-  padding: 15px;
-  background: #f7f8fa;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 16px;
+  background: #f8fafc;
   font: 14px/1.45 Consolas, monospace;
 }
 
@@ -573,10 +635,10 @@ td .number-stepper .step-button {
   z-index: 100000;
   width: 330px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px;
-  background: #fff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+  background: var(--panel);
+  box-shadow: 0 18px 45px rgba(8, 39, 88, .18);
 }
 
 .calendar-head {
@@ -591,17 +653,18 @@ td .number-stepper .step-button {
   width: 34px;
   height: 30px;
   padding: 0;
-  border-radius: 5px;
-  background: #f1f3f5;
-  font-size: 20px;
+  border-radius: 6px;
+  background: #edf3fa;
+  color: var(--navy);
+  font-size: 18px;
 }
 
 .calendar-month,
 .calendar-year {
   height: 30px;
   border: 1px solid var(--line);
-  border-radius: 5px;
-  background: #fff;
+  border-radius: 6px;
+  background: var(--field);
   color: var(--text);
   font-size: 12px;
 }
@@ -635,10 +698,10 @@ td .number-stepper .step-button {
 .calendar-grid .empty { visibility: hidden; }
 
 .calendar-grid button {
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 0;
   background: #fff;
-  color: #111;
+  color: var(--text);
 }
 
 .calendar-grid button:hover:not(:disabled),
@@ -648,7 +711,7 @@ td .number-stepper .step-button {
 }
 
 .calendar-grid button.today:not(.selected) {
-  border-color: var(--blue);
+  border: 1px solid var(--blue);
   color: var(--blue);
   font-weight: 700;
 }
@@ -675,6 +738,11 @@ td .number-stepper .step-button {
   .app { padding: 0 12px; }
   .cards,
   .guests { grid-template-columns: 1fr 1fr; }
+  .card,
+  .guest {
+    padding: 8px 0;
+    border-right: 0;
+  }
   .toolbar { align-items: stretch; flex-direction: column; }
   .actions { width: 100%; }
   .actions button { flex: 1 1 150px; }
