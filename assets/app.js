@@ -71,6 +71,18 @@
     input.value = core.formatDate(input.value);
   }
 
+  function prepareItemReselect(input, tr) {
+    const data = rowData(tr);
+    if (!data.type || core.isGreenTax(data) || !input.value) return;
+    input.dataset.previousValue = input.value;
+    input.value = "";
+  }
+
+  function restoreItemIfEmpty(input) {
+    if (!input.value && input.dataset.previousValue) input.value = input.dataset.previousValue;
+    delete input.dataset.previousValue;
+  }
+
   function handleDateKeydown(input, event, onApply) {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -452,7 +464,7 @@
     typeCell.appendChild(createTypeSelect(data.type || ""));
 
     const itemCell = el("td");
-    const item = el("input", { className: "item", placeholder: "Choose or type manually" });
+    const item = el("input", { className: "item", placeholder: "Choose or type manually", autocomplete: "off" });
     item.value = data.item || "";
     item.setAttribute("list", data.type ? `list_${data.type}` : "");
     itemCell.appendChild(item);
@@ -504,13 +516,22 @@
     });
 
     item.addEventListener("input", () => {
+      delete item.dataset.previousValue;
       if (isGlobalDateRow(tr)) tr.dataset.followGlobal = "1";
       applyAutoQty(tr);
       clampRowDates(tr);
       updateRowState(tr);
       recalc();
     });
-    item.addEventListener("focus", () => item.select());
+    item.addEventListener("focus", () => prepareItemReselect(item, tr));
+    item.addEventListener("click", () => prepareItemReselect(item, tr));
+    item.addEventListener("blur", () => {
+      restoreItemIfEmpty(item);
+      applyAutoQty(tr);
+      clampRowDates(tr);
+      updateRowState(tr);
+      recalc();
+    });
 
     tr.querySelectorAll(".from,.to").forEach((input) => {
       input.addEventListener("input", () => cleanDateInput(input));
