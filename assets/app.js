@@ -4,6 +4,7 @@
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
+  const ROW_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "EXTRA", "DINNER"];
   const LISTS = {
     HOTEL: [...new Set([...DEFAULT_HOTELS, ...HOTEL_NAMES])].sort((a, b) => a.localeCompare(b)),
     ROOM: DEFAULT_ROOMS,
@@ -179,6 +180,19 @@
     return [...rowsEl.querySelectorAll("tr")].map(rowData).filter((row) => row.type || row.item || row.rate);
   }
 
+  function rowTypeRank(tr) {
+    const type = tr.querySelector(".type").value;
+    const rank = ROW_TYPE_ORDER.indexOf(type);
+    return rank === -1 ? ROW_TYPE_ORDER.length : rank;
+  }
+
+  function groupRowsByType() {
+    [...rowsEl.querySelectorAll("tr")]
+      .map((tr, index) => ({ tr, index, rank: rowTypeRank(tr) }))
+      .sort((left, right) => left.rank - right.rank || left.index - right.index)
+      .forEach(({ tr }) => rowsEl.appendChild(tr));
+  }
+
   function isPersonExtra(row) {
     return row.type === "EXTRA" && /(adult|child)/i.test(row.item || "");
   }
@@ -336,6 +350,7 @@
       item.setAttribute("list", type.value ? `list_${type.value}` : "");
       tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
       applyAutoQty(tr);
+      groupRowsByType();
       recalc();
     });
 
