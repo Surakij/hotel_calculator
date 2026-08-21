@@ -4,16 +4,32 @@
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
-  const ROW_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "EXTRA", "DINNER"];
+  const ROW_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "EXTRA", "GREEN_TAX", "DINNER"];
+  const TYPE_LABELS = {
+    ROOM: "ROOM",
+    MEAL: "MEAL",
+    TRANSFER: "TRANSFER",
+    EXTRA: "EXTRA ADL/CHD",
+    GREEN_TAX: "GREEN TAX",
+    DINNER: "DINNER",
+  };
   const LISTS = {
     HOTEL: [...new Set([...DEFAULT_HOTELS, ...HOTEL_NAMES])].sort((a, b) => a.localeCompare(b)),
     ROOM: DEFAULT_ROOMS,
     MEAL: ["BB - Adult", "BB - Child", "HB - Adult", "HB - Child", "FB - Adult", "FB - Child", "AI - Adult", "AI - Child", "AI Luxury - Adult", "AI Luxury - Child", "Cristal AI - Adult", "Cristal AI - Child"],
     TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
     DINNER: ["Christmas Gala Dinner - Adult", "Christmas Gala Dinner - Child", "New Year Gala Dinner - Adult", "New Year Gala Dinner - Child"],
-    EXTRA: ["Extra Adult", "Extra Child", "Green Tax"],
+    EXTRA: ["Extra Adult", "Extra Child"],
+    GREEN_TAX: ["Green Tax"],
   };
-  const COLORS = { ROOM: "#2f80d1", MEAL: "#4caf50", TRANSFER: "#8064c8", DINNER: "#ed7d31", EXTRA: "#d4a500" };
+  const COLORS = {
+    ROOM: { bg: "#eaf3ff", fg: "#1f65b8", border: "#b9d7fb" },
+    MEAL: { bg: "#ecfdf3", fg: "#148043", border: "#b7ebc7" },
+    TRANSFER: { bg: "#f2edff", fg: "#6440b5", border: "#d6c7ff" },
+    EXTRA: { bg: "#fff7ed", fg: "#b45309", border: "#fed7aa" },
+    GREEN_TAX: { bg: "#fefce8", fg: "#997000", border: "#fde68a" },
+    DINNER: { bg: "#fff1f2", fg: "#be123c", border: "#fecdd3" },
+  };
   const GLOBAL_DATE_IDS = new Set(["checkin", "checkout"]);
 
   const $ = (id) => document.getElementById(id);
@@ -122,8 +138,8 @@
   function createTypeSelect(selected = "") {
     const select = el("select", { className: "type" });
     select.appendChild(el("option", { value: "" }));
-    Object.keys(LISTS).filter((type) => type !== "HOTEL").forEach((type) => {
-      const option = el("option", { value: type, textContent: type });
+    ROW_TYPE_ORDER.forEach((type) => {
+      const option = el("option", { value: type, textContent: TYPE_LABELS[type] || type });
       option.selected = type === selected;
       select.appendChild(option);
     });
@@ -216,6 +232,7 @@
     }
 
     if (core.isGreenTax(data)) {
+      if (!tr.querySelector(".item").value) tr.querySelector(".item").value = "Green Tax";
       qty.value = Number(value("adults") || 0) + Number(value("children") || 0);
       if (!rate.value) rate.value = 12;
     }
@@ -236,9 +253,10 @@
 
   function updateTypeColor(tr) {
     const select = tr.querySelector(".type");
-    const color = COLORS[select.value] || "";
-    select.style.background = color;
-    select.style.color = color ? "#fff" : "";
+    const color = COLORS[select.value];
+    select.style.background = color ? color.bg : "";
+    select.style.color = color ? color.fg : "";
+    select.style.borderColor = color ? color.border : "";
   }
 
   function recalc() {
@@ -391,7 +409,7 @@
     addRow({ type: "ROOM", qty: 1 });
     addRow({ type: "MEAL", qty: Number(value("adults") || 0) });
     addRow({ type: "TRANSFER", qty: 1 });
-    addRow({ type: "EXTRA", item: "Green Tax", qty: 0, rate: 12 });
+    addRow({ type: "GREEN_TAX", item: "Green Tax", qty: 0, rate: 12 });
   }
 
   function setCheckoutFromNights() {
