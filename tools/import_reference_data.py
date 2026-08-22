@@ -73,7 +73,7 @@ def load_meals(path, hotel_names):
     df["Meal Plan"] = df["Meal Plan"].map(clean)
     grouped = {}
     for hotel, rows in df[df["Hotel"].isin(hotel_names)].groupby("Hotel", sort=False):
-        bases = unique(rows["Normalized Code"].where(rows["Normalized Code"] != "", rows["Meal Plan"]))
+        bases = unique(rows["Meal Plan"].where(rows["Meal Plan"] != "", rows["Normalized Code"]))
         meals = []
         for base in bases:
             meals.extend([f"{base} - Adult", f"{base} - Child"])
