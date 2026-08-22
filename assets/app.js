@@ -1,6 +1,7 @@
 (function () {
   const core = window.HotelCalcCore;
   const storage = window.HotelCalculatorStorage;
+  const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
   const APP_VERSION = "1.0.0";
@@ -832,9 +833,55 @@
     `).join("") : '<div class="history-empty">No saved calculations yet.</div>';
   }
 
+  function renderDriveStatus(message = "") {
+    const box = $("driveStatus");
+    if (!box || !googleDrive) return;
+    const status = googleDrive.status();
+    const text = message || (
+      !status.configured
+        ? "Google Drive sync is optional. Add a Google OAuth Client ID in assets/googleConfig.js to enable it."
+        : status.signedIn
+          ? "Google Drive is connected. Sync stores this history in your private Drive app data."
+          : "Google Drive sync is optional. Sign in to keep history after cache clears or on another computer."
+    );
+    box.textContent = text;
+    box.classList.toggle("connected", status.signedIn);
+  }
+
   function showHistoryModal() {
     renderHistory();
+    renderDriveStatus();
     $("historyModal").showModal();
+  }
+
+  async function connectDrive() {
+    try {
+      await googleDrive.connect();
+      renderDriveStatus("Google Drive connected.");
+      toast("Google Drive connected");
+    } catch (error) {
+      renderDriveStatus(error.message);
+      toast(error.message);
+    }
+  }
+
+  async function syncDrive() {
+    try {
+      const merged = await googleDrive.sync(storage.history());
+      storage.replaceHistory(merged);
+      renderHistory();
+      renderDriveStatus(`Google Drive synced ${merged.length} saved calculation${merged.length === 1 ? "" : "s"}.`);
+      toast("Google Drive history synced");
+    } catch (error) {
+      renderDriveStatus(error.message);
+      toast(error.message);
+    }
+  }
+
+  function signOutDrive() {
+    googleDrive.signOut();
+    renderDriveStatus("Google Drive disconnected.");
+    toast("Google Drive disconnected");
   }
 
   function exportHistory() {
@@ -1063,6 +1110,9 @@
     $("closeShare").addEventListener("click", () => $("shareModal").close());
     $("closeHistory").addEventListener("click", () => $("historyModal").close());
     $("historySearch").addEventListener("input", renderHistory);
+    $("connectDrive").addEventListener("click", connectDrive);
+    $("syncDrive").addEventListener("click", syncDrive);
+    $("signOutDrive").addEventListener("click", signOutDrive);
     $("exportHistory").addEventListener("click", exportHistory);
     $("importHistory").addEventListener("click", () => $("historyFile").click());
     $("historyFile").addEventListener("change", (event) => {
