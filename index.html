@@ -9,8 +9,11 @@
   <script src="assets/core.js" defer></script>
   <script src="assets/hotelData.js" defer></script>
   <script src="assets/storage.js" defer></script>
+  <script src="assets/googleConfig.js" defer></script>
+  <script src="assets/googleDrive.js" defer></script>
   <script src="assets/app.js" defer></script>
   <script src="assets/hotelReselect.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <main class="app">
@@ -132,10 +135,14 @@
     </div>
     <div class="history-tools">
       <input id="historySearch" placeholder="Search hotel, date, SPO, total">
+      <button id="connectDrive" class="history" type="button">Sign in with Google</button>
+      <button id="syncDrive" class="save" type="button">Sync Drive</button>
       <button id="exportHistory" class="download" type="button">Export Backup</button>
       <button id="importHistory" class="add" type="button">Import Backup</button>
+      <button id="signOutDrive" class="clear" type="button">Sign out</button>
       <input id="historyFile" type="file" accept="application/json,.json" hidden>
     </div>
+    <div id="driveStatus" class="drive-status"></div>
     <div id="historyList" class="history-list"></div>
   </dialog>
 </body>
