@@ -7,6 +7,8 @@ const filesToCheck = [
   "assets/core.js",
   "assets/hotelData.js",
   "assets/storage.js",
+  "assets/googleConfig.js",
+  "assets/googleDrive.js",
   "assets/app.js",
   "assets/hotelReselect.js",
   "tools/lint.js",
@@ -26,10 +28,10 @@ for (const file of filesToCheck) {
 
 const html = readFileSync(join(root, "index.html"), "utf8");
 const scriptTags = [...html.matchAll(/<script\b/g)].length;
-if (scriptTags !== 5) fail(`Expected exactly 5 script tags, found ${scriptTags}.`);
+if (scriptTags !== 8) fail(`Expected exactly 8 script tags, found ${scriptTags}.`);
 if (/onclick=|onchange=|oninput=/.test(html)) fail("Inline event handlers are not allowed.");
-if (!html.includes("assets/core.js") || !html.includes("assets/hotelData.js") || !html.includes("assets/storage.js") || !html.includes("assets/app.js") || !html.includes("assets/hotelReselect.js")) {
-  fail("HTML must load core.js, hotelData.js, storage.js, app.js, and hotelReselect.js.");
+if (!html.includes("assets/core.js") || !html.includes("assets/hotelData.js") || !html.includes("assets/storage.js") || !html.includes("assets/googleConfig.js") || !html.includes("assets/googleDrive.js") || !html.includes("assets/app.js") || !html.includes("assets/hotelReselect.js")) {
+  fail("HTML must load core.js, hotelData.js, storage.js, Google Drive modules, app.js, and hotelReselect.js.");
 }
 
 const app = readFileSync(join(root, "assets/app.js"), "utf8");
