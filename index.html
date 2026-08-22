@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="assets/styles.css">
   <script src="assets/core.js" defer></script>
   <script src="assets/hotelData.js" defer></script>
+  <script src="assets/storage.js" defer></script>
   <script src="assets/app.js" defer></script>
   <script src="assets/hotelReselect.js" defer></script>
 </head>
@@ -71,10 +72,14 @@
       <div class="actions">
         <button id="addRow" class="add" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add row</button>
         <button id="clearAll" class="clear" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Clear all</button>
+        <button id="saveCalculation" class="save" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M19 21H5V3h11l3 3v15ZM8 3v6h8M8 17h8"/></svg>Save</button>
+        <button id="showHistory" class="history" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 8v5l3 2M4 12a8 8 0 1 0 2.3-5.7M4 4v5h5"/></svg>History</button>
         <button id="showShare" class="share" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 8h10v12H8zM6 16H4V4h12v2"/></svg>Copy Share</button>
         <button id="downloadShare" class="download" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v10M8 10l4 4 4-4M5 20h14"/></svg>Download Share</button>
       </div>
     </section>
+
+    <section id="validationPanel" class="validation-panel" aria-live="polite"></section>
 
     <section class="table-wrap" aria-label="Calculation rows">
       <table>
@@ -99,6 +104,7 @@
     <section id="staySummary" class="summary-wrap" aria-label="Stay and meal summary"></section>
 
     <footer class="footer">
+      <div class="version" id="appVersion">v1.0.0</div>
       <div class="grand">GRAND TOTAL NET <span id="grandTotal">$0.00</span></div>
     </footer>
   </main>
@@ -117,6 +123,20 @@
       <button id="copyShare" class="share" type="button">COPY TO CLIPBOARD</button>
       <button id="downloadShareModal" class="download" type="button">DOWNLOAD .TXT</button>
     </div>
+  </dialog>
+
+  <dialog id="historyModal" class="modal history-modal">
+    <div class="modal-head">
+      <h2>Saved Calculations</h2>
+      <button id="closeHistory" class="close" type="button">Close</button>
+    </div>
+    <div class="history-tools">
+      <input id="historySearch" placeholder="Search hotel, date, SPO, total">
+      <button id="exportHistory" class="download" type="button">Export Backup</button>
+      <button id="importHistory" class="add" type="button">Import Backup</button>
+      <input id="historyFile" type="file" accept="application/json,.json" hidden>
+    </div>
+    <div id="historyList" class="history-list"></div>
   </dialog>
 </body>
 </html>
