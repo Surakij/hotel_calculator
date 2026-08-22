@@ -1,7 +1,9 @@
 (function () {
   const core = window.HotelCalcCore;
+  const storage = window.HotelCalculatorStorage;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
+  const APP_VERSION = "1.0.0";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
@@ -38,6 +40,8 @@
   let picker = null;
   let pickerInput = null;
   let pickerMonth = null;
+  let draftTimer = null;
+  let suppressDraft = false;
   const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(2026, index, 1).toLocaleString("en-US", { month: "long" }));
 
   function el(tag, options = {}) {
@@ -131,6 +135,15 @@
     toast.timer = setTimeout(() => {
       box.style.display = "none";
     }, 2200);
+  }
+
+  function downloadBlob(filename, content, type) {
+    const blob = new Blob([content], { type });
+    const link = el("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 
   function renderDatalist(id, items) {
@@ -414,6 +427,46 @@
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
     $("topTotal").value = core.money(calculated.total);
     renderStaySummary();
+    renderValidation();
+    scheduleDraftSave();
+  }
+
+  function validationMessages() {
+    const messages = [];
+    const checkin = value("checkin");
+    const checkout = value("checkout");
+    const rows = currentRows();
+    const started = value("hotel").trim()
+      || checkin
+      || checkout
+      || value("spo").trim()
+      || rows.some((row) => !core.isGreenTax(row) && (row.item || row.from || row.to || row.rate > 0));
+
+    if (!started) return messages;
+
+    if (!value("hotel").trim()) messages.push("Hotel is empty.");
+    if (!core.parseDate(checkin) || !core.parseDate(checkout)) messages.push("Stay dates are incomplete.");
+    if (core.parseDate(checkin) && core.parseDate(checkout) && core.nightsBetween(checkin, checkout) <= 0) messages.push("Check-out should be after check-in.");
+
+    rows.forEach((row) => {
+      const name = row.item || row.type;
+      if (!row.item && !core.isGreenTax(row)) messages.push(`${row.type}: item is empty.`);
+      if (row.rate <= 0) messages.push(`${name}: rate is empty.`);
+      if (row.qty <= 0) messages.push(`${name}: qty is zero.`);
+      if (["ROOM", "MEAL", "EXTRA"].includes(row.type) && (!core.parseDate(row.from) || !core.parseDate(row.to))) messages.push(`${name}: dates are incomplete.`);
+      if (row.type === "DINNER" && row.item && (!row.from || !row.to)) messages.push(`${name}: dinner date is outside stay dates.`);
+    });
+
+    return [...new Set(messages)].slice(0, 8);
+  }
+
+  function renderValidation() {
+    const panel = $("validationPanel");
+    if (!panel) return;
+    const messages = validationMessages();
+    panel.innerHTML = messages.length
+      ? `<div class="validation-card">${messages.map((message) => `<span>${escapeHtml(message)}</span>`).join("")}</div>`
+      : "";
   }
 
   function renderStaySummary() {
@@ -625,6 +678,57 @@
     };
   }
 
+  function applyPayload(payload) {
+    if (!payload) return false;
+    suppressDraft = true;
+    $("hotel").value = payload.hotel || "";
+    $("checkin").value = core.formatDate(payload.checkin || "");
+    $("checkout").value = core.formatDate(payload.checkout || "");
+    $("adults").value = payload.guests?.adults ?? "0";
+    $("children").value = payload.guests?.children ?? "0";
+    $("infants").value = payload.guests?.infants ?? "0";
+    $("ages").value = payload.guests?.ages || "";
+    $("spo").value = payload.spo || "";
+    updateRoomList();
+    rowsEl.innerHTML = "";
+    (Array.isArray(payload.rows) && payload.rows.length ? payload.rows : []).forEach(addRow);
+    if (!rowsEl.children.length) createDefaultRows();
+    suppressDraft = false;
+    recalc();
+    return true;
+  }
+
+  function calculationEntry() {
+    const payload = sharePayload();
+    const total = Number(String(value("topTotal") || "0").replace(/,/g, ""));
+    return {
+      id: storage.createId(),
+      appVersion: APP_VERSION,
+      savedAt: new Date().toISOString(),
+      hotel: payload.hotel || "Untitled hotel",
+      checkin: payload.checkin,
+      checkout: payload.checkout,
+      spo: payload.spo,
+      guests: payload.guests,
+      total,
+      payload,
+      shareText: core.buildShareText(payload),
+    };
+  }
+
+  function scheduleDraftSave() {
+    if (suppressDraft || !storage) return;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(() => storage.saveDraft(sharePayload()), 300);
+  }
+
+  function restoreDraft() {
+    if (!storage) return false;
+    const draft = storage.loadDraft();
+    if (!draft?.payload) return false;
+    return applyPayload(draft.payload);
+  }
+
   function shareText() {
     recalc();
     return core.buildShareText(sharePayload());
@@ -680,13 +784,85 @@
   function downloadShare() {
     const text = shareText();
     const hotel = (value("hotel") || "Hotel").replace(/[^a-z0-9]+/gi, "_");
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const link = el("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${hotel}_calculation.txt`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    downloadBlob(`${hotel}_calculation.txt`, text, "text/plain;charset=utf-8");
     toast("Short calculation downloaded");
+  }
+
+  function saveCalculation() {
+    recalc();
+    const entry = calculationEntry();
+    storage.saveHistory(entry);
+    renderHistory();
+    toast("Calculation saved");
+  }
+
+  function historyRows() {
+    const query = ($("historySearch")?.value || "").trim().toLowerCase();
+    return storage.history().filter((entry) => {
+      const haystack = [
+        entry.hotel,
+        entry.checkin,
+        entry.checkout,
+        entry.spo,
+        core.money(entry.total),
+        new Date(entry.savedAt).toLocaleDateString(),
+      ].join(" ").toLowerCase();
+      return !query || haystack.includes(query);
+    });
+  }
+
+  function renderHistory() {
+    const list = $("historyList");
+    if (!list || !storage) return;
+    const rows = historyRows();
+    list.innerHTML = rows.length ? rows.map((entry) => `
+      <article class="history-item" data-id="${escapeHtml(entry.id)}">
+        <div>
+          <strong>${escapeHtml(entry.hotel || "Untitled hotel")}</strong>
+          <span>${escapeHtml(entry.checkin || "--")} - ${escapeHtml(entry.checkout || "--")} · ${escapeHtml(entry.spo || "No SPO")}</span>
+          <small>${escapeHtml(new Date(entry.savedAt).toLocaleString())}</small>
+        </div>
+        <div class="history-total">$${core.money(entry.total)}</div>
+        <div class="history-actions">
+          <button class="history-open add" type="button">Open</button>
+          <button class="history-copy share" type="button">Copy</button>
+          <button class="history-delete clear" type="button">Delete</button>
+        </div>
+      </article>
+    `).join("") : '<div class="history-empty">No saved calculations yet.</div>';
+  }
+
+  function showHistoryModal() {
+    renderHistory();
+    $("historyModal").showModal();
+  }
+
+  function exportHistory() {
+    const payload = {
+      app: "Hotel Calculator",
+      appVersion: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      history: storage.history(),
+    };
+    downloadBlob("hotel_calculator_history.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+    toast("History backup exported");
+  }
+
+  function importHistoryFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      try {
+        const data = JSON.parse(String(reader.result || "{}"));
+        const rows = Array.isArray(data) ? data : data.history;
+        storage.mergeHistory(rows);
+        renderHistory();
+        toast("History backup imported");
+      } catch {
+        toast("Could not import history file");
+      }
+    });
+    reader.readAsText(file);
   }
 
   function clearAll() {
@@ -699,6 +875,7 @@
     });
     createDefaultRows();
     recalc();
+    storage.clearDraft();
     toast("Calculation cleared");
   }
 
@@ -877,11 +1054,39 @@
 
     $("addRow").addEventListener("click", () => addRow());
     $("clearAll").addEventListener("click", clearAll);
+    $("saveCalculation").addEventListener("click", saveCalculation);
+    $("showHistory").addEventListener("click", showHistoryModal);
     $("showShare").addEventListener("click", showShare);
     $("copyShare").addEventListener("click", copyShare);
     $("downloadShare").addEventListener("click", downloadShare);
     $("downloadShareModal").addEventListener("click", downloadShare);
     $("closeShare").addEventListener("click", () => $("shareModal").close());
+    $("closeHistory").addEventListener("click", () => $("historyModal").close());
+    $("historySearch").addEventListener("input", renderHistory);
+    $("exportHistory").addEventListener("click", exportHistory);
+    $("importHistory").addEventListener("click", () => $("historyFile").click());
+    $("historyFile").addEventListener("change", (event) => {
+      importHistoryFile(event.target.files?.[0]);
+      event.target.value = "";
+    });
+    $("historyList").addEventListener("click", (event) => {
+      const item = event.target.closest(".history-item");
+      if (!item) return;
+      const entry = storage.history().find((row) => row.id === item.dataset.id);
+      if (!entry) return;
+      if (event.target.closest(".history-open")) {
+        applyPayload(entry.payload);
+        $("historyModal").close();
+        toast("Saved calculation opened");
+      } else if (event.target.closest(".history-copy")) {
+        navigator.clipboard?.writeText(entry.shareText || core.buildShareText(entry.payload));
+        toast("Saved share copied");
+      } else if (event.target.closest(".history-delete") && window.confirm("Delete this saved calculation?")) {
+        storage.deleteHistory(entry.id);
+        renderHistory();
+        toast("Saved calculation deleted");
+      }
+    });
     document.addEventListener("click", (event) => {
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
     });
@@ -891,6 +1096,8 @@
 
   buildLists();
   wireEvents();
-  createDefaultRows();
-  window.HotelCalculatorApp = { addRow, recalc, shareText };
+  $("appVersion").textContent = `v${APP_VERSION}`;
+  if (!restoreDraft()) createDefaultRows();
+  recalc();
+  window.HotelCalculatorApp = { addRow, recalc, shareText, saveCalculation };
 })();
