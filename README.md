@@ -19,7 +19,23 @@ Key workflows:
 - Save completed calculations into browser history.
 - Search saved calculations by hotel, dates, SPO, or total.
 - Export/import history as a JSON backup file.
+- Optionally sync saved history to each user's private Google Drive app data.
 - Restore an autosaved draft after accidental refreshes.
+
+## Optional Google Drive sync
+
+Google Drive sync is disabled until a browser OAuth client ID is added in `assets/googleConfig.js`.
+
+To enable it:
+
+1. Create a Google Cloud project.
+2. Configure the OAuth consent screen.
+3. Enable the Google Drive API.
+4. Create an OAuth client ID for a web application.
+5. Add `https://surakij.github.io` to authorized JavaScript origins.
+6. Put the client ID into `assets/googleConfig.js`.
+
+The app requests only the `https://www.googleapis.com/auth/drive.appdata` scope and stores a hidden `hotel_calculator_history.json` file in each user's private Drive application data folder.
 
 Run local checks with:
 
