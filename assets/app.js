@@ -448,46 +448,7 @@
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
     $("topTotal").value = core.money(calculated.total);
     renderStaySummary();
-    renderValidation();
     scheduleDraftSave();
-  }
-
-  function validationMessages() {
-    const messages = [];
-    const checkin = value("checkin");
-    const checkout = value("checkout");
-    const rows = currentRows();
-    const started = value("hotel").trim()
-      || checkin
-      || checkout
-      || value("spo").trim()
-      || rows.some((row) => !core.isGreenTax(row) && (row.item || row.from || row.to || row.rate > 0));
-
-    if (!started) return messages;
-
-    if (!value("hotel").trim()) messages.push("Hotel is empty.");
-    if (!core.parseDate(checkin) || !core.parseDate(checkout)) messages.push("Stay dates are incomplete.");
-    if (core.parseDate(checkin) && core.parseDate(checkout) && core.nightsBetween(checkin, checkout) <= 0) messages.push("Check-out should be after check-in.");
-
-    rows.forEach((row) => {
-      const name = row.item || row.type;
-      if (!row.item && !core.isGreenTax(row)) messages.push(`${row.type}: item is empty.`);
-      if (row.rate <= 0) messages.push(`${name}: rate is empty.`);
-      if (row.qty <= 0) messages.push(`${name}: qty is zero.`);
-      if (["ROOM", "MEAL", "EXTRA"].includes(row.type) && (!core.parseDate(row.from) || !core.parseDate(row.to))) messages.push(`${name}: dates are incomplete.`);
-      if (row.type === "DINNER" && row.item && (!row.from || !row.to)) messages.push(`${name}: dinner date is outside stay dates.`);
-    });
-
-    return [...new Set(messages)].slice(0, 8);
-  }
-
-  function renderValidation() {
-    const panel = $("validationPanel");
-    if (!panel) return;
-    const messages = validationMessages();
-    panel.innerHTML = messages.length
-      ? `<div class="validation-card">${messages.map((message) => `<span>${escapeHtml(message)}</span>`).join("")}</div>`
-      : "";
   }
 
   function renderStaySummary() {
