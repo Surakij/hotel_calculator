@@ -157,10 +157,30 @@
     return name ? HOTEL_DATA[name] : null;
   }
 
+  function recordRooms(record) {
+    if (Array.isArray(record)) return record;
+    return Array.isArray(record?.rooms) ? record.rooms : [];
+  }
+
+  function recordMeals(record) {
+    return Array.isArray(record?.meals) ? record.meals : [];
+  }
+
   function updateRoomList() {
     const record = selectedHotelRecord();
-    const rooms = record ? record : DEFAULT_ROOMS;
-    renderDatalist("list_ROOM", rooms);
+    const rooms = recordRooms(record);
+    renderDatalist("list_ROOM", rooms.length ? rooms : DEFAULT_ROOMS);
+  }
+
+  function updateMealList() {
+    const record = selectedHotelRecord();
+    const meals = recordMeals(record);
+    renderDatalist("list_MEAL", meals.length ? meals : LISTS.MEAL);
+  }
+
+  function updateHotelScopedLists() {
+    updateRoomList();
+    updateMealList();
   }
 
   function buildLists() {
@@ -171,7 +191,7 @@
       document.body.appendChild(datalist);
       renderDatalist(`list_${type}`, LISTS[type]);
     });
-    updateRoomList();
+    updateHotelScopedLists();
   }
 
   function createTypeSelect(selected = "") {
@@ -690,7 +710,7 @@
     $("infants").value = payload.guests?.infants ?? "0";
     $("ages").value = payload.guests?.ages || "";
     $("spo").value = payload.spo || "";
-    updateRoomList();
+    updateHotelScopedLists();
     rowsEl.innerHTML = "";
     (Array.isArray(payload.rows) && payload.rows.length ? payload.rows : []).forEach(addRow);
     if (!rowsEl.children.length) createDefaultRows();
@@ -1071,7 +1091,7 @@
 
   function wireEvents() {
     $("hotel").addEventListener("input", () => {
-      updateRoomList();
+      updateHotelScopedLists();
       recalc();
     });
 
