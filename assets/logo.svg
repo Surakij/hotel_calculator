@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Hotel Calculator logo">
+  <rect width="64" height="64" rx="14" fill="#082758"/>
+  <path d="M18 46V18h8v11h12V18h8v28h-8V35H26v11h-8Z" fill="#fff"/>
+  <path d="M46 18h4a4 4 0 0 1 4 4v24h-8V18Z" fill="#d9a441"/>
+  <path d="M14 50h38" stroke="#8fb7ff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="14" r="5" fill="#8fb7ff"/>
+</svg>
