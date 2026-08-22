@@ -26,6 +26,55 @@ def unique(values):
     return result
 
 
+def compact_meal_plan(value):
+    text = clean(value)
+    if not text:
+        return ""
+
+    text = text.replace("™", "").replace("®", "")
+    text = re.sub(r"\s*[-–—]\s*", " - ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    exact_codes = {
+        "bed & breakfast": "BB",
+        "bed and breakfast": "BB",
+        "breakfast": "BB",
+        "half board": "HB",
+        "half board plus": "HB+",
+        "full board": "FB",
+        "all inclusive": "AI",
+    }
+    lowered = text.lower()
+    if lowered in exact_codes:
+        return exact_codes[lowered]
+
+    replacements = [
+        (r"\bBed\s*(?:&|and)\s*Breakfast\b", "BB"),
+        (r"\bHalf Board Plus\b", "HB+"),
+        (r"\bHalf Board\b", "HB"),
+        (r"\bFull Board\b", "FB"),
+        (r"\bAll\s*(?:Inclusive|-\s*Inclusive)\b", "AI"),
+    ]
+    for pattern, replacement in replacements:
+        text = re.sub(pattern, replacement, text, flags=re.I)
+
+    text = re.sub(r"Anything,\s*Anytime,\s*Anywhere\s*\(AAA\)", "AAA", text, flags=re.I)
+    text = re.sub(r"\bFully\s+-\s+Inclusive\b", "Fully AI", text, flags=re.I)
+    text = re.sub(r"\bHalf\s+-\s+Board\b", "HB", text, flags=re.I)
+    text = re.sub(r"\bDine\s+-\s+Around\b", "Dine Around", text, flags=re.I)
+    text = re.sub(r"\bPrivate\s+-\s+Island\b", "Private Island", text, flags=re.I)
+    text = re.sub(r"\bBreakfast Included\b", "BB", text, flags=re.I)
+    text = re.sub(r"\s+Meal Plan\b", "", text, flags=re.I)
+    text = re.sub(r"\s+Package\b", "", text, flags=re.I)
+    text = text.replace("AI: ", "AI ")
+    text = re.sub(r"\s+-\s+AI\b", " AI", text)
+    text = re.sub(r"\bAI\s+-\s+([A-Za-z])", r"AI \1", text)
+    text = re.sub(r"\bPremium\s+AI\b", "Premium AI", text, flags=re.I)
+    text = re.sub(r"\bSoft\s+AI\b", "Soft AI", text, flags=re.I)
+    text = re.sub(r"\s+", " ", text).strip(" -")
+    return text
+
+
 def current_data():
     source = HOTEL_DATA.read_text(encoding="utf-8")
     match = re.search(r"const rows = `(.+?)`;", source, re.S)
@@ -73,7 +122,7 @@ def load_meals(path, hotel_names):
     df["Meal Plan"] = df["Meal Plan"].map(clean)
     grouped = {}
     for hotel, rows in df[df["Hotel"].isin(hotel_names)].groupby("Hotel", sort=False):
-        bases = unique(rows["Meal Plan"].where(rows["Meal Plan"] != "", rows["Normalized Code"]))
+        bases = unique(compact_meal_plan(value) for value in rows["Meal Plan"].where(rows["Meal Plan"] != "", rows["Normalized Code"]))
         meals = []
         for base in bases:
             meals.extend([f"{base} - Adult", f"{base} - Child"])
