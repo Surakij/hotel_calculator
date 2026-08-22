@@ -8,8 +8,8 @@
       "Water Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "FUSHI Plan™ - Adult",
+      "FUSHI Plan™ - Child"
     ]
   },
   "Adaaran Club Rannalhi": {
@@ -94,12 +94,12 @@
       "Water Pool Villa Lagoon View"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "HB+ - Adult",
-      "HB+ - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Half Board Plus - Adult",
+      "Half Board Plus - Child",
+      "All Inclusive: Dine Around - Adult",
+      "All Inclusive: Dine Around - Child"
     ]
   },
   "Anantara Kihavah Villas": {
@@ -163,16 +163,16 @@
       "Velavaru Two-Bedroom Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed and Breakfast - Adult",
+      "Bed and Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive Dine - Adult",
+      "All-Inclusive Dine - Child",
+      "All-Inclusive Premium - Adult",
+      "All-Inclusive Premium - Child"
     ]
   },
   "Atmosphere Kanifushi Maldives": {
@@ -287,8 +287,8 @@
       "Royal RESERVE 3BR"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "RESERVE™ Plan - Adult",
+      "RESERVE™ Plan - Child"
     ]
   },
   "Brennia Kottefaru": {
@@ -394,8 +394,8 @@
       "Sunset Overwater Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Club Med Kanifinolhu": {
@@ -411,8 +411,8 @@
       "Superior Room - Garden Side"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Coco Bodu Hithi": {
@@ -425,14 +425,14 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Coco Palm Dhunikolhu": {
@@ -445,12 +445,12 @@
       "Sunset Lagoon Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Cocoa Island": {
@@ -463,12 +463,12 @@
       "Two-Bedroom COMO Sunrise Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Cocogiri Island Resort": {
@@ -479,12 +479,12 @@
       "Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Cocoon Maldives": {
@@ -499,8 +499,8 @@
       "Lagoon Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All Inclusive (AI) - Adult",
+      "All Inclusive (AI) - Child"
     ]
   },
   "Como Maalifushi": {
@@ -515,14 +515,14 @@
       "Water Villas"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Simply COMO All-Inclusive - Adult",
+      "Simply COMO All-Inclusive - Child"
     ]
   },
   "Conrad Maldives Rangali Island": {
@@ -544,12 +544,12 @@
       "Two Bedroom Rangali Ocean Pavilion with Pool"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Curated Half-Board - Adult",
+      "Curated Half-Board - Child",
+      "Full Board Plus Beverages - Adult",
+      "Full Board Plus Beverages - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Constance Halaveli Resort": {
@@ -562,14 +562,14 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Constance Moofushi Resort": {
@@ -581,8 +581,8 @@
       "Water Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Cristal All-Inclusive - Adult",
+      "Cristal All-Inclusive - Child"
     ]
   },
   "Cora Cora Maldives": {
@@ -598,8 +598,8 @@
       "Two Bedroom Lagoon Pool Villa with Slide"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Premium All-Inclusive Gourmet Meal Plan® - Adult",
+      "Premium All-Inclusive Gourmet Meal Plan® - Child"
     ]
   },
   "Dhawa Ihuru": {
@@ -610,10 +610,10 @@
       "Beachfront Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "All-Inclusive Meal Plan - Adult",
+      "All-Inclusive Meal Plan - Child",
+      "All-Inclusive Dine-Around - Adult",
+      "All-Inclusive Dine-Around - Child"
     ]
   },
   "Dheruhfinolhu by Jawakara Islands Maldives": {
@@ -624,10 +624,10 @@
       "Dheru Water Pool Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Dhiggiri Tourist Resort": {
@@ -639,10 +639,10 @@
       "Water Suite"
     ],
     "meals": [
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Dhigufaru Island Resort": {
@@ -656,14 +656,14 @@
       "Veli Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Diamonds Athuruga Beach & Water Villas": {
@@ -675,10 +675,10 @@
       "Two Bedroom Pool Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Full All Inclusive - Adult",
+      "Full All Inclusive - Child"
     ]
   },
   "Diamonds Thudufushi Beach and Water Villas": {
@@ -692,10 +692,10 @@
       "Two Bedroom Pool Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Gourmet Breakfast - Adult",
+      "Gourmet Breakfast - Child",
+      "Full All Inclusive - Adult",
+      "Full All Inclusive - Child"
     ]
   },
   "Dreamland - The Unique Sea & Lake Resort/Spa": {
@@ -704,14 +704,14 @@
       "Water Bungalow"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "HB+ - Adult",
-      "HB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Half Board Plus - Adult",
+      "Half Board Plus - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Drift Theluveliga Retreat": {
@@ -720,14 +720,14 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Dusit Thani Maldives": {
@@ -743,14 +743,14 @@
       "Waterfront Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Dine Around - Adult",
+      "Half Board - Dine Around - Child",
+      "Full Board - Dine Around - Adult",
+      "Full Board - Dine Around - Child",
+      "Pure Indulgence - All Inclusive - Adult",
+      "Pure Indulgence - All Inclusive - Child"
     ]
   },
   "dusitD2": {
@@ -766,8 +766,8 @@
       "Waterfront Pool Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Ellaidhoo Maldives By Cinnamon": {
@@ -778,14 +778,14 @@
       "Water Bungalow"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Embudhu Village": {
@@ -794,10 +794,10 @@
       "Water Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Emerald Faarufushi Resort & Spa": {
@@ -811,8 +811,8 @@
       "Water Villas with Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Deluxe All-Inclusive Oasis - Adult",
+      "Deluxe All-Inclusive Oasis - Child"
     ]
   },
   "Emerald Maldives Resort & Spa Fasmendho": {
@@ -831,8 +831,8 @@
       "Water Villas with Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Deluxe All-Inclusive Sanctuary - Adult",
+      "Deluxe All-Inclusive Sanctuary - Child"
     ]
   },
   "Eri Maldives": {
@@ -845,10 +845,10 @@
       "Sunset Beach Villa"
     ],
     "meals": [
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Full Board Plus+ - Adult",
+      "Full Board Plus+ - Child",
+      "All Inclusive (AI) - Adult",
+      "All Inclusive (AI) - Child"
     ]
   },
   "Fihaalhohi Maldives": {
@@ -860,12 +860,12 @@
       "Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Filitheyo Island Resort": {
@@ -876,14 +876,14 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Finolhu": {
@@ -900,14 +900,14 @@
       "Two Bedroom Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "All Inclusive Premium - Adult",
+      "All Inclusive Premium - Child"
     ]
   },
   "Four Seasons Private Island Maldives at Voavah": {
@@ -917,8 +917,8 @@
       "Two-Bedroom Water Villa"
     ],
     "meals": [
-      "Other - Adult",
-      "Other - Child"
+      "Bespoke Private-Island Dining - Adult",
+      "Bespoke Private-Island Dining - Child"
     ]
   },
   "Four Seasons Resort Maldives at Kuda Huraa": {
@@ -941,12 +941,12 @@
       "Two-Bedroom Beach Pavilion with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Four Seasons Resort Maldives at Landaa Giraavaru": {
@@ -971,12 +971,12 @@
       "Water Villa with Pool – Partial Sea View"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Furaveri Maldives": {
@@ -994,14 +994,14 @@
       "Two Bedroom Private Velaa Luxury Residence"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed and Breakfast Meal Plan - Adult",
+      "Bed and Breakfast Meal Plan - Child",
+      "Half Board Meal Plan - Adult",
+      "Half Board Meal Plan - Child",
+      "Full Board Meal Plan - Adult",
+      "Full Board Meal Plan - Child",
+      "Island Wide Premium All Inclusive Meal Plan - Adult",
+      "Island Wide Premium All Inclusive Meal Plan - Child"
     ]
   },
   "Fushifaru Maldives": {
@@ -1017,14 +1017,14 @@
       "Premium Pool Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Gangehi Island Resort": {
@@ -1037,18 +1037,18 @@
       "Over Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "HB+ - Adult",
-      "HB+ - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "HB + Formula Club - Adult",
+      "HB + Formula Club - Child",
+      "FB + Formula Club - Adult",
+      "FB + Formula Club - Child",
+      "All Inclusive Soft - Adult",
+      "All Inclusive Soft - Child",
+      "ALL Soft + Formula Club - Adult",
+      "ALL Soft + Formula Club - Child"
     ]
   },
   "Gili Lankanfushi": {
@@ -1066,12 +1066,12 @@
       "Villa Suite with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Grand Park Kodhipparu Maldives": {
@@ -1084,12 +1084,12 @@
       "Reef Pool Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Hard Rock Hotel Maldives": {
@@ -1107,16 +1107,16 @@
       "Silver Sky Studio"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Heritance Aarah": {
@@ -1128,8 +1128,8 @@
       "Pool Beach Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Hilton Maldives Amingiri Resort & Spa": {
@@ -1142,14 +1142,14 @@
       "Two Bedroom Overwater Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Holiday Inn Resort Kandooma Maldives": {
@@ -1164,14 +1164,14 @@
       "Sea View Overwater Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Hondaafushi Island Resort": {
@@ -1180,12 +1180,12 @@
       "Superior Beach Bungalow"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Hurawalhi Island Resort": {
@@ -1197,10 +1197,10 @@
       "Romantic Ocean Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "All-Inclusive Plus - Adult",
+      "All-Inclusive Plus - Child"
     ]
   },
   "Huvafenfushi Maldives": {
@@ -1213,10 +1213,10 @@
       "Two-Bedroom Ocean Pavilion with Pool"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Inter Continental Maldives Maamunagau": {
@@ -1237,14 +1237,14 @@
       "Two Bedroom Overwater Pool Residence with Club Benefits"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast Only - Adult",
+      "Breakfast Only - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "JA Manafaru": {
@@ -1258,14 +1258,14 @@
       "Two Bedroom Ocean Residence with Family Infinity Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Dine Around All Inclusive - Adult",
+      "Dine Around All Inclusive - Child"
     ]
   },
   "Joali Being Bodufushi": {
@@ -1286,12 +1286,12 @@
       "Two Bedroom Wellbeing Beach Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Joali Muravandhoo": {
@@ -1309,12 +1309,12 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Joy Island": {
@@ -1330,8 +1330,8 @@
       "Lagoon Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All Inclusive (AI) - Adult",
+      "All Inclusive (AI) - Child"
     ]
   },
   "Jumeirah Maldives Olhahali Island": {
@@ -1347,14 +1347,14 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "JW Marriott": {
@@ -1369,14 +1369,14 @@
       "Two-Bedroom Overwater Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Luxury All Inclusive - Adult",
+      "Luxury All Inclusive - Child"
     ]
   },
   "JW Marriott Maldives Resort & Spa": {
@@ -1388,16 +1388,16 @@
       "Two Bedroom Duplex Beach Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "All-Inclusive Premium - Adult",
+      "All-Inclusive Premium - Child"
     ]
   },
   "Kagi Maldives Resort and Spa": {
@@ -1408,8 +1408,8 @@
       "Overwater Pool Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Kandima Maldives": {
@@ -1425,14 +1425,14 @@
       "Sunset Aqua Pool Suite"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB+ - Adult",
-      "HB+ - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board PLUS - Adult",
+      "Half Board PLUS - Child",
+      "Full Board PLUS - Adult",
+      "Full Board PLUS - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Kandolhu Maldives": {
@@ -1445,12 +1445,12 @@
       "Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "Other - Adult",
-      "Other - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "À La Carte Dining - Adult",
+      "À La Carte Dining - Child",
+      "Ultimate Inclusions - Adult",
+      "Ultimate Inclusions - Child"
     ]
   },
   "Komandoo Island Resort": {
@@ -1462,10 +1462,10 @@
       "Premium Jacuzzi Beach Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive Plus - Adult",
+      "All Inclusive Plus - Child"
     ]
   },
   "Kuda Villingili Resort Maldives": {
@@ -1482,14 +1482,14 @@
       "Two Bedroom Beach Villa with Private Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Kudadoo Maldives Private island": {
@@ -1498,8 +1498,8 @@
       "Two-Bedroom Ocean Residence"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Anything, Anytime, Anywhere (AAA) Fully-Inclusive - Adult",
+      "Anything, Anytime, Anywhere (AAA) Fully-Inclusive - Child"
     ]
   },
   "Kudafushi Resort & Spa": {
@@ -1511,8 +1511,10 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "Soft All Inclusive - Adult",
+      "Soft All Inclusive - Child",
+      "All Inclusive Plan - Adult",
+      "All Inclusive Plan - Child"
     ]
   },
   "Kuredhivaru Resort and Spa": {
@@ -1525,12 +1527,12 @@
       "Three Bedroom Beach Pool Residence"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Deluxe Half Board - Adult",
+      "Deluxe Half Board - Child",
+      "Deluxe Full Board - Adult",
+      "Deluxe Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Kuredu Island Resort": {
@@ -1551,10 +1553,10 @@
       "Sangu Water Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive Plus - Adult",
+      "All Inclusive Plus - Child"
     ]
   },
   "Kurumba Maldives": {
@@ -1570,12 +1572,12 @@
       "Two Bedroom Superior Room"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board All-Inclusive - Adult",
+      "Full Board All-Inclusive - Child",
+      "Dine Around All-Inclusive - Adult",
+      "Dine Around All-Inclusive - Child"
     ]
   },
   "Le Méridien Maldives Resort and Spa": {
@@ -1591,16 +1593,16 @@
       "Two Bedroom Overwater Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Lily Beach Resort": {
@@ -1611,8 +1613,8 @@
       "Sunset Water Suite with Private Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Platinum Plan - Adult",
+      "Platinum Plan - Child"
     ]
   },
   "Lux* South Ari Atoll, Maldives": {
@@ -1629,14 +1631,14 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Maayafushi Tourist Resort": {
@@ -1647,8 +1649,8 @@
       "Over Water"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Mabinhura by Jawakara Islands Maldives": {
@@ -1659,10 +1661,10 @@
       "Mabin Water Pool Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Machchafushi Island Resort & Spa Maldives, The Centara Collection": {
@@ -1676,12 +1678,12 @@
       "Sunset Overwater Villa"
     ],
     "meals": [
-      "HB+ - Adult",
-      "HB+ - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board + - Adult",
+      "Half Board + - Child",
+      "Full Board + - Adult",
+      "Full Board + - Child",
+      "Grand All-Inclusive - Adult",
+      "Grand All-Inclusive - Child"
     ]
   },
   "Madifushi Private Island": {
@@ -1696,14 +1698,14 @@
       "Two-Bedroom Serene Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Makunudu Island": {
@@ -1712,12 +1714,12 @@
       "Deluxe Beach Bungalow"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Malahini Kuda Bandos": {
@@ -1729,16 +1731,16 @@
       "Superior Room"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "All Inclusive Gold - Adult",
+      "All Inclusive Gold - Child"
     ]
   },
   "Medhufushi Island Resort": {
@@ -1750,14 +1752,14 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Meeru Maldives Resort Island": {
@@ -1770,10 +1772,10 @@
       "Water Front Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive Dine Around - Adult",
+      "All-Inclusive Dine Around - Child"
     ]
   },
   "Melia Whale Lagoon Maldives": {
@@ -1785,12 +1787,12 @@
       "Sunset Water Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "All Inclusive Premium - Adult",
+      "All Inclusive Premium - Child"
     ]
   },
   "Meyyafushi Maldives": {
@@ -1808,8 +1810,8 @@
       "Water Pool Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Milaidhoo Island Maldives": {
@@ -1820,10 +1822,10 @@
       "Water Villa with Private Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child"
     ]
   },
   "Nala Maldives by Jawakara": {
@@ -1834,14 +1836,14 @@
       "Sunset Beach Pool Villas"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "NH Collection Maldives Havodda Resort": {
@@ -1855,16 +1857,16 @@
       "Sunset Beach Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Standard All-Inclusive - Adult",
+      "Standard All-Inclusive - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "NH Collection Maldives Reethi Resort": {
@@ -1878,14 +1880,14 @@
       "Two Bedroom Reethi Suite with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "nH Maldives Kuda Rah Resort": {
@@ -1897,16 +1899,16 @@
       "Two Bedroom Duplex Beach Villa with Private Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Breakfast (BB) - Adult",
+      "Breakfast (BB) - Child",
+      "Half Board (HB) - Adult",
+      "Half Board (HB) - Child",
+      "Full Board (FB) - Adult",
+      "Full Board (FB) - Child",
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Nika Island Resort and Spa": {
@@ -1922,12 +1924,12 @@
       "Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Niva Dhigali Maldives": {
@@ -1942,8 +1944,8 @@
       "Water Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Niva Kuramathi Maldives": {
@@ -1961,14 +1963,14 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Niva Velassaru Maldives": {
@@ -1985,14 +1987,14 @@
       "Water Villa With Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Niyama Maldives": {
@@ -2011,12 +2013,12 @@
       "Two Bedroom Ocean Pool Pavilion"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Dine Around All-Inclusive - Adult",
+      "Dine Around All-Inclusive - Child"
     ]
   },
   "Noku Maldives Vignette Collection": {
@@ -2028,14 +2030,14 @@
       "Overwater Villa with Private Pool & Sunset View"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Nooe Maldives Kunavashi": {
@@ -2047,14 +2049,14 @@
       "Sunset Beach Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Nova Maldives": {
@@ -2072,10 +2074,10 @@
       "Water Villa with Private Pool"
     ],
     "meals": [
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Oaga Art Resort": {
@@ -2086,8 +2088,8 @@
       "Veyoge Gallery Pool Villa"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Greatest All-Inclusive - Adult",
+      "Greatest All-Inclusive - Child"
     ]
   },
   "Oblu By Atmosphere at Helengeli": {
@@ -2100,8 +2102,8 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "OBLU Island Plan™ - Adult",
+      "OBLU Island Plan™ - Child"
     ]
   },
   "Oblu Select by Atmosphere at Sangeli": {
@@ -2114,8 +2116,8 @@
       "Water Villa With Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "SERENITY Plan™ - Adult",
+      "SERENITY Plan™ - Child"
     ]
   },
   "One & Only Reethi Rah, Maldives": {
@@ -2131,10 +2133,10 @@
       "Water Villa With Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child"
     ]
   },
   "Outrigger Maldives Maafushivaru Resort": {
@@ -2144,10 +2146,10 @@
       "Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Dine Around All Inclusive - Adult",
+      "Dine Around All Inclusive - Child"
     ]
   },
   "Ozen By Atmosphere At Maadhoo": {
@@ -2161,8 +2163,8 @@
       "Wind Villa with Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "THE INDULGENCE™ Plan - Adult",
+      "THE INDULGENCE™ Plan - Child"
     ]
   },
   "Park Hyatt Maldives Hadahaa": {
@@ -2175,12 +2177,12 @@
       "Overwater Sunset Villa"
     ],
     "meals": [
-      "HB+ - Adult",
-      "HB+ - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board Plus - Adult",
+      "Half Board Plus - Child",
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Patina Maldives, Fari Islands": {
@@ -2197,12 +2199,12 @@
       "Two Bedroom Water Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Pullman Maldives Maamutaa Resort": {
@@ -2218,8 +2220,8 @@
       "Two Bedroom Ocean Pool Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Raaya by Atmosphere": {
@@ -2234,8 +2236,8 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "RAAYA Plan - Adult",
+      "RAAYA Plan - Child"
     ]
   },
   "Radisson Blu Resort Maldives": {
@@ -2253,14 +2255,14 @@
       "Two Bedroom Family Villa - Pool and Sunset View"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Classic All-Inclusive - Adult",
+      "Classic All-Inclusive - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Rah Gili Maldives": {
@@ -2273,14 +2275,14 @@
       "Water Pool Villa with Slide"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Limited All-Inclusive - Adult",
+      "Limited All-Inclusive - Child"
     ]
   },
   "Rahaa Resort": {
@@ -2289,8 +2291,8 @@
       "Ocean View Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All-Inclusive Plan - Adult",
+      "All-Inclusive Plan - Child"
     ]
   },
   "Reethi Faru Resort": {
@@ -2304,16 +2306,18 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Soft All Inclusive - Adult",
+      "Soft All Inclusive - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Full Dine Around – All Inclusive Package - Adult",
+      "Full Dine Around – All Inclusive Package - Child"
     ]
   },
   "Riu Atoll and Riu Palace Maldivas": {
@@ -2328,8 +2332,8 @@
       "RIU Palace Maldivas - Suite with private pool - overwater"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "All Inclusive 24 Hours - Adult",
+      "All Inclusive 24 Hours - Child"
     ]
   },
   "Robinson Maldives": {
@@ -2344,8 +2348,8 @@
       "Water Villa Classic Private Pool"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All inclusive made by ROBINSON - Adult",
+      "All inclusive made by ROBINSON - Child"
     ]
   },
   "Robinson": {
@@ -2359,8 +2363,8 @@
       "Water Villa Sunset View"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All inclusive made by ROBINSON - Adult",
+      "All inclusive made by ROBINSON - Child"
     ]
   },
   "Royal Island Resort and Spa": {
@@ -2372,10 +2376,10 @@
       "Two-bedroom Family Beach Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Saii Lagoon Maldives": {
@@ -2391,16 +2395,16 @@
       "Sky Room"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "All-inclusive - Adult",
+      "All-inclusive - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Sandies Bathala": {
@@ -2411,8 +2415,8 @@
       "Water Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Shangri-la Villingili Maldives": {
@@ -2428,8 +2432,8 @@
       "Villa Muthee"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child"
+      "Breakfast Included - Adult",
+      "Breakfast Included - Child"
     ]
   },
   "Sheraton Maldives Full Moon Resort & Spa": {
@@ -2445,14 +2449,14 @@
       "Water Bungalow"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Sirru Fen Fushi Private Lagoon Resort": {
@@ -2473,14 +2477,14 @@
       "Two Bedroom Sunset Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed and Breakfast - Adult",
+      "Bed and Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Six Senses Kanuhura": {
@@ -2498,12 +2502,12 @@
       "Water Villa With Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Six Senses": {
@@ -2523,12 +2527,12 @@
       "Two-Bedroom Ocean Beach Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Siyam World Maldives": {
@@ -2551,8 +2555,8 @@
       "Water Villa with Pool + Slide"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "WOW! Premium All-Inclusive - Adult",
+      "WOW! Premium All-Inclusive - Child"
     ]
   },
   "SO/ Maldives": {
@@ -2566,20 +2570,26 @@
       "Two-Bedroom Ocean Water Pool Atelier"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child",
+      "Half Board Dine Around - Adult",
+      "Half Board Dine Around - Child",
+      "Full Board Dine Around - Adult",
+      "Full Board Dine Around - Child",
+      "All Inclusive Dine Around - Adult",
+      "All Inclusive Dine Around - Child",
+      "Full Board + Standard Beverage Package - Adult",
+      "Full Board + Standard Beverage Package - Child",
+      "Full Board + Premium Beverage Package - Adult",
+      "Full Board + Premium Beverage Package - Child",
+      "Premium All Inclusive Dine Around - Adult",
+      "Premium All Inclusive Dine Around - Child"
     ]
   },
   "Soneva Fushi Resort": {
@@ -2607,14 +2617,14 @@
       "Villa One"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Breakfast - Adult",
+      "Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Soneva Unlimited - Adult",
+      "Soneva Unlimited - Child"
     ]
   },
   "Soneva Jani": {
@@ -2631,14 +2641,14 @@
       "Two Bedroom Water Retreat with Slide"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Soneva Unlimited - Adult",
+      "Soneva Unlimited - Child"
     ]
   },
   "Soneva Secret": {
@@ -2650,12 +2660,12 @@
       "Two-Bedroom Overwater Sea Loft"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "South Palm Resort Maldives": {
@@ -2668,10 +2678,10 @@
       "Water Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Summer Island Maldives": {
@@ -2685,12 +2695,12 @@
       "Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "Sun Siyam Iru Fushi Maldives": {
@@ -2708,14 +2718,14 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Breakfast Only - Adult",
+      "Breakfast Only - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Sun Siyam Iru Veli Maldives": {
@@ -2731,14 +2741,14 @@
       "Two Bedroom Ocean Residence with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Sun Siyam Olhuveli Maldives": {
@@ -2753,14 +2763,14 @@
       "Water Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "24/7 All Inclusive Dine Around - Adult",
+      "24/7 All Inclusive Dine Around - Child"
     ]
   },
   "Sun Siyam Vilu Reef Maldives": {
@@ -2776,14 +2786,14 @@
       "Water Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "Taj Coral Reef Resort and Spa": {
@@ -2794,8 +2804,8 @@
       "Superior Beach Villa"
     ],
     "meals": [
-      "AI - Adult",
-      "AI - Child"
+      "Coral All-Inclusive - Adult",
+      "Coral All-Inclusive - Child"
     ]
   },
   "Taj Exotica Resort & Spa Maldives": {
@@ -2811,14 +2821,14 @@
       "Two-Bedroom Beach Suite with Spa & Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "The Halcyon Private Isles Maldives Autograph Collection": {
@@ -2833,16 +2843,16 @@
       "Two-Bedroom Oceanfront Pool Villa with Private Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "The Nautilus Maldives": {
@@ -2853,10 +2863,10 @@
       "Ocean Residence with Private Infinity Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child"
     ]
   },
   "The Residence Maldives": {
@@ -2867,12 +2877,12 @@
       "Water Pool Villa - Two Bedroom"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "The Residence Maldives At Dhigurah": {
@@ -2891,10 +2901,10 @@
       "Sunset Water Pool Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "The Ritz Carlton Maldives Fari Islands": {
@@ -2904,12 +2914,12 @@
       "The Ritz-Carlton Estate"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "The St. Regis Vommuli Resort, Maldives": {
@@ -2921,12 +2931,12 @@
       "St. Regis Suite"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "The Standard Huruvalhi Maldives": {
@@ -2940,14 +2950,14 @@
       "Two Bedroom Ocean Beach Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Premium All-Inclusive - Adult",
+      "Premium All-Inclusive - Child"
     ]
   },
   "The Westin Maldives Miriandhoo Resort": {
@@ -2957,16 +2967,16 @@
       "Two Bedroom Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Premium All Inclusive - Adult",
+      "Premium All Inclusive - Child"
     ]
   },
   "Thulhagiri Island Resort & Spa": {
@@ -2976,14 +2986,14 @@
       "Water Bungalow"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "HB+ - Adult",
-      "HB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "Half Board Plus - Adult",
+      "Half Board Plus - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "V Villas Maldives at Mirihi-Mgallery Collection": {
@@ -2995,12 +3005,12 @@
       "Two Bedroom Beach Pool Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB+ - Adult",
-      "HB+ - Child",
-      "FB+ - Adult",
-      "FB+ - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board Plus - Adult",
+      "Half Board Plus - Child",
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child"
     ]
   },
   "Vakkaru Maldives": {
@@ -3019,12 +3029,12 @@
       "Two Bedroom Beach Pool Residence"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Varu Island Resort": {
@@ -3038,8 +3048,8 @@
       "Water Villa With Pool"
     ],
     "meals": [
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "The VARU Plan - Adult",
+      "The VARU Plan - Child"
     ]
   },
   "Velaa Private Island Maldives": {
@@ -3054,14 +3064,14 @@
       "Velaa Private Residence"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   },
   "Veligandu Maldives Resort Island": {
@@ -3077,14 +3087,14 @@
       "Sunset Ocean Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI Dine Around - Adult",
-      "AI Dine Around - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive Dine Around - Adult",
+      "All-Inclusive Dine Around - Child"
     ]
   },
   "Vilamendhoo Island Resort": {
@@ -3096,10 +3106,10 @@
       "Tropical Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All-Inclusive Plus - Adult",
+      "All-Inclusive Plus - Child"
     ]
   },
   "Villa Nautica Paradise Island": {
@@ -3116,14 +3126,14 @@
       "Water Villa with Whirlpool"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child",
-      "Other - Adult",
-      "Other - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Dine Around Premium All Inclusive - Adult",
+      "Dine Around Premium All Inclusive - Child",
+      "Infinity Plan - Adult",
+      "Infinity Plan - Child"
     ]
   },
   "Villa Park Sun Island": {
@@ -3145,16 +3155,16 @@
       "Water Villa"
     ],
     "meals": [
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child",
-      "AI Premium - Adult",
-      "AI Premium - Child",
-      "Other - Adult",
-      "Other - Child"
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child",
+      "Dine Around Premium All Inclusive - Adult",
+      "Dine Around Premium All Inclusive - Child",
+      "Infinity Plan - Adult",
+      "Infinity Plan - Child"
     ]
   },
   "W Maldives": {
@@ -3168,12 +3178,12 @@
       "Supreme Overwater Villa"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child",
-      "FB - Adult",
-      "FB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board - Adult",
+      "Half Board - Child",
+      "Full Board - Adult",
+      "Full Board - Child"
     ]
   },
   "Waldorf Astoria Maldives Ithaafushi": {
@@ -3187,10 +3197,10 @@
       "Two Queen Bedded Reef Villa with Pool"
     ],
     "meals": [
-      "BB - Adult",
-      "BB - Child",
-      "HB - Adult",
-      "HB - Child"
+      "Bed & Breakfast - Adult",
+      "Bed & Breakfast - Child",
+      "Half Board Dine Around - Adult",
+      "Half Board Dine Around - Child"
     ]
   },
   "Yash Nature Resort": {
@@ -3199,10 +3209,10 @@
       "Deck Villa"
     ],
     "meals": [
-      "FB - Adult",
-      "FB - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Full Board - Adult",
+      "Full Board - Child",
+      "All Inclusive - Adult",
+      "All Inclusive - Child"
     ]
   },
   "You & Me Maldives": {
@@ -3216,12 +3226,12 @@
       "You & Me Suite with Private Pool & Slide"
     ],
     "meals": [
-      "HB+ - Adult",
-      "HB+ - Child",
-      "FB+ - Adult",
-      "FB+ - Child",
-      "AI - Adult",
-      "AI - Child"
+      "Half Board Plus - Adult",
+      "Half Board Plus - Child",
+      "Full Board Plus - Adult",
+      "Full Board Plus - Child",
+      "All-Inclusive - Adult",
+      "All-Inclusive - Child"
     ]
   }
 };
