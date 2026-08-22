@@ -1,8 +1,46 @@
-# Hotel Calculation
+# Maldives Hotel Quotation & Reservation Calculator
 
-A lightweight browser-based hotel quotation and calculation tool for travel and hospitality workflows.
+A browser-based workflow automation tool designed for Maldives resort quotation and reservation pricing.
 
 **Live app:** https://surakij.github.io/hotel_calculator/
+
+## Overview
+
+The Maldives Hotel Quotation & Reservation Calculator is a browser-based workflow automation tool created specifically for Maldives resort reservations.
+
+Maldives quotations can involve multiple room categories and stay periods, adult and child meal supplements, seaplane/domestic/speedboat transfers, Green Tax, special offers and several sequential discounts.
+
+The calculator brings these components into one structured calculation and produces a compact share-ready quotation for reservation workflows.
+
+## Why Maldives?
+
+Maldives resort reservations have a particularly complex pricing structure. A single booking may include multiple accommodation periods, different meal supplements, age-based charges, transfer types, taxes, gala dinners, extras and several promotional discounts.
+
+The project was created to make this workflow faster, more consistent and easier to verify.
+
+## Workflow Coverage
+
+The calculator is based on real Maldives reservation workflow patterns, including:
+
+- Maldives resorts and room categories.
+- Split stays between room categories or rate periods.
+- Different rates across stay periods.
+- Resort meal plans.
+- Adult and child supplements.
+- Seaplane, domestic flight and speedboat transfers.
+- One-way transfer pricing.
+- Green Tax.
+- Gala dinners and extras.
+- Sequential SPO / discount calculations.
+- Share-ready quotation output for reservation workflows.
+
+## Maldives Reference Dataset
+
+The hotel selector includes a Maldives resort and room-category reference dataset to speed up manual quotation work.
+
+Current project data includes room categories for 152 Maldives resorts.
+
+The dataset is intended as an operational reference for selecting resort and room-category names. It is not described as an official Maldives government database, and the public repository does not include hotel rates or commercial contract data.
 
 ## Development
 
