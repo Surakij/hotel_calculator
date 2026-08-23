@@ -42,6 +42,12 @@ Current project data includes room categories for 177 Maldives resorts and hotel
 
 The dataset is intended as an operational reference for selecting resort and room-category names. It is not described as an official Maldives government database, and the public repository does not include hotel rates or commercial contract data.
 
+## Privacy & Analytics
+
+The public app uses Cloudflare Web Analytics to understand aggregate website traffic.
+
+Analytics are used only for privacy-friendly traffic measurement. Reservation details, quotation contents, prices, hotel selections, saved calculations and other data entered into the calculator are not sent to the analytics service.
+
 ## Development
 
 The app is static and can be opened directly from `index.html`. Runtime code is split into:
@@ -81,3 +87,9 @@ Run local checks with:
 npm run lint
 npm test
 ```
+
+## Copyright
+
+© 2026 Sergei Kazhaev. All rights reserved.
+
+The Maldives Hotel Quotation Calculator is publicly available for use. The source code is not released under an open-source license and may not be redistributed, republished, or used to create derivative commercial products without permission.
