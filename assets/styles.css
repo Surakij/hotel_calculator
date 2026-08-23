@@ -526,13 +526,37 @@ td button:disabled {
   justify-content: flex-end;
   gap: 14px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .version {
-  margin-right: auto;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.app-credit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.app-credit a {
+  color: var(--navy);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-credit a:hover {
+  text-decoration: underline;
+}
+
+.app-credit small {
+  font-size: 11px;
 }
 
 .summary-wrap {
