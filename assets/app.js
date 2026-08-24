@@ -525,7 +525,7 @@
 
     const rateCell = el("td");
     const rate = el("input", { className: "rate", type: "number", min: "0", step: "0.01" });
-    rate.value = data.rate ?? "";
+    rate.value = Number(data.rate || 0) > 0 ? data.rate : "";
     rateCell.appendChild(rate);
 
     const discountsCell = el("td", { className: "discounts" });
