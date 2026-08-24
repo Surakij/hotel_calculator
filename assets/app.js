@@ -122,8 +122,52 @@
     const minus = el("button", { className: "step-button", type: "button", title: "Decrease", textContent: "-" });
     const plus = el("button", { className: "step-button", type: "button", title: "Increase", textContent: "+" });
 
-    minus.addEventListener("click", () => stepNumber(input, -1));
-    plus.addEventListener("click", () => stepNumber(input, 1));
+    function bindHold(button, direction) {
+      let holdTimer = null;
+      let repeatTimer = null;
+      let pointerActive = false;
+      let suppressClick = false;
+
+      function stopHold() {
+        pointerActive = false;
+        clearTimeout(holdTimer);
+        clearInterval(repeatTimer);
+        holdTimer = null;
+        repeatTimer = null;
+      }
+
+      button.addEventListener("pointerdown", (event) => {
+        if (button.disabled) return;
+        event.preventDefault();
+        pointerActive = true;
+        suppressClick = true;
+        button.setPointerCapture?.(event.pointerId);
+        stepNumber(input, direction);
+        holdTimer = setTimeout(() => {
+          repeatTimer = setInterval(() => stepNumber(input, direction), 80);
+        }, 360);
+      });
+
+      ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
+        button.addEventListener(type, () => {
+          if (pointerActive) stopHold();
+        });
+      });
+
+      button.addEventListener("click", (event) => {
+        if (suppressClick) {
+          suppressClick = false;
+          event.preventDefault();
+          return;
+        }
+        stepNumber(input, direction);
+      });
+
+      window.addEventListener("blur", stopHold);
+    }
+
+    bindHold(minus, -1);
+    bindHold(plus, 1);
     wrap.append(minus, input, plus);
     return wrap;
   }
