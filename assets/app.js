@@ -144,8 +144,8 @@
         button.setPointerCapture?.(event.pointerId);
         stepNumber(input, direction);
         holdTimer = setTimeout(() => {
-          repeatTimer = setInterval(() => stepNumber(input, direction), 80);
-        }, 360);
+          repeatTimer = setInterval(() => stepNumber(input, direction), 160);
+        }, 500);
       });
 
       ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
