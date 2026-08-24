@@ -381,6 +381,7 @@ button:disabled {
 
 .table-wrap {
   margin-top: 12px;
+  min-height: 268px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -611,6 +612,7 @@ td button:disabled {
 }
 
 .grand {
+  min-width: 270px;
   padding: 13px 18px;
   border-radius: 7px;
   background: var(--navy);
@@ -620,8 +622,11 @@ td button:disabled {
 }
 
 .grand span {
+  display: inline-block;
+  min-width: 92px;
   margin-left: 14px;
   font-size: 18px;
+  text-align: right;
 }
 
 #toast {
