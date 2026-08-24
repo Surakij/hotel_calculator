@@ -35,6 +35,7 @@
   };
   const GLOBAL_DATE_IDS = new Set(["checkin", "checkout"]);
   const DATE_RANGE_TYPES = new Set(["ROOM", "EXTRA", "MEAL", "GREEN_TAX"]);
+  const UNDO_LIMIT = 80;
 
   const $ = (id) => document.getElementById(id);
   const rowsEl = $("rows");
@@ -42,7 +43,13 @@
   let pickerInput = null;
   let pickerMonth = null;
   let draftTimer = null;
+  let undoTimer = null;
   let suppressDraft = false;
+  let undoReady = false;
+  let restoringUndoState = false;
+  let lastUndoSignature = "";
+  const undoStack = [];
+  const redoStack = [];
   const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(2026, index, 1).toLocaleString("en-US", { month: "long" }));
 
   function el(tag, options = {}) {
@@ -193,6 +200,48 @@
 
   function renderDatalist(id, items) {
     $(id).innerHTML = items.map((item) => `<option value="${escapeHtml(item)}">`).join("");
+  }
+
+  function clonePayload(payload) {
+    return JSON.parse(JSON.stringify(payload));
+  }
+
+  function payloadSignature(payload) {
+    return JSON.stringify(payload);
+  }
+
+  function updateUndoButtons() {
+    const undo = $("undoChange");
+    const redo = $("redoChange");
+    if (undo) undo.disabled = undoStack.length <= 1;
+    if (redo) redo.disabled = redoStack.length === 0;
+  }
+
+  function pushUndoSnapshot({ clearRedo = true } = {}) {
+    if (!undoReady || restoringUndoState) return;
+    const payload = clonePayload(sharePayload());
+    const signature = payloadSignature(payload);
+    if (signature === lastUndoSignature) {
+      updateUndoButtons();
+      return;
+    }
+    undoStack.push(payload);
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    lastUndoSignature = signature;
+    if (clearRedo) redoStack.length = 0;
+    updateUndoButtons();
+  }
+
+  function scheduleUndoSnapshot() {
+    if (!undoReady || restoringUndoState) return;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(() => pushUndoSnapshot(), 300);
+  }
+
+  function flushUndoSnapshot() {
+    clearTimeout(undoTimer);
+    undoTimer = null;
+    pushUndoSnapshot();
   }
 
   function selectedHotelRecord() {
@@ -493,6 +542,7 @@
     $("topTotal").value = core.money(calculated.total);
     renderStaySummary();
     scheduleDraftSave();
+    scheduleUndoSnapshot();
   }
 
   function renderStaySummary() {
@@ -724,6 +774,39 @@
     return true;
   }
 
+  function restoreUndoPayload(payload) {
+    restoringUndoState = true;
+    applyPayload(payload);
+    lastUndoSignature = payloadSignature(sharePayload());
+    restoringUndoState = false;
+    updateUndoButtons();
+    scheduleDraftSave();
+  }
+
+  function undoChange() {
+    flushUndoSnapshot();
+    if (undoStack.length <= 1) return;
+    const current = undoStack.pop();
+    redoStack.push(current);
+    restoreUndoPayload(clonePayload(undoStack[undoStack.length - 1]));
+    toast("Undone");
+  }
+
+  function redoChange() {
+    flushUndoSnapshot();
+    if (!redoStack.length) return;
+    const next = redoStack.pop();
+    undoStack.push(clonePayload(next));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    restoreUndoPayload(clonePayload(next));
+    toast("Redone");
+  }
+
+  function initUndoHistory() {
+    undoReady = true;
+    pushUndoSnapshot();
+  }
+
   function calculationEntry() {
     const payload = sharePayload();
     const total = Number(String(value("topTotal") || "0").replace(/,/g, ""));
@@ -837,11 +920,23 @@
     });
   }
 
-  function renderHistory() {
-    const list = $("historyList");
-    if (!list || !storage) return;
-    const rows = historyRows();
-    list.innerHTML = rows.length ? rows.map((entry) => `
+  function historyDateKey(savedAt) {
+    const date = new Date(savedAt);
+    if (Number.isNaN(date.getTime())) return "unknown";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function historyDateLabel(savedAt) {
+    const date = new Date(savedAt);
+    if (Number.isNaN(date.getTime())) return "Unknown date";
+    return date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  }
+
+  function renderHistoryItem(entry) {
+    return `
       <article class="history-item" data-id="${escapeHtml(entry.id)}">
         <div>
           <strong>${escapeHtml(entry.hotel || "Untitled hotel")}</strong>
@@ -855,7 +950,34 @@
           <button class="history-delete clear" type="button">Delete</button>
         </div>
       </article>
-    `).join("") : '<div class="history-empty">No saved calculations yet.</div>';
+    `;
+  }
+
+  function renderHistory() {
+    const list = $("historyList");
+    if (!list || !storage) return;
+    const rows = historyRows();
+    if (!rows.length) {
+      list.innerHTML = '<div class="history-empty">No saved calculations yet.</div>';
+      return;
+    }
+
+    const groups = rows.reduce((map, entry) => {
+      const key = historyDateKey(entry.savedAt);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(entry);
+      return map;
+    }, new Map());
+
+    list.innerHTML = [...groups.entries()].map(([key, entries]) => `
+      <section class="history-day">
+        <h3 class="history-date">
+          <span>${escapeHtml(historyDateLabel(entries[0].savedAt))}</span>
+          <small>${entries.length} calculation${entries.length === 1 ? "" : "s"}</small>
+        </h3>
+        ${entries.map(renderHistoryItem).join("")}
+      </section>
+    `).join("");
   }
 
   function renderDriveStatus(message = "") {
@@ -1126,6 +1248,8 @@
 
     $("addRow").addEventListener("click", () => addRow());
     $("clearAll").addEventListener("click", clearAll);
+    $("undoChange").addEventListener("click", undoChange);
+    $("redoChange").addEventListener("click", redoChange);
     $("saveCalculation").addEventListener("click", saveCalculation);
     $("showHistory").addEventListener("click", showHistoryModal);
     $("showShare").addEventListener("click", showShare);
@@ -1174,5 +1298,6 @@
   $("appVersion").textContent = `v${APP_VERSION}`;
   if (!restoreDraft()) createDefaultRows();
   recalc();
-  window.HotelCalculatorApp = { addRow, recalc, shareText, saveCalculation };
+  initUndoHistory();
+  window.HotelCalculatorApp = { addRow, recalc, shareText, saveCalculation, undoChange, redoChange };
 })();
