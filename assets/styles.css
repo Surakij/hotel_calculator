@@ -230,6 +230,8 @@ input[type="number"]::-webkit-outer-spin-button {
   color: var(--navy);
   font-size: 20px;
   line-height: 1;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .number-stepper .step-button:hover {
