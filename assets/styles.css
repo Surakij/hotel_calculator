@@ -792,7 +792,7 @@ td button:disabled {
 
 .history-list {
   display: grid;
-  gap: 8px;
+  gap: 14px;
 }
 
 .drive-status {
@@ -810,6 +810,29 @@ td button:disabled {
   border-color: #b8e7c7;
   background: #f3fcf6;
   color: var(--green);
+}
+
+.history-day {
+  display: grid;
+  gap: 8px;
+}
+
+.history-date {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.history-date small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .history-item {
