@@ -151,8 +151,8 @@
     const wrap = el("span", { className: `number-stepper${compact ? " compact" : ""}` });
     const minus = el("button", { className: "step-button", type: "button", title: "Decrease" });
     const plus = el("button", { className: "step-button", type: "button", title: "Increase" });
-    minus.appendChild(el("span", { className: "step-symbol", textContent: "-" }));
-    plus.appendChild(el("span", { className: "step-symbol", textContent: "+" }));
+    minus.appendChild(el("span", { className: "step-symbol step-minus" }));
+    plus.appendChild(el("span", { className: "step-symbol step-plus" }));
 
     function bindHold(button, direction) {
       let holdTimer = null;
