@@ -253,6 +253,15 @@ input[type="number"]::-webkit-outer-spin-button {
   font-weight: 700;
 }
 
+.cards .number-stepper input {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 0 5px;
+  background: var(--field);
+  font-size: 16px;
+}
+
 .number-stepper .step-button {
   display: grid;
   place-items: center;
@@ -277,12 +286,14 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .step-symbol {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  line-height: 1;
+  display: block;
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
 }
 
 .total input {
