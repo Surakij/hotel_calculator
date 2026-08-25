@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.1.0";
+  const APP_VERSION = "1.1.1";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
@@ -115,13 +115,13 @@
     const checkin = core.parseDate(value("checkin"));
     const days = Number(value("eboDays") || 0);
     if (!checkin || !Number.isFinite(days) || days <= 0) {
-      output.textContent = "Book by --";
+      output.textContent = "Deadline --";
       return;
     }
 
     const bookBy = new Date(checkin);
     bookBy.setDate(bookBy.getDate() - Math.round(days));
-    output.textContent = `Book by ${core.formatDate(bookBy)}`;
+    output.textContent = `Deadline ${core.formatDate(bookBy)}`;
     output.classList.add(bookBy >= todayStart() ? "is-future" : "is-past");
   }
 
