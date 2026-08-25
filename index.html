@@ -68,6 +68,13 @@
         <label for="spo">SPO CODE</label>
         <input id="spo" placeholder="Enter SPO code">
       </div>
+      <div class="guest ebo-check">
+        <label for="eboDays">EBO DAYS</label>
+        <div class="ebo-fields">
+          <input id="eboDays" type="number" min="0" step="1" placeholder="60">
+          <output id="eboResult" class="ebo-result" aria-live="polite">Book by --</output>
+        </div>
+      </div>
     </section>
 
     <section class="toolbar" aria-label="Calculation actions">
