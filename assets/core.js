@@ -135,6 +135,15 @@
     );
   }
 
+  function compareShareEntries(a, b) {
+    return (
+      dateSortValue(a.from) - dateSortValue(b.from)
+      || a.order - b.order
+      || dateSortValue(a.to) - dateSortValue(b.to)
+      || a.index - b.index
+    );
+  }
+
   function overlapNights(aFrom, aTo, bFrom, bTo) {
     const startA = parseDate(aFrom);
     const endA = parseDate(aTo);
@@ -270,34 +279,47 @@
     if (spo) out.push(`SPO: ${spo}`);
     out.push("");
 
+    const shareEntries = [];
+    let entryIndex = 0;
     const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
     const extras = rows.filter((row) => row.type === "EXTRA" && !isGreenTax(row));
     const greenTax = rows.filter(isGreenTax).sort(compareDateRows);
     const usedExtras = new Set();
 
+    function addEntry(row, order, text) {
+      shareEntries.push({
+        from: row.from,
+        to: row.to,
+        order,
+        index: entryIndex,
+        text,
+      });
+      entryIndex += 1;
+    }
+
     rooms.forEach((room) => {
-      out.push(`${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${money(room.net)}`);
+      addEntry(room, 0, `${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${money(room.net)}`);
       extras
         .filter((row) => row.from === room.from && row.to === room.to && !usedExtras.has(row))
         .sort((a, b) => Number(/child/i.test(a.item)) - Number(/child/i.test(b.item)))
         .forEach((row) => {
-          out.push(`${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
+          addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
           usedExtras.add(row);
         });
     });
 
     extras.filter((row) => !usedExtras.has(row)).sort(compareDateRows).forEach((row) => {
-      out.push(`${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
+      addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
     });
 
     groupedRows(rows, "MEAL").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      out.push(`${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
+      addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
     groupedRows(rows, "DINNER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      out.push(`${group.label} : ${groupExpression(group)} = ${money(total)}`);
+      addEntry(group.rows[0], 3, `${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
     groupedRows(rows, "TRANSFER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
@@ -305,8 +327,10 @@
       const prefix = /\bOW\b/i.test(group.label)
         ? `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : `
         : "";
-      out.push(`${prefix}${group.label} : ${groupExpression(group)} = ${money(total)}`);
+      addEntry(group.rows[0], 4, `${prefix}${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
+
+    shareEntries.sort(compareShareEntries).forEach((entry) => out.push(entry.text));
 
     greenTax.forEach((row) => {
       out.push(`Green Tax : ${expression(row)} = ${money(row.net)}`);
