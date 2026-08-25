@@ -365,7 +365,9 @@
   }
 
   function setupDiscounts(container, data = {}) {
-    const values = [data.d1 ?? data.discount ?? 0, data.d2 ?? 0, data.d3 ?? 0, data.d4 ?? 0];
+    const values = Array.isArray(data.discounts) && data.discounts.length
+      ? data.discounts
+      : [data.d1 ?? data.discount ?? 0, data.d2 ?? 0, data.d3 ?? 0, data.d4 ?? 0];
     const lastFilled = values.reduce((last, item, index) => (Number(item) > 0 ? index : last), 0);
 
     for (let index = 0; index <= lastFilled; index += 1) addDiscount(container, values[index], index > 0);
