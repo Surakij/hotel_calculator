@@ -104,6 +104,8 @@ body::before {
 .card:first-child,
 .guest:first-child { padding-left: 0; }
 
+.guests .guest:first-child { padding-left: 18px; }
+
 .card:last-child,
 .guest:last-child {
   padding-right: 0;
