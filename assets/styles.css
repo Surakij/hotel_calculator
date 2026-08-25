@@ -88,7 +88,7 @@ body::before {
 }
 
 .guests {
-  grid-template-columns: .75fr .75fr .75fr 1.95fr 2fr minmax(318px, 1.7fr);
+  grid-template-columns: minmax(158px, .75fr) minmax(158px, .75fr) minmax(158px, .75fr) 1.8fr 1.9fr minmax(318px, 1.7fr);
   margin-top: 14px;
   padding: 14px 18px;
   border-radius: 8px;
@@ -254,19 +254,15 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .number-stepper .step-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   min-width: 38px;
   height: 100%;
   border-radius: 0;
   padding: 0;
   background: #edf3fa;
   color: var(--navy);
-  font-family: Arial, sans-serif;
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1;
+  font: 900 21px/1 Arial, sans-serif;
   touch-action: manipulation;
   user-select: none;
 }
@@ -281,27 +277,12 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .step-symbol {
-  position: relative;
-  display: block;
-  width: 12px;
-  height: 12px;
-}
-
-.step-symbol::before,
-.step-symbol::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 2px;
-  border-radius: 999px;
-  background: currentColor;
-  transform: translate(-50%, -50%);
-}
-
-.step-plus::after {
-  transform: translate(-50%, -50%) rotate(90deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
 }
 
 .total input {
@@ -506,7 +487,7 @@ td .number-stepper input {
 
 td .number-stepper .step-button {
   min-width: 36px;
-  font-size: 18px;
+  font-size: 19px;
 }
 
 .discounts {
