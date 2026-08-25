@@ -389,7 +389,7 @@
       from: tr.querySelector(".from").value,
       to: tr.querySelector(".to").value,
       qty: Number(tr.querySelector(".qty").value || 0),
-      rate: Number(tr.querySelector(".rate").value || 0),
+      rateFormula: tr.querySelector(".rate").value.trim(),
       discounts: [...tr.querySelectorAll(".discount")].map((input) => Number(input.value || 0)).filter((item) => item > 0),
     };
   }
@@ -665,8 +665,8 @@
     qtyCell.appendChild(numberStepper(qty));
 
     const rateCell = el("td");
-    const rate = el("input", { className: "rate", type: "number", min: "0", step: "0.01" });
-    rate.value = Number(data.rate || 0) > 0 ? data.rate : "";
+    const rate = el("input", { className: "rate", type: "text", inputmode: "decimal", autocomplete: "off" });
+    rate.value = data.rateFormula || (Number(data.rate || 0) > 0 ? data.rate : "");
     rateCell.appendChild(rate);
 
     const discountsCell = el("td", { className: "discounts" });
