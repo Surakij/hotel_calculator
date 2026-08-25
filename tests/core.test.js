@@ -65,6 +65,26 @@ test("omits unpriced services from share text", () => {
   assert.match(text, /Beach Pool Villa/);
 });
 
+test("orders short share date rows chronologically", () => {
+  const text = core.buildShareText({
+    hotel: "Villa Park",
+    checkin: "27.08.2026",
+    checkout: "05.09.2026",
+    guests: { adults: 2 },
+    rows: [
+      { type: "ROOM", item: "Water Villa", from: "03.09.2026", to: "05.09.2026", qty: 1, rate: 482, discounts: [37] },
+      { type: "ROOM", item: "Lagoon Beach Villa", from: "27.08.2026", to: "01.09.2026", qty: 1, rate: 340, discounts: [22] },
+      { type: "ROOM", item: "Lagoon Beach Villa", from: "01.09.2026", to: "03.09.2026", qty: 1, rate: 306, discounts: [22] },
+      { type: "MEAL", item: "AI - Adult", from: "03.09.2026", to: "05.09.2026", qty: 2, rate: 60 },
+      { type: "MEAL", item: "AI - Adult", from: "27.08.2026", to: "03.09.2026", qty: 2, rate: 60 },
+    ],
+  });
+
+  assert.ok(text.indexOf("27.08 - 01.09 : Lagoon Beach Villa") < text.indexOf("01.09 - 03.09 : Lagoon Beach Villa"));
+  assert.ok(text.indexOf("01.09 - 03.09 : Lagoon Beach Villa") < text.indexOf("03.09 - 05.09 : Water Villa"));
+  assert.ok(text.indexOf("27.08 - 03.09 : AI") < text.indexOf("03.09 - 05.09 : AI"));
+});
+
 test("builds stay summaries by matching room dates", () => {
   const summaries = core.buildStaySummaries([
     { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
