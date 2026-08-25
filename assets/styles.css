@@ -281,9 +281,27 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .step-symbol {
+  position: relative;
   display: block;
-  line-height: 1;
-  transform: translateY(-2px);
+  width: 12px;
+  height: 12px;
+}
+
+.step-symbol::before,
+.step-symbol::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.step-plus::after {
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .total input {
