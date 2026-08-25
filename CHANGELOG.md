@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Added EBO date checker for SPO deadline checks.
+- Added undo and redo for calculation edits.
+- Improved saved history grouping and restored saved discounts correctly.
+- Refined number stepper controls and reservation workflow UI polish.
+
 ## 1.0.0
 
 - Added saved calculation history with search, open, copy, delete, export, and import.
