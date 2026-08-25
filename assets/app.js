@@ -149,8 +149,10 @@
 
   function numberStepper(input, compact = false) {
     const wrap = el("span", { className: `number-stepper${compact ? " compact" : ""}` });
-    const minus = el("button", { className: "step-button", type: "button", title: "Decrease", textContent: "-" });
-    const plus = el("button", { className: "step-button", type: "button", title: "Increase", textContent: "+" });
+    const minus = el("button", { className: "step-button", type: "button", title: "Decrease" });
+    const plus = el("button", { className: "step-button", type: "button", title: "Increase" });
+    minus.appendChild(el("span", { className: "step-symbol", textContent: "-" }));
+    plus.appendChild(el("span", { className: "step-symbol", textContent: "+" }));
 
     function bindHold(button, direction) {
       let holdTimer = null;
