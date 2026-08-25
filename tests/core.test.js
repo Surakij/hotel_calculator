@@ -75,14 +75,24 @@ test("orders short share date rows chronologically", () => {
       { type: "ROOM", item: "Water Villa", from: "03.09.2026", to: "05.09.2026", qty: 1, rate: 482, discounts: [37] },
       { type: "ROOM", item: "Lagoon Beach Villa", from: "27.08.2026", to: "01.09.2026", qty: 1, rate: 340, discounts: [22] },
       { type: "ROOM", item: "Lagoon Beach Villa", from: "01.09.2026", to: "03.09.2026", qty: 1, rate: 306, discounts: [22] },
+      { type: "EXTRA", item: "Extra Adult", from: "03.09.2026", to: "05.09.2026", qty: 1, rate: 100 },
       { type: "MEAL", item: "AI - Adult", from: "03.09.2026", to: "05.09.2026", qty: 2, rate: 60 },
       { type: "MEAL", item: "AI - Adult", from: "27.08.2026", to: "03.09.2026", qty: 2, rate: 60 },
     ],
   });
 
-  assert.ok(text.indexOf("27.08 - 01.09 : Lagoon Beach Villa") < text.indexOf("01.09 - 03.09 : Lagoon Beach Villa"));
-  assert.ok(text.indexOf("01.09 - 03.09 : Lagoon Beach Villa") < text.indexOf("03.09 - 05.09 : Water Villa"));
-  assert.ok(text.indexOf("27.08 - 03.09 : AI") < text.indexOf("03.09 - 05.09 : AI"));
+  const firstRoom = text.indexOf("27.08 - 01.09 : Lagoon Beach Villa");
+  const firstMeal = text.indexOf("27.08 - 03.09 : AI");
+  const secondRoom = text.indexOf("01.09 - 03.09 : Lagoon Beach Villa");
+  const thirdRoom = text.indexOf("03.09 - 05.09 : Water Villa");
+  const thirdExtra = text.indexOf("Extra Adult");
+  const thirdMeal = text.indexOf("03.09 - 05.09 : AI");
+
+  assert.ok(firstRoom < firstMeal);
+  assert.ok(firstMeal < secondRoom);
+  assert.ok(secondRoom < thirdRoom);
+  assert.ok(thirdRoom < thirdExtra);
+  assert.ok(thirdExtra < thirdMeal);
 });
 
 test("builds stay summaries by matching room dates", () => {
