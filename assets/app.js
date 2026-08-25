@@ -1268,6 +1268,7 @@
       const input = $(id);
       input.parentNode.appendChild(numberStepper(input));
     });
+    $("eboResult").before(numberStepper($("eboDays")));
     ["ages", "spo", "eboDays"].forEach((id) => $(id).addEventListener("input", recalc));
 
     $("addRow").addEventListener("click", () => addRow());
