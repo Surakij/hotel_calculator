@@ -74,6 +74,79 @@
     return money(value).replaceAll(",", "");
   }
 
+  function normalizeRateFormula(value) {
+    return String(value || "").trim().replaceAll(",", ".").replace(/\s+/g, "");
+  }
+
+  function parseRateExpression(value) {
+    if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+
+    const formula = normalizeRateFormula(value);
+    if (!formula) return 0;
+    if (!/^[\d.+\-*/()]+$/.test(formula)) return 0;
+
+    let index = 0;
+
+    function peek() {
+      return formula[index];
+    }
+
+    function consume(char) {
+      if (peek() === char) {
+        index += 1;
+        return true;
+      }
+      return false;
+    }
+
+    function parseNumber() {
+      const start = index;
+      while (/\d|\./.test(peek())) index += 1;
+      if (start === index) return NaN;
+      return Number(formula.slice(start, index));
+    }
+
+    function parseFactor() {
+      if (consume("+")) return parseFactor();
+      if (consume("-")) return -parseFactor();
+      if (consume("(")) {
+        const result = parseSum();
+        if (!consume(")")) return NaN;
+        return result;
+      }
+      return parseNumber();
+    }
+
+    function parseProduct() {
+      let result = parseFactor();
+      while (peek() === "*" || peek() === "/") {
+        const operator = peek();
+        index += 1;
+        const next = parseFactor();
+        result = operator === "*" ? result * next : result / next;
+      }
+      return result;
+    }
+
+    function parseSum() {
+      let result = parseProduct();
+      while (peek() === "+" || peek() === "-") {
+        const operator = peek();
+        index += 1;
+        const next = parseProduct();
+        result = operator === "+" ? result + next : result - next;
+      }
+      return result;
+    }
+
+    const result = parseSum();
+    return index === formula.length && Number.isFinite(result) && result >= 0 ? result : 0;
+  }
+
+  function hasRateFormula(row) {
+    return /[+\-*/()]/.test(normalizeRateFormula(row.rateFormula));
+  }
+
   function isGreenTax(row) {
     return row.type === "GREEN_TAX" || (row.type === "EXTRA" && /^green tax$/i.test(row.item || ""));
   }
@@ -93,7 +166,7 @@
   function calculateRow(row) {
     const nights = nightsBetween(row.from, row.to);
     const qty = Number(row.qty || 0);
-    const rate = Number(row.rate || 0);
+    const rate = parseRateExpression(row.rateFormula || row.rate);
     let base = qty * rate;
 
     if (isStayBased(row)) base *= nights;
@@ -104,6 +177,7 @@
       ...row,
       qty,
       rate,
+      rateFormula: normalizeRateFormula(row.rateFormula || row.rate),
       discounts,
       nights,
       net: applyDiscounts(base, discounts),
@@ -160,7 +234,9 @@
   }
 
   function expression(row) {
-    let formula = `${row.rate ? normalizeMoney(row.rate) : "0"}*${row.qty}`;
+    let formula = hasRateFormula(row)
+      ? `(${normalizeRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
+      : `${row.rate ? normalizeMoney(row.rate) : "0"}*${row.qty}`;
     if ((isStayBased(row) || row.type === "EXTRA") && row.nights > 0) formula += `*${row.nights}`;
     row.discounts.forEach((discount) => {
       formula += `-${discount}%`;
@@ -183,7 +259,11 @@
   }
 
   function groupExpression(group) {
-    const parts = group.rows.map((row) => `${normalizeMoney(row.rate)}*${row.qty}`);
+    const parts = group.rows.map((row) => (
+      hasRateFormula(row)
+        ? `(${normalizeRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
+        : `${normalizeMoney(row.rate)}*${row.qty}`
+    ));
     let formula = parts.length > 1 ? `(${parts.join("+")})` : parts[0];
     const first = group.rows[0];
     if ((isStayBased(first) || first.type === "EXTRA") && first.nights > 0) formula += `*${first.nights}`;
