@@ -181,7 +181,7 @@ body::before {
 
 .ebo-fields {
   display: grid;
-  grid-template-columns: minmax(62px, .7fr) minmax(112px, 1fr);
+  grid-template-columns: minmax(132px, 1fr) minmax(128px, max-content);
   gap: 8px;
   align-items: center;
 }
@@ -201,15 +201,15 @@ body::before {
 }
 
 .ebo-result.is-future {
-  border-color: #fecaca;
-  background: #fff1f2;
-  color: #b91c1c;
-}
-
-.ebo-result.is-past {
   border-color: #bbf7d0;
   background: #f0fdf4;
   color: #15803d;
+}
+
+.ebo-result.is-past {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
 }
 
 input:focus,
@@ -261,7 +261,9 @@ input[type="number"]::-webkit-outer-spin-button {
   padding: 0;
   background: #edf3fa;
   color: var(--navy);
-  font-size: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 21px;
+  font-weight: 900;
   line-height: 1;
   touch-action: manipulation;
   user-select: none;
