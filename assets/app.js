@@ -62,6 +62,25 @@
     return node;
   }
 
+  function stepIcon(kind) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "step-symbol");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+
+    const horizontal = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    horizontal.setAttribute("d", "M6 12h12");
+    svg.appendChild(horizontal);
+
+    if (kind === "plus") {
+      const vertical = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      vertical.setAttribute("d", "M12 6v12");
+      svg.appendChild(vertical);
+    }
+
+    return svg;
+  }
+
   function value(id) {
     return $(id).value;
   }
@@ -151,8 +170,8 @@
     const wrap = el("span", { className: `number-stepper${compact ? " compact" : ""}` });
     const minus = el("button", { className: "step-button", type: "button", title: "Decrease" });
     const plus = el("button", { className: "step-button", type: "button", title: "Increase" });
-    minus.appendChild(el("span", { className: "step-symbol", textContent: "\u2212" }));
-    plus.appendChild(el("span", { className: "step-symbol", textContent: "+" }));
+    minus.appendChild(stepIcon("minus"));
+    plus.appendChild(stepIcon("plus"));
 
     function bindHold(button, direction) {
       let holdTimer = null;
