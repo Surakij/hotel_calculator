@@ -122,6 +122,19 @@
     return start && end ? `${start} - ${end}` : "";
   }
 
+  function dateSortValue(value) {
+    const date = parseDate(value);
+    return date ? date.getTime() : Number.MAX_SAFE_INTEGER;
+  }
+
+  function compareDateRows(a, b) {
+    return (
+      dateSortValue(a.from) - dateSortValue(b.from)
+      || dateSortValue(a.to) - dateSortValue(b.to)
+      || String(a.item || "").localeCompare(String(b.item || ""))
+    );
+  }
+
   function overlapNights(aFrom, aTo, bFrom, bTo) {
     const startA = parseDate(aFrom);
     const endA = parseDate(aTo);
@@ -257,9 +270,9 @@
     if (spo) out.push(`SPO: ${spo}`);
     out.push("");
 
-    const rooms = rows.filter((row) => row.type === "ROOM");
+    const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
     const extras = rows.filter((row) => row.type === "EXTRA" && !isGreenTax(row));
-    const greenTax = rows.filter(isGreenTax);
+    const greenTax = rows.filter(isGreenTax).sort(compareDateRows);
     const usedExtras = new Set();
 
     rooms.forEach((room) => {
@@ -273,21 +286,21 @@
         });
     });
 
-    extras.filter((row) => !usedExtras.has(row)).forEach((row) => {
+    extras.filter((row) => !usedExtras.has(row)).sort(compareDateRows).forEach((row) => {
       out.push(`${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
     });
 
-    groupedRows(rows, "MEAL").forEach((group) => {
+    groupedRows(rows, "MEAL").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
       out.push(`${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
-    groupedRows(rows, "DINNER").forEach((group) => {
+    groupedRows(rows, "DINNER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
       out.push(`${group.label} : ${groupExpression(group)} = ${money(total)}`);
     });
 
-    groupedRows(rows, "TRANSFER").forEach((group) => {
+    groupedRows(rows, "TRANSFER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
       const prefix = /\bOW\b/i.test(group.label)
         ? `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : `
