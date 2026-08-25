@@ -280,9 +280,10 @@ input[type="number"]::-webkit-outer-spin-button {
   background: var(--blue);
 }
 
-.cards .number-stepper .step-button,
-.guests .number-stepper .step-button {
-  padding-bottom: 2px;
+.step-symbol {
+  display: block;
+  line-height: 1;
+  transform: translateY(-2px);
 }
 
 .total input {
