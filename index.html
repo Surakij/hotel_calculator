@@ -69,10 +69,10 @@
         <input id="spo" placeholder="Enter SPO code">
       </div>
       <div class="guest ebo-check">
-        <label for="eboDays">EBO DAYS</label>
+        <label for="eboDays">DAYS BEFORE</label>
         <div class="ebo-fields">
           <input id="eboDays" type="number" min="0" step="1" placeholder="60">
-          <output id="eboResult" class="ebo-result" aria-live="polite">Book by --</output>
+          <output id="eboResult" class="ebo-result" aria-live="polite">Deadline --</output>
         </div>
       </div>
     </section>
@@ -92,7 +92,19 @@
     </section>
 
     <section class="table-wrap" aria-label="Calculation rows">
-      <table>
+      <table class="calc-table">
+        <colgroup>
+          <col class="col-type">
+          <col class="col-item">
+          <col class="col-date">
+          <col class="col-date">
+          <col class="col-nights">
+          <col class="col-qty">
+          <col class="col-rate">
+          <col class="col-discounts">
+          <col class="col-net">
+          <col class="col-delete">
+        </colgroup>
         <thead>
           <tr>
             <th>TYPE</th>
@@ -114,7 +126,7 @@
     <section id="staySummary" class="summary-wrap" aria-label="Stay and meal summary"></section>
 
     <footer class="footer">
-      <div class="version" id="appVersion">v1.1.0</div>
+      <div class="version" id="appVersion">v1.1.1</div>
       <div class="app-credit">
         <span>Maldives Hotel Quotation Calculator · Created by <a href="https://www.linkedin.com/in/sergei-kazhaev/" target="_blank" rel="noopener noreferrer">Sergei Kazhaev</a></span>
         <small>© 2026 Sergei Kazhaev</small>
