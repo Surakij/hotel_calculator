@@ -83,6 +83,29 @@
     input.value = core.formatDate(input.value);
   }
 
+  function todayStart() {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  }
+
+  function renderEboCheck() {
+    const output = $("eboResult");
+    if (!output) return;
+    output.classList.remove("is-future", "is-past");
+
+    const checkin = core.parseDate(value("checkin"));
+    const days = Number(value("eboDays") || 0);
+    if (!checkin || !Number.isFinite(days) || days <= 0) {
+      output.textContent = "Book by --";
+      return;
+    }
+
+    const bookBy = new Date(checkin);
+    bookBy.setDate(bookBy.getDate() - Math.round(days));
+    output.textContent = `Book by ${core.formatDate(bookBy)}`;
+    output.classList.add(bookBy >= todayStart() ? "is-future" : "is-past");
+  }
+
   function prepareItemReselect(input, tr) {
     const data = rowData(tr);
     if (!data.type || core.isGreenTax(data) || !input.value) return;
@@ -541,6 +564,7 @@
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
     $("topTotal").value = core.money(calculated.total);
     renderStaySummary();
+    renderEboCheck();
     scheduleDraftSave();
     scheduleUndoSnapshot();
   }
@@ -1061,7 +1085,7 @@
 
   function clearAll() {
     if (!window.confirm("Clear the current calculation and start a new one?")) return;
-    ["hotel", "checkin", "checkout", "ages", "spo"].forEach((id) => {
+    ["hotel", "checkin", "checkout", "ages", "spo", "eboDays"].forEach((id) => {
       $(id).value = "";
     });
     ["adults", "children", "infants", "nights"].forEach((id) => {
@@ -1244,7 +1268,7 @@
       const input = $(id);
       input.parentNode.appendChild(numberStepper(input));
     });
-    ["ages", "spo"].forEach((id) => $(id).addEventListener("input", recalc));
+    ["ages", "spo", "eboDays"].forEach((id) => $(id).addEventListener("input", recalc));
 
     $("addRow").addEventListener("click", () => addRow());
     $("clearAll").addEventListener("click", clearAll);
