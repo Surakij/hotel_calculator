@@ -25,6 +25,13 @@ test("applies stacked discounts sequentially", () => {
   assert.equal(core.calculateRow({ type: "ROOM", from: "01.09.2026", to: "02.09.2026", qty: 1, rate: 100, discounts: [10, 10] }).net, 81);
 });
 
+test("calculates simple rate formulas", () => {
+  const row = core.calculateRow({ type: "ROOM", from: "01.09.2026", to: "08.09.2026", qty: 1, rateFormula: "200*2" });
+
+  assert.equal(row.rate, 400);
+  assert.equal(row.net, 2800);
+});
+
 test("ignores discounts for green tax and dinners", () => {
   assert.equal(core.calculateRow({ type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "02.09.2026", qty: 2, rate: 12, discounts: [50] }).net, 24);
   assert.equal(core.calculateRow({ type: "DINNER", item: "New Year Gala Dinner - Adult", qty: 2, rate: 100, discounts: [50] }).net, 200);
@@ -37,14 +44,14 @@ test("builds share text with display-format dates", () => {
     checkout: "04.09.2026",
     guests: { adults: 2, children: 1, ages: "6" },
     rows: [
-      { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
+      { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rateFormula: "50*2" },
       { type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 3, rate: 12 },
     ],
   });
 
   assert.match(text, /OZEN/);
   assert.match(text, /01\.09\.2026-04\.09\.2026 · 3N · 2ADL\+1CHD\(6\)/);
-  assert.match(text, /Beach Pool Villa : 100\.00\*1\*3 = 300\.00/);
+  assert.match(text, /Beach Pool Villa : \(50\*2\)\*3 = 300\.00/);
   assert.match(text, /Green Tax : 12\.00\*3\*3 = 108\.00/);
   assert.match(text, /TOTAL: 408\.00 USD/);
 });
