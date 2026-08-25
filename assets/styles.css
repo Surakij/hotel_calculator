@@ -88,7 +88,7 @@ body::before {
 }
 
 .guests {
-  grid-template-columns: .8fr .8fr .8fr 2.1fr 2.1fr 1.35fr;
+  grid-template-columns: .75fr .75fr .75fr 1.95fr 2fr minmax(318px, 1.7fr);
   margin-top: 14px;
   padding: 14px 18px;
   border-radius: 8px;
@@ -181,7 +181,7 @@ body::before {
 
 .ebo-fields {
   display: grid;
-  grid-template-columns: minmax(132px, 1fr) minmax(128px, max-content);
+  grid-template-columns: minmax(132px, 142px) minmax(0, 1fr);
   gap: 8px;
   align-items: center;
 }
@@ -189,6 +189,8 @@ body::before {
 .ebo-result {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 0;
   min-height: 40px;
   border: 1px solid var(--line-soft);
   border-radius: 7px;
