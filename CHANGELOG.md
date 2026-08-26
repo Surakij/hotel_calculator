@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.11
+
+- Filled the empty delete-column header so the calculation table bar ends evenly on both sides.
+
 ## 1.1.10
 
 - Set calculation table headers to an exact pixel height to avoid subpixel header edges.
