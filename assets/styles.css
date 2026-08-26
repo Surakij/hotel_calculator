@@ -445,8 +445,7 @@ button:disabled {
 }
 
 table {
-  width: 100%;
-  min-width: 1520px;
+  width: calc(1304px + var(--discount-column-width, 152px));
   border-collapse: collapse;
 }
 
