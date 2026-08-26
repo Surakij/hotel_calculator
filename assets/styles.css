@@ -477,7 +477,7 @@ th {
 }
 
 .calc-table th {
-  background: transparent;
+  background: var(--navy);
 }
 
 td {
