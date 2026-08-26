@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.3
+
+- Fixed discount controls so multiple discounts stay inside the Discounts column.
+- Updated hotel-specific meal-plan references to cover all 177 Maldives resorts in the app dataset.
+- Added LinkedIn/social preview metadata and image.
+- Added portfolio screenshots and refreshed README dataset wording.
+- Reserved footer height to reduce layout shift during page load.
+
 ## 1.1.0
 
 - Added EBO date checker for SPO deadline checks.
