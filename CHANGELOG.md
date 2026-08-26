@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4
+
+- Polished table spacing for discount controls, quantity steppers, and row delete actions.
+
 ## 1.1.3
 
 - Fixed discount controls so multiple discounts stay inside the Discounts column.
