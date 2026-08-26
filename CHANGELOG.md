@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Removed repository screenshots with real quotation data and anonymized the social preview.
+
 ## 1.2.0
 
 - Added a Maldives-inspired animated brand mark and matching favicon.
