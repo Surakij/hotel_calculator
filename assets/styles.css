@@ -448,18 +448,17 @@ table {
   width: 100%;
   min-width: 1520px;
   border-collapse: collapse;
-  table-layout: fixed;
 }
 
 .calc-table .col-type { width: 150px; }
 .calc-table .col-item { width: 270px; }
 .calc-table .col-date { width: 150px; }
-.calc-table .col-nights { width: 126px; }
-.calc-table .col-qty { width: 110px; }
+.calc-table .col-nights { width: 136px; }
+.calc-table .col-qty { width: 128px; }
 .calc-table .col-rate { width: 150px; }
-.calc-table .col-discounts { width: 270px; }
-.calc-table .col-net { width: 108px; }
-.calc-table .col-delete { width: 36px; }
+.calc-table .col-discounts { width: 190px; }
+.calc-table .col-net { width: 116px; }
+.calc-table .col-delete { width: 54px; }
 
 th {
   padding: 12px 8px;
@@ -499,7 +498,7 @@ td select.type {
 
 td .number-stepper {
   height: 36px;
-  grid-template-columns: 34px minmax(38px, 1fr) 34px;
+  grid-template-columns: 34px minmax(44px, 1fr) 34px;
 }
 
 td .number-stepper input {
@@ -517,11 +516,10 @@ td .number-stepper .step-button {
 .discounts {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
+  overflow: visible;
+  white-space: nowrap;
 }
 
 .discount-item {
@@ -538,14 +536,14 @@ td .number-stepper .step-button {
 }
 
 .discounts .number-stepper {
-  width: 96px;
-  min-width: 96px;
-  grid-template-columns: 28px 40px 28px;
+  width: 108px;
+  min-width: 108px;
+  grid-template-columns: 32px 44px 32px;
 }
 
 .discounts .number-stepper .step-button {
-  min-width: 28px;
-  font-size: 16px;
+  min-width: 32px;
+  font-size: 18px;
 }
 
 .discount-add,
@@ -587,12 +585,24 @@ td button:disabled {
 .net {
   font-weight: 700;
   text-align: right;
+  white-space: nowrap;
+}
+
+td.net {
+  padding-right: 14px;
 }
 
 .delete {
+  width: 32px;
+  height: 32px;
   background: #fff1f2;
   color: var(--red);
-  padding: 6px 9px;
+  padding: 0;
+}
+
+td:last-child {
+  padding-right: 10px;
+  text-align: center;
 }
 
 .footer {
