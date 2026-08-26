@@ -17,7 +17,10 @@
       "Classic Ocean View Rooms",
       "Classic Beach View Rooms"
     ],
-    "meals": []
+    "meals": [
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Adaaran Prestige Vadoo": {
     "rooms": [
@@ -26,7 +29,10 @@
       "Sunset Water Villas with Private Pool & Jacuzzi",
       "Honeymoon Villa with Private Pool and Jacuzzi"
     ],
-    "meals": []
+    "meals": [
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Adaaran Select Hudhuranfushi": {
     "rooms": [
@@ -41,7 +47,10 @@
       "Sunrise Ocean Villas",
       "Sunset Ocean Villas"
     ],
-    "meals": []
+    "meals": [
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Adaaran Select Meedhupparu": {
     "rooms": [
@@ -56,7 +65,10 @@
       "Honeymoon Suite",
       "Meedhupparu Residence with Pool"
     ],
-    "meals": []
+    "meals": [
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Alila Kothaifaru Maldives": {
     "rooms": [
@@ -68,7 +80,16 @@
       "Two-Bedroom Beach Pool Villa",
       "Two Bedroom Boduge Residence"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Alimatha Aquatic Resort": {
     "rooms": [
@@ -77,7 +98,10 @@
       "Garden Villa",
       "Garden Room"
     ],
-    "meals": []
+    "meals": [
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Ananea Madivaru Maldives": {
     "rooms": [
@@ -116,7 +140,12 @@
       "Three Bedroom Beach Pool Residence",
       "Four Bedroom Beach Pool Residence"
     ],
-    "meals": []
+    "meals": [
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child"
+    ]
   },
   "Anantara Resort and Spa Maldives": {
     "rooms": [
@@ -125,7 +154,16 @@
       "Two Bedroom Anantara Beach Pool Villa",
       "Two Bedroom Family Beach Pool Villa"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Anantara Veli and Naladhu": {
     "rooms": [
@@ -140,7 +178,16 @@
       "Ocean House with Pool",
       "Two Bedroom Beach Pool Residence"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Angaga Island Resort and Spa": {
     "rooms": [
@@ -148,7 +195,16 @@
       "Superior Water Bungalow",
       "Premium Water Bungalow"
     ],
-    "meals": []
+    "meals": [
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "HB+ - Adult",
+      "HB+ - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Angsana Resort & Spa Maldives - Velavaru": {
     "rooms": [
@@ -187,7 +243,10 @@
       "Water Villa",
       "Sunset Water Villa with Pool"
     ],
-    "meals": []
+    "meals": [
+      "The Kanifushi Plan - Adult",
+      "The Kanifushi Plan - Child"
+    ]
   },
   "Avani + Fares Maldives": {
     "rooms": [
@@ -205,7 +264,16 @@
       "Two-Bedroom Overwater Pool Residence",
       "Three-Bedroom Overwater Pool Residence"
     ],
-    "meals": []
+    "meals": [
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child",
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Ayada Maldives": {
     "rooms": [
@@ -221,7 +289,16 @@
       "Beach Villa with Pool",
       "Garden Villa"
     ],
-    "meals": []
+    "meals": [
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "Crystal AI - Adult",
+      "Crystal AI - Child",
+      "Diamond AI - Adult",
+      "Diamond AI - Child"
+    ]
   },
   "Baglioni Resort Maldives": {
     "rooms": [
@@ -236,7 +313,10 @@
       "Two Bedroom Beach Suite With Pool",
       "Grand Baglioni Maldives Villa"
     ],
-    "meals": []
+    "meals": [
+      "Luxury AI - Adult",
+      "Luxury AI - Child"
+    ]
   },
   "Bandos Maldives": {
     "rooms": [
@@ -249,7 +329,16 @@
       "Beach Pool Villa",
       "Sunset Water Villa with Pool"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Banyan Tree Maldives Vabbinfaru": {
     "rooms": [
@@ -259,7 +348,16 @@
       "Grand Beachfront Pool Villa",
       "Wellbeing Sanctuary Pool Villa"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Baros Maldives": {
     "rooms": [
@@ -272,7 +370,14 @@
       "Baros Villas",
       "Deluxe Beach Villas"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "HB Dine Around - Adult",
+      "HB Dine Around - Child"
+    ]
   },
   "Bolifushi Island Resort": {
     "rooms": [
@@ -307,7 +412,16 @@
       "Two Bedroom Beach Pool Residence",
       "Presidential Suite"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Canareef Resort Maldives": {
     "rooms": [
@@ -315,7 +429,16 @@
       "Sunset Beach Villa",
       "Premium Beach Villa with Whirlpool"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child"
+    ]
   },
   "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives": {
     "rooms": [
@@ -332,7 +455,22 @@
       "Mirage Overwater Sunrise Pool Villa",
       "Four Bedroom Beach House"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB+ - Adult",
+      "HB+ - Child",
+      "FB Plus - Adult",
+      "FB Plus - Child",
+      "AI - Adult",
+      "AI - Child",
+      "The Atollia Destination HB+ - Adult",
+      "The Atollia Destination HB+ - Child",
+      "The Atollia Destination FB Plus - Adult",
+      "The Atollia Destination FB Plus - Child",
+      "The Atollia Destination AI - Adult",
+      "The Atollia Destination AI - Child"
+    ]
   },
   "Centara Ras Fushi Resort & Spa": {
     "rooms": [
@@ -343,7 +481,14 @@
       "Overwater Villa with Swirl Pool",
       "Sunset Overwater Villa with Swirl Pool"
     ],
-    "meals": []
+    "meals": [
+      "HB + - Adult",
+      "HB + - Child",
+      "FB + - Adult",
+      "FB + - Child",
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Cheval Blanc Randheli": {
     "rooms": [
@@ -356,7 +501,14 @@
       "2-Bedroom Island Villa",
       "Cheval Blanc Randheli Private Island"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB Dine Around - Adult",
+      "HB Dine Around - Child",
+      "FB Dine Around - Adult",
+      "FB Dine Around - Child"
+    ]
   },
   "Cinnamon Dhonveli Maldives": {
     "rooms": [
@@ -366,7 +518,18 @@
       "Over Water Suite",
       "Beach Suite with Pool"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "Standard AI - Adult",
+      "Standard AI - Child",
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Cinnamon Hakuraa Huraa Maldives": {
     "rooms": [
@@ -375,7 +538,18 @@
       "Platinum Beach Bungalow",
       "Sunset Water Bungalow"
     ],
-    "meals": []
+    "meals": [
+      "FB - Adult",
+      "FB - Child",
+      "FB + Liquid Lite - Adult",
+      "FB + Liquid Lite - Child",
+      "FB + Liquid Strong - Adult",
+      "FB + Liquid Strong - Child",
+      "AI - Adult",
+      "AI - Child",
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Cinnamon Velifushi Maldives": {
     "rooms": [
@@ -385,7 +559,18 @@
       "Sunset Water Bungalow with Jacuzzi",
       "Water Suite with Pool"
     ],
-    "meals": []
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "AI - Adult",
+      "AI - Child",
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
   },
   "Club Med Finolhu Villas": {
     "rooms": [
