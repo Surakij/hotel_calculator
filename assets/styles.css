@@ -470,6 +470,14 @@ th {
   text-transform: uppercase;
 }
 
+.calc-table thead tr {
+  background: var(--navy);
+}
+
+.calc-table th {
+  background: transparent;
+}
+
 td {
   border-top: 1px solid var(--line);
   padding: 6px 7px;
