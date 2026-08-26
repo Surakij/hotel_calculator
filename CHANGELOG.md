@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- Reserved initial table and summary layout space before app startup to reduce CLS.
+
 ## 1.2.1
 
 - Removed repository screenshots with real quotation data and anonymized the social preview.
