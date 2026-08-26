@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.10
+
+- Set calculation table headers to an exact pixel height to avoid subpixel header edges.
+
 ## 1.1.9
 
 - Matched the calculation table width to the exact sum of visible columns.
