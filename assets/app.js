@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.1.1";
+  const APP_VERSION = "1.1.2";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
@@ -94,7 +94,9 @@
   }
 
   function cleanDateInput(input) {
-    input.value = input.value.replace(/[^\d.]/g, "").slice(0, 10);
+    const digits = input.value.replace(/\D/g, "").slice(0, 8);
+    const parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean);
+    input.value = parts.join(".");
   }
 
   function normalizeDateInput(input) {
