@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.12
+
+- Kept the calculation table full-width while assigning extra space to the item column instead of discounts.
+
 ## 1.1.11
 
 - Filled the empty delete-column header so the calculation table bar ends evenly on both sides.
