@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.1.7";
+  const APP_VERSION = "1.1.8";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
@@ -384,6 +384,11 @@
     container.appendChild(add);
   }
 
+  function syncDiscountColumnWidth() {
+    const maxDiscounts = Math.max(1, ...[...rowsEl.querySelectorAll(".discounts")].map((cell) => Math.max(1, cell.querySelectorAll(".discount-item").length)));
+    document.documentElement.style.setProperty("--discount-column-width", `${152 + (maxDiscounts - 1) * 140}px`);
+  }
+
   function rowData(tr) {
     return {
       type: tr.querySelector(".type").value,
@@ -567,6 +572,7 @@
   function recalc() {
     syncGlobalRows();
     rowsEl.querySelectorAll("tr").forEach(clampRowDates);
+    syncDiscountColumnWidth();
     $("nights").value = core.nightsBetween(value("checkin"), value("checkout"));
 
     const calculated = core.calculateRows(currentRows());
