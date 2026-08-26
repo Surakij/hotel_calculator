@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.6
+
+- Removed the small discount column overflow at the edge of the table header.
+
 ## 1.1.5
 
 - Restored discount controls to grow from a stable left-aligned starting position.
