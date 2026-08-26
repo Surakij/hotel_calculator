@@ -445,12 +445,13 @@ button:disabled {
 }
 
 table {
-  width: calc(1304px + var(--discount-column-width, 152px));
+  width: 100%;
+  min-width: calc(1304px + var(--discount-column-width, 152px));
   border-collapse: collapse;
 }
 
 .calc-table .col-type { width: 150px; }
-.calc-table .col-item { width: 270px; }
+.calc-table .col-item { width: calc(100% - (1034px + var(--discount-column-width, 152px))); }
 .calc-table .col-date { width: 150px; }
 .calc-table .col-nights { width: 136px; }
 .calc-table .col-qty { width: 128px; }
