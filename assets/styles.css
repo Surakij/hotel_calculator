@@ -436,7 +436,7 @@ button:disabled {
 
 .table-wrap {
   margin-top: 12px;
-  min-height: 268px;
+  min-height: var(--table-wrap-min-height, 268px);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -448,6 +448,7 @@ table {
   width: 100%;
   min-width: calc(1304px + var(--discount-column-width, 152px));
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .calc-table .col-type { width: 150px; }
@@ -658,6 +659,7 @@ td:last-child {
 
 .summary-wrap {
   margin-top: 10px;
+  min-height: var(--initial-summary-height, 0);
 }
 
 .summary-title {
