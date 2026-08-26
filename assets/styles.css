@@ -456,7 +456,7 @@ table {
 .calc-table .col-nights { width: 136px; }
 .calc-table .col-qty { width: 128px; }
 .calc-table .col-rate { width: 150px; }
-.calc-table .col-discounts { width: 156px; }
+.calc-table .col-discounts { width: var(--discount-column-width, 152px); }
 .calc-table .col-net { width: 116px; }
 .calc-table .col-delete { width: 54px; }
 
