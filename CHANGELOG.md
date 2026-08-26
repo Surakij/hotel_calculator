@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.7
+
+- Smoothed the calculation table header so column edges render as one continuous bar.
+
 ## 1.1.6
 
 - Removed the small discount column overflow at the edge of the table header.
