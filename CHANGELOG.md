@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Added a Maldives-inspired animated brand mark and matching favicon.
+
 ## 1.1.12
 
 - Kept the calculation table full-width while assigning extra space to the item column instead of discounts.
