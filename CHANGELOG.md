@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5
+
+- Restored discount controls to grow from a stable left-aligned starting position.
+
 ## 1.1.4
 
 - Polished table spacing for discount controls, quantity steppers, and row delete actions.
