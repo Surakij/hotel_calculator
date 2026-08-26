@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.9
+
+- Matched the calculation table width to the exact sum of visible columns.
+
 ## 1.1.8
 
 - Matched the discount column width exactly to the active discount controls.
