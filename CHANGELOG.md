@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.8
+
+- Matched the discount column width exactly to the active discount controls.
+
 ## 1.1.7
 
 - Smoothed the calculation table header so column edges render as one continuous bar.
