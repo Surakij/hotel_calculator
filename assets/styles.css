@@ -200,7 +200,7 @@ body::before {
   background: #f8fafc;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -451,8 +451,8 @@ table {
   table-layout: fixed;
 }
 
-.calc-table .col-type { width: 128px; }
-.calc-table .col-item { width: 260px; }
+.calc-table .col-type { width: 146px; }
+.calc-table .col-item { width: 242px; }
 .calc-table .col-date { width: 170px; }
 .calc-table .col-nights { width: 150px; }
 .calc-table .col-qty { width: 132px; }
