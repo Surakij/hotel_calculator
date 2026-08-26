@@ -456,7 +456,7 @@ table {
 .calc-table .col-nights { width: 136px; }
 .calc-table .col-qty { width: 128px; }
 .calc-table .col-rate { width: 150px; }
-.calc-table .col-discounts { width: 190px; }
+.calc-table .col-discounts { width: 150px; }
 .calc-table .col-net { width: 116px; }
 .calc-table .col-delete { width: 54px; }
 
@@ -516,7 +516,7 @@ td .number-stepper .step-button {
 .discounts {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   overflow: visible;
   white-space: nowrap;
