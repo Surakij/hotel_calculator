@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Maldives Hotel Quotation and Reservation Calculator">
+  <rect width="1200" height="630" fill="#f5f8fc"/>
+  <rect x="0" y="0" width="1200" height="118" fill="#082758"/>
+  <g transform="translate(80 44)">
+    <rect width="42" height="42" rx="10" fill="#123a68"/>
+    <path d="M12 30h18M12 30V13M30 30V20M20 30V9" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="31" cy="10" r="4" fill="#f8c14a"/>
+  </g>
+  <text x="142" y="72" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="800">HOTEL CALCULATOR</text>
+  <rect x="80" y="168" width="1040" height="342" rx="18" fill="#fff" stroke="#dce5ef"/>
+  <text x="116" y="230" fill="#082758" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="800">Maldives Hotel Quotation</text>
+  <text x="116" y="282" fill="#082758" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="800">&amp; Reservation Calculator</text>
+  <text x="116" y="338" fill="#66758a" font-family="Segoe UI, Arial, sans-serif" font-size="23">Workflow automation for Maldives resort pricing:</text>
+  <text x="116" y="374" fill="#66758a" font-family="Segoe UI, Arial, sans-serif" font-size="23">split stays, meal plans, transfers and Green Tax.</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700">
+    <rect x="116" y="422" width="150" height="44" rx="10" fill="#eaf3ff" stroke="#b9d7fb"/>
+    <text x="146" y="451" fill="#1f65b8">177 Resorts</text>
+    <rect x="284" y="422" width="155" height="44" rx="10" fill="#ecfdf3" stroke="#b7ebc7"/>
+    <text x="313" y="451" fill="#148043">177 Meal Plans</text>
+    <rect x="457" y="422" width="178" height="44" rx="10" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="486" y="451" fill="#b45309">Share-Ready Output</text>
+  </g>
+  <rect x="748" y="215" width="310" height="224" rx="14" fill="#fbfdff" stroke="#dce5ef"/>
+  <rect x="748" y="215" width="310" height="54" rx="14" fill="#082758"/>
+  <text x="778" y="250" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">SHORT SHARE</text>
+  <g fill="#082758" font-family="Consolas, monospace" font-size="16">
+    <text x="778" y="302">VILLA PARK SUN ISLAND</text>
+    <text x="778" y="332">27.08.2026-05.09.2026</text>
+    <text x="778" y="366">Lagoon Beach Villa</text>
+    <text x="778" y="394">AI + Domestic + Green Tax</text>
+  </g>
+  <text x="80" y="574" fill="#66758a" font-family="Segoe UI, Arial, sans-serif" font-size="18">Created by Sergei Kazhaev</text>
+</svg>
