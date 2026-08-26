@@ -12,6 +12,20 @@ Maldives quotations can involve multiple room categories and stay periods, adult
 
 The calculator brings these components into one structured calculation and produces a compact share-ready quotation for reservation workflows.
 
+## Product Screenshots
+
+### Structured Quotation Workspace
+
+![Structured quotation workspace](docs/screenshots/calculator-overview.png)
+
+### Maldives Resort Selector
+
+![Maldives resort selector with alphabet navigation](docs/screenshots/hotel-selector.png)
+
+### Share-Ready Quotation Output
+
+![Short Share quotation output](docs/screenshots/short-share.png)
+
 ## Why Maldives?
 
 Maldives resort reservations have a particularly complex pricing structure. A single booking may include multiple accommodation periods, different meal supplements, age-based charges, transfer types, taxes, gala dinners, extras and several promotional discounts.
@@ -38,7 +52,7 @@ The calculator is based on real Maldives reservation workflow patterns, includin
 
 The hotel selector includes a Maldives resort, room-category and meal-plan reference dataset to speed up manual quotation work.
 
-Current project data includes room categories for 177 Maldives resorts and hotel-specific meal-plan references for 152 Maldives resorts.
+Current project data includes room categories and hotel-specific meal-plan references for 177 Maldives resorts.
 
 The dataset is intended as an operational reference for selecting resort and room-category names. It is not described as an official Maldives government database, and the public repository does not include hotel rates or commercial contract data.
 
