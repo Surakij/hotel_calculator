@@ -460,13 +460,16 @@ table {
 .calc-table .col-delete { width: 54px; }
 
 th {
-  padding: 12px 8px;
+  height: 40px;
+  padding: 0 8px;
   background: var(--navy);
   color: #fff;
   font-size: 11px;
   font-weight: 800;
+  line-height: 1.2;
   text-align: center;
   text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .calc-table thead tr {
