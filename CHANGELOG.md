@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0
+
+- Added local-only rate memory for saved base rates without SPO or discounts.
+- Added an Auto-fill rates toggle so saved rates are only applied when explicitly enabled.
+
 ## 1.2.3
 
 - Added Jawakara Islands Maldives as a separate resort entry with room categories and meal plans.
