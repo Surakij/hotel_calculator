@@ -1453,6 +1453,28 @@
       "Dine Around AI - Child"
     ]
   },
+  "Jawakara Islands Maldives": {
+    "rooms": [
+      "Mabin Beach Villa",
+      "Mabin Beach Pool Villa",
+      "Mabin Water Pool Villa",
+      "Mabin Three Bedroom Villa",
+      "Dheru Beach Villa",
+      "Dheru Beach Pool Villa",
+      "Dheru Water Pool Villa",
+      "Dheru Three Bedroom Pool Villa"
+    ],
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
+  },
   "Joali Being Bodufushi": {
     "rooms": [
       "Beach Pool Villa",
