@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.2.3";
+  const APP_VERSION = "1.3.0";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
@@ -401,6 +401,56 @@
     };
   }
 
+  function canUseRateMemory(data) {
+    return data.type && data.item && !core.isGreenTax(data);
+  }
+
+  function rateMemoryQuery(tr) {
+    const data = rowData(tr);
+    if (!canUseRateMemory(data)) return null;
+    return {
+      hotel: value("hotel"),
+      type: data.type,
+      item: data.item,
+      from: data.from,
+      to: data.to,
+    };
+  }
+
+  function rememberRowRate(tr) {
+    const query = rateMemoryQuery(tr);
+    if (!query || !query.hotel) return;
+    const data = rowData(tr);
+    const calculated = core.calculateRow(data);
+    if (!data.rateFormula || Number(calculated.rate || 0) <= 0) return;
+    storage.saveRateMemory({
+      ...query,
+      rate: calculated.rate,
+      rateFormula: data.rateFormula,
+    });
+  }
+
+  function applyRememberedRate(tr, { force = false } = {}) {
+    if (!force && !storage.rateAutofillEnabled()) return false;
+    const rate = tr.querySelector(".rate");
+    if (!rate || rate.value.trim()) return false;
+    const query = rateMemoryQuery(tr);
+    if (!query || !query.hotel) return false;
+    const remembered = storage.findRateMemory(query);
+    if (!remembered) return false;
+    rate.value = remembered.rateFormula;
+    rate.title = "Filled from local rate memory";
+    return true;
+  }
+
+  function applyRememberedRates({ force = false } = {}) {
+    let filled = 0;
+    rowsEl.querySelectorAll("tr").forEach((tr) => {
+      if (applyRememberedRate(tr, { force })) filled += 1;
+    });
+    return filled;
+  }
+
   function isDateRangeType(type) {
     return DATE_RANGE_TYPES.has(type);
   }
@@ -560,6 +610,7 @@
     nights.disabled = !hasType || hideNights;
     qty.disabled = !hasType;
     rate.disabled = !hasType;
+    if (!rate.value.trim()) rate.removeAttribute("title");
     discountControls.forEach((control) => {
       control.disabled = !allowDiscounts;
     });
@@ -693,6 +744,7 @@
       item.setAttribute("list", type.value ? `list_${type.value}` : "");
       tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
       applyAutoQty(tr);
+      applyRememberedRate(tr);
       clampRowDates(tr);
       updateRowState(tr);
       groupRowsByType();
@@ -704,6 +756,7 @@
       if (isGlobalDateRow(tr)) tr.dataset.followGlobal = "1";
       applyAutoQty(tr);
       clampRowDates(tr);
+      applyRememberedRate(tr);
       updateRowState(tr);
       recalc();
     });
@@ -723,6 +776,7 @@
         normalizeDateInput(input);
         tr.dataset.followGlobal = "0";
         clampRowDates(tr);
+        applyRememberedRate(tr);
         recalc();
       });
       input.addEventListener("focus", () => openPicker(input));
@@ -747,9 +801,15 @@
       toInput.value = core.addDays(fromInput.value, tr.querySelector(".nights").value);
       tr.dataset.followGlobal = "0";
       clampRowDates(tr);
+      applyRememberedRate(tr);
       recalc();
     });
-    tr.querySelectorAll(".qty,.rate").forEach((input) => input.addEventListener("input", recalc));
+    tr.querySelector(".qty").addEventListener("input", recalc);
+    tr.querySelector(".rate").addEventListener("input", recalc);
+    tr.querySelector(".rate").addEventListener("blur", () => {
+      rememberRowRate(tr);
+      recalc();
+    });
     tr.querySelector(".discounts").addEventListener("input", recalc);
     tr.querySelector(".delete").addEventListener("click", () => {
       tr.remove();
@@ -789,7 +849,10 @@
       $("checkout").value = "";
     }
 
-    rowsEl.querySelectorAll("tr").forEach(clampRowDates);
+    rowsEl.querySelectorAll("tr").forEach((tr) => {
+      clampRowDates(tr);
+      applyRememberedRate(tr);
+    });
     recalc();
   }
 
@@ -1274,8 +1337,22 @@
   function wireEvents() {
     $("hotel").addEventListener("input", () => {
       updateHotelScopedLists();
+      applyRememberedRates();
       recalc();
     });
+
+    const rateAutofill = $("rateAutofill");
+    if (rateAutofill) {
+      rateAutofill.checked = storage.rateAutofillEnabled();
+      rateAutofill.addEventListener("change", () => {
+        storage.setRateAutofillEnabled(rateAutofill.checked);
+        const filled = rateAutofill.checked ? applyRememberedRates({ force: true }) : 0;
+        recalc();
+        toast(rateAutofill.checked
+          ? `Rate auto-fill enabled${filled ? `, ${filled} filled` : ""}`
+          : "Rate auto-fill disabled");
+      });
+    }
 
     ["checkin", "checkout"].forEach((id) => {
       const input = $(id);
@@ -1355,5 +1432,5 @@
   if (!restoreDraft()) createDefaultRows();
   recalc();
   initUndoHistory();
-  window.HotelCalculatorApp = { addRow, recalc, shareText, saveCalculation, undoChange, redoChange };
+  window.HotelCalculatorApp = { addRow, applyRememberedRates, recalc, shareText, saveCalculation, undoChange, redoChange };
 })();
