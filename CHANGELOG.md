@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3
+
+- Added Jawakara Islands Maldives as a separate resort entry with room categories and meal plans.
+
 ## 1.2.2
 
 - Reserved initial table and summary layout space before app startup to reduce CLS.
