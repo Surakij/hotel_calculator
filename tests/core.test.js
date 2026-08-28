@@ -1,6 +1,20 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const core = require("../assets/core.js");
+const storage = require("../assets/storage.js");
+
+global.localStorage = {
+  data: new Map(),
+  getItem(key) {
+    return this.data.has(key) ? this.data.get(key) : null;
+  },
+  setItem(key, value) {
+    this.data.set(key, String(value));
+  },
+  removeItem(key) {
+    this.data.delete(key);
+  },
+};
 
 test("parses and formats supported date formats", () => {
   assert.equal(core.formatDate("2026-08-17"), "17.08.2026");
@@ -30,6 +44,36 @@ test("calculates simple rate formulas", () => {
 
   assert.equal(row.rate, 400);
   assert.equal(row.net, 2800);
+});
+
+test("stores and finds local rate memory by hotel, item, and dates", () => {
+  storage.saveRateMemory({
+    hotel: "Jawakara Islands Maldives",
+    type: "ROOM",
+    item: "Mabin Beach Villa",
+    from: "01.09.2026",
+    to: "05.09.2026",
+    rate: 400,
+    rateFormula: "200*2",
+  });
+
+  const match = storage.findRateMemory({
+    hotel: "Jawakara Islands Maldives",
+    type: "ROOM",
+    item: "Mabin Beach Villa",
+    from: "01.09.2026",
+    to: "05.09.2026",
+  });
+
+  assert.equal(match.rateFormula, "200*2");
+  assert.equal(match.rate, 400);
+});
+
+test("keeps rate auto-fill disabled until explicitly enabled", () => {
+  assert.equal(storage.rateAutofillEnabled(), false);
+  assert.equal(storage.setRateAutofillEnabled(true), true);
+  assert.equal(storage.rateAutofillEnabled(), true);
+  assert.equal(storage.setRateAutofillEnabled(false), false);
 });
 
 test("ignores discounts for green tax and dinners", () => {
