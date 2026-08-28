@@ -38,7 +38,7 @@ The calculator is based on real Maldives reservation workflow patterns, includin
 
 The hotel selector includes a Maldives resort, room-category and meal-plan reference dataset to speed up manual quotation work.
 
-Current project data includes room categories and hotel-specific meal-plan references for 177 Maldives resorts.
+Current project data includes room categories and hotel-specific meal-plan references for 178 Maldives resorts.
 
 The dataset is intended as an operational reference for selecting resort and room-category names. It is not described as an official Maldives government database, and the public repository does not include hotel rates or commercial contract data.
 
