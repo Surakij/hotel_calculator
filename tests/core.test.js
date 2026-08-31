@@ -146,6 +146,36 @@ test("orders short share date rows chronologically", () => {
   assert.ok(thirdExtra < thirdMeal);
 });
 
+test("keeps gala dinners after dated stay rows in short share", () => {
+  const text = core.buildShareText({
+    hotel: "Siyam World Maldives",
+    checkin: "30.12.2026",
+    checkout: "07.01.2027",
+    guests: { adults: 5, children: 3, ages: "11/10/7" },
+    rows: [
+      { type: "ROOM", item: "Beach Suite with Pool", from: "30.12.2026", to: "05.01.2027", qty: 2, rate: 1837, discounts: [15] },
+      { type: "EXTRA", item: "Extra Adult", from: "30.12.2026", to: "05.01.2027", qty: 1, rate: 360, discounts: [15] },
+      { type: "EXTRA", item: "Extra Child", from: "30.12.2026", to: "05.01.2027", qty: 1, rate: 260, discounts: [15] },
+      { type: "DINNER", item: "New Year Gala Dinner - Adult", from: "31.12.2026", to: "31.12.2026", qty: 5, rateFormula: "525*5+265*1" },
+      { type: "ROOM", item: "Beach Suite with Pool", from: "05.01.2027", to: "07.01.2027", qty: 2, rate: 1837, discounts: [25] },
+      { type: "EXTRA", item: "Extra Adult", from: "05.01.2027", to: "07.01.2027", qty: 1, rate: 360, discounts: [25] },
+      { type: "EXTRA", item: "Extra Child", from: "05.01.2027", to: "07.01.2027", qty: 1, rate: 260, discounts: [25] },
+      { type: "TRANSFER", item: "Seaplane - Adult", qty: 5, rateFormula: "515*5+310*3" },
+      { type: "GREEN_TAX", item: "Green Tax", from: "30.12.2026", to: "07.01.2027", qty: 8, rate: 12 },
+    ],
+  });
+
+  const secondRoom = text.indexOf("05.01 - 07.01 : Beach Suite with Pool");
+  const dinner = text.indexOf("New Year Gala Dinner");
+  const transfer = text.indexOf("Seaplane");
+  const greenTax = text.indexOf("Green Tax");
+
+  assert.ok(secondRoom > -1);
+  assert.ok(dinner > secondRoom);
+  assert.ok(transfer > dinner);
+  assert.ok(greenTax > transfer);
+});
+
 test("builds stay summaries by matching room dates", () => {
   const summaries = core.buildStaySummaries([
     { type: "ROOM", item: "Beach Pool Villa", from: "01.09.2026", to: "04.09.2026", qty: 1, rate: 100 },
