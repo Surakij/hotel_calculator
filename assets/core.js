@@ -210,8 +210,11 @@
   }
 
   function compareShareEntries(a, b) {
+    const aGroup = a.order >= 3 ? a.order : 0;
+    const bGroup = b.order >= 3 ? b.order : 0;
     return (
-      dateSortValue(a.from) - dateSortValue(b.from)
+      aGroup - bGroup
+      || dateSortValue(a.from) - dateSortValue(b.from)
       || a.order - b.order
       || dateSortValue(a.to) - dateSortValue(b.to)
       || a.index - b.index
