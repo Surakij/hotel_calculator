@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- Fixed Short Share ordering so gala dinners and transfers stay after dated room, extra, and meal rows.
+
 ## 1.3.0
 
 - Added local-only rate memory for saved base rates without SPO or discounts.
