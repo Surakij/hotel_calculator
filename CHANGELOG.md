@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2
+
+- Kept full-stay meals after split room date blocks in Short Share output.
+
 ## 1.3.1
 
 - Fixed Short Share ordering so gala dinners and transfers stay after dated room, extra, and meal rows.

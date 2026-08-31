@@ -210,8 +210,8 @@
   }
 
   function compareShareEntries(a, b) {
-    const aGroup = a.order >= 3 ? a.order : 0;
-    const bGroup = b.order >= 3 ? b.order : 0;
+    const aGroup = Number.isFinite(a.group) ? a.group : (a.order >= 3 ? a.order : 0);
+    const bGroup = Number.isFinite(b.group) ? b.group : (b.order >= 3 ? b.order : 0);
     return (
       aGroup - bGroup
       || dateSortValue(a.from) - dateSortValue(b.from)
@@ -367,13 +367,16 @@
     const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
     const extras = rows.filter((row) => row.type === "EXTRA" && !isGreenTax(row));
     const greenTax = rows.filter(isGreenTax).sort(compareDateRows);
+    const mealGroups = groupedRows(rows, "MEAL").sort((a, b) => compareDateRows(a.rows[0], b.rows[0]));
     const usedExtras = new Set();
+    const usedMealGroups = new Set();
 
-    function addEntry(row, order, text) {
+    function addEntry(row, order, text, group) {
       shareEntries.push({
         from: row.from,
         to: row.to,
         order,
+        group,
         index: entryIndex,
         text,
       });
@@ -389,15 +392,22 @@
           addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
           usedExtras.add(row);
         });
+      mealGroups
+        .filter((group) => group.rows[0].from === room.from && group.rows[0].to === room.to && !usedMealGroups.has(group))
+        .forEach((group) => {
+          const total = group.rows.reduce((sum, row) => sum + row.net, 0);
+          addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
+          usedMealGroups.add(group);
+        });
     });
 
     extras.filter((row) => !usedExtras.has(row)).sort(compareDateRows).forEach((row) => {
-      addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
+      addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`, 1);
     });
 
-    groupedRows(rows, "MEAL").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
+    mealGroups.filter((group) => !usedMealGroups.has(group)).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
+      addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`, 2);
     });
 
     groupedRows(rows, "DINNER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {

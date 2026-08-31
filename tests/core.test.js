@@ -139,11 +139,39 @@ test("orders short share date rows chronologically", () => {
   const thirdExtra = text.indexOf("Extra Adult");
   const thirdMeal = text.indexOf("03.09 - 05.09 : AI");
 
-  assert.ok(firstRoom < firstMeal);
-  assert.ok(firstMeal < secondRoom);
+  assert.ok(firstRoom < secondRoom);
   assert.ok(secondRoom < thirdRoom);
   assert.ok(thirdRoom < thirdExtra);
   assert.ok(thirdExtra < thirdMeal);
+  assert.ok(thirdMeal < firstMeal);
+});
+
+test("keeps full-stay meals after split room date blocks in short share", () => {
+  const text = core.buildShareText({
+    hotel: "Jawakara Islands Maldives",
+    checkin: "12.11.2026",
+    checkout: "24.11.2026",
+    guests: { adults: 2 },
+    rows: [
+      { type: "ROOM", item: "Dheru Beach Pool Villa", from: "15.11.2026", to: "24.11.2026", qty: 1, rate: 630, discounts: [40] },
+      { type: "MEAL", item: "Premium AI - Adult", from: "12.11.2026", to: "24.11.2026", qty: 2, rate: 120 },
+      { type: "ROOM", item: "Dheru Water Pool Villa", from: "12.11.2026", to: "15.11.2026", qty: 1, rate: 680, discounts: [40] },
+      { type: "TRANSFER", item: "Seaplane - Adult", qty: 2, rate: 420 },
+      { type: "GREEN_TAX", item: "Green Tax", from: "12.11.2026", to: "24.11.2026", qty: 2, rate: 12 },
+    ],
+  });
+
+  const firstRoom = text.indexOf("12.11 - 15.11 : Dheru Water Pool Villa");
+  const secondRoom = text.indexOf("15.11 - 24.11 : Dheru Beach Pool Villa");
+  const fullStayMeal = text.indexOf("12.11 - 24.11 : Premium AI");
+  const transfer = text.indexOf("Seaplane");
+  const greenTax = text.indexOf("Green Tax");
+
+  assert.ok(firstRoom > -1);
+  assert.ok(secondRoom > firstRoom);
+  assert.ok(fullStayMeal > secondRoom);
+  assert.ok(transfer > fullStayMeal);
+  assert.ok(greenTax > transfer);
 });
 
 test("keeps gala dinners after dated stay rows in short share", () => {
