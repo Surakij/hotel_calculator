@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.3
+
+- Removed the "with Club Benefits" suffix from InterContinental room categories.
+
 ## 1.3.2
 
 - Kept full-stay meals after split room date blocks in Short Share output.

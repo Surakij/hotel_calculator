@@ -1406,20 +1406,20 @@
   },
   "Inter Continental Maldives Maamunagau": {
     "rooms": [
-      "Beach Pool Villa with Club Benefits",
-      "Family Beach Pool Villa with Club Benefits",
-      "One Bedroom Lagoon Pool Villa with Club Benefits",
-      "One Bedroom Sunset Beach Pool Villa with Club Benefits",
-      "Overwater Pool Villa with Club Benefits",
-      "Sunset One Bedroom Lagoon Pool Villa with Club Benefits",
-      "Sunset Overwater Pool Villa with Club Benefits",
-      "Three Bedroom Lagoon Residence with Club Benefits",
-      "Three Bedroom Overwater Residence with Club Benefits",
+      "Beach Pool Villa",
+      "Family Beach Pool Villa",
+      "One Bedroom Lagoon Pool Villa",
+      "One Bedroom Sunset Beach Pool Villa",
+      "Overwater Pool Villa",
+      "Sunset One Bedroom Lagoon Pool Villa",
+      "Sunset Overwater Pool Villa",
+      "Three Bedroom Lagoon Residence",
+      "Three Bedroom Overwater Residence",
       "Three Bedroom Royal Beachfront Residence",
-      "Two Bedroom Beachfront Pool Residence with Club Benefits",
-      "Two Bedroom Family Beach Pool Villa with Club Benefits",
-      "Two Bedroom Family Lagoon Pool Villa with Club Benefits",
-      "Two Bedroom Overwater Pool Residence with Club Benefits"
+      "Two Bedroom Beachfront Pool Residence",
+      "Two Bedroom Family Beach Pool Villa",
+      "Two Bedroom Family Lagoon Pool Villa",
+      "Two Bedroom Overwater Pool Residence"
     ],
     "meals": [
       "Breakfast Only - Adult",
