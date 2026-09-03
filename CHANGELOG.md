@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2
+
+- Removed generic room suggestions before a hotel is selected.
+
 ## 1.4.1
 
 - Removed the duplicate hotel "H" marker from the stay details card.

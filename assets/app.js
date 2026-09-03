@@ -4,9 +4,8 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.1";
+  const APP_VERSION = "1.4.2";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
-  const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const TYPE_LABELS = {
     ROOM: "ROOM",
@@ -18,7 +17,7 @@
   };
   const LISTS = {
     HOTEL: [...new Set([...DEFAULT_HOTELS, ...HOTEL_NAMES])].sort((a, b) => a.localeCompare(b)),
-    ROOM: DEFAULT_ROOMS,
+    ROOM: [],
     MEAL: ["BB - Adult", "BB - Child", "HB - Adult", "HB - Child", "FB - Adult", "FB - Child", "AI - Adult", "AI - Child", "AI Luxury - Adult", "AI Luxury - Child", "Cristal AI - Adult", "Cristal AI - Child"],
     TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
     DINNER: ["Christmas Gala Dinner - Adult", "Christmas Gala Dinner - Child", "New Year Gala Dinner - Adult", "New Year Gala Dinner - Child"],
@@ -326,7 +325,7 @@
   function updateRoomList() {
     const record = selectedHotelRecord();
     const rooms = recordRooms(record);
-    renderDatalist("list_ROOM", rooms.length ? rooms : DEFAULT_ROOMS);
+    renderDatalist("list_ROOM", rooms);
   }
 
   function updateMealList() {
