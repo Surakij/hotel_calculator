@@ -87,12 +87,12 @@
       const width = Math.min(Math.max(rect.width, 360), window.innerWidth - 16);
       const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
       const top = rect.bottom + 6;
-      const height = Math.min(420, Math.max(220, window.innerHeight - top - 12));
+      const height = Math.min(620, Math.max(360, window.innerHeight - top - 12));
 
       picker.style.left = `${left}px`;
       picker.style.top = `${top}px`;
       picker.style.width = `${width}px`;
-      picker.style.maxHeight = `${height}px`;
+      picker.style.height = `${height}px`;
     }
 
     function openPicker(options = {}) {

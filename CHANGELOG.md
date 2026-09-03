@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.4
+
+- Made the hotel picker alphabet fit in one compact vertical column.
+
 ## 1.3.3
 
 - Removed the "with Club Benefits" suffix from InterContinental room categories.
