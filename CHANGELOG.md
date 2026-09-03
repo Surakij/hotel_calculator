@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+
+- Removed the duplicate hotel "H" marker from the stay details card.
+
 ## 1.4.0
 
 - Added Appearance settings with light/dark theme selection and local color customization.

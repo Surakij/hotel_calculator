@@ -131,27 +131,6 @@ body::before {
   min-height: 74px;
 }
 
-.cards .card:first-child {
-  display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
-  column-gap: 16px;
-  align-items: center;
-}
-
-.cards .card:first-child::before {
-  content: "H";
-  grid-row: 1 / 3;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #eef4fb;
-  color: var(--navy);
-  font-weight: 900;
-}
-
 .card label,
 .guest label {
   display: block;
@@ -1210,11 +1189,6 @@ td:last-child {
 :root[data-theme="dark"] .grand,
 :root[data-theme="dark"] #toast {
   background: var(--navy);
-}
-
-:root[data-theme="dark"] .cards .card:first-child::before {
-  background: #132b49;
-  color: #dbeafe;
 }
 
 :root[data-theme="dark"] .cards .card input::placeholder,
