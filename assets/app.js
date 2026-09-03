@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.2";
+  const APP_VERSION = "1.4.3";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const TYPE_LABELS = {
@@ -791,12 +791,12 @@
     itemCell.appendChild(item);
 
     const fromCell = el("td");
-    const from = el("input", { className: "from", inputmode: "numeric", placeholder: "DD.MM.YYYY", autocomplete: "off" });
+    const from = el("input", { className: "from", inputmode: "numeric", placeholder: "dd.mm.yyyy", autocomplete: "off" });
     from.value = core.formatDate(data.from || "");
     fromCell.appendChild(from);
 
     const toCell = el("td");
-    const to = el("input", { className: "to", inputmode: "numeric", placeholder: "DD.MM.YYYY", autocomplete: "off" });
+    const to = el("input", { className: "to", inputmode: "numeric", placeholder: "dd.mm.yyyy", autocomplete: "off" });
     to.value = core.formatDate(data.to || "");
     toCell.appendChild(to);
 
@@ -1296,18 +1296,27 @@
   function renderPicker() {
     picker.innerHTML = "";
     const head = el("div", { className: "calendar-head" });
-    const prevYear = el("button", { type: "button", title: "Previous year", textContent: "<<" });
-    const prevMonth = el("button", { type: "button", title: "Previous month", textContent: "<" });
-    const nextMonth = el("button", { type: "button", title: "Next month", textContent: ">" });
-    const nextYear = el("button", { type: "button", title: "Next year", textContent: ">>" });
-    const monthSelect = el("select", { className: "calendar-month", title: "Month" });
+    const prevYear = el("button", { className: "calendar-nav", type: "button", title: "Previous year", textContent: "«" });
+    const prevMonth = el("button", { className: "calendar-nav", type: "button", title: "Previous month", textContent: "‹" });
+    const nextMonth = el("button", { className: "calendar-nav", type: "button", title: "Next month", textContent: "›" });
+    const nextYear = el("button", { className: "calendar-nav", type: "button", title: "Next year", textContent: "»" });
+    const monthWrap = el("div", { className: "calendar-month-wrap" });
+    const monthButton = el("button", { className: "calendar-month", type: "button", title: "Choose month", textContent: MONTHS[pickerMonth.getMonth()] });
+    const monthMenu = el("div", { className: "calendar-month-menu" });
     const yearInput = el("input", { className: "calendar-year", type: "number", min: "1900", max: "2100", step: "1", title: "Year" });
 
     MONTHS.forEach((month, index) => {
-      const option = el("option", { value: index, textContent: month });
-      option.selected = index === pickerMonth.getMonth();
-      monthSelect.appendChild(option);
+      const monthOption = el("button", { type: "button", textContent: month.slice(0, 3) });
+      monthOption.classList.toggle("selected", index === pickerMonth.getMonth());
+      monthOption.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        pickerMonth = new Date(pickerMonth.getFullYear(), index, 1);
+        renderPicker();
+      });
+      monthMenu.appendChild(monthOption);
     });
+    monthWrap.append(monthButton, monthMenu);
     yearInput.value = pickerMonth.getFullYear();
 
     prevYear.addEventListener("click", (event) => {
@@ -1334,10 +1343,10 @@
       pickerMonth = new Date(pickerMonth.getFullYear() + 1, pickerMonth.getMonth(), 1);
       renderPicker();
     });
-    monthSelect.addEventListener("change", (event) => {
+    monthButton.addEventListener("click", (event) => {
+      event.preventDefault();
       event.stopPropagation();
-      pickerMonth = new Date(pickerMonth.getFullYear(), Number(monthSelect.value), 1);
-      renderPicker();
+      monthWrap.classList.toggle("open");
     });
     yearInput.addEventListener("change", (event) => {
       event.stopPropagation();
@@ -1346,7 +1355,7 @@
       renderPicker();
     });
 
-    head.append(prevYear, prevMonth, monthSelect, yearInput, nextMonth, nextYear);
+    head.append(prevYear, prevMonth, monthWrap, yearInput, nextMonth, nextYear);
     picker.appendChild(head);
 
     const grid = el("div", { className: "calendar-grid" });
@@ -1357,11 +1366,13 @@
     for (let index = 0; index < offset; index += 1) grid.appendChild(el("span", { className: "empty" }));
 
     const row = pickerInput.closest("tr");
-    const minDate = pickerInput.id === "checkout" || pickerInput.classList.contains("to")
+    const todayLimit = todayStart();
+    const fieldMinDate = pickerInput.id === "checkout" || pickerInput.classList.contains("to")
       ? core.parseDate(row?.querySelector(".from")?.value || value("checkin"))
       : pickerInput.classList.contains("from")
         ? core.parseDate(value("checkin"))
         : null;
+    const minDate = fieldMinDate && fieldMinDate > todayLimit ? fieldMinDate : todayLimit;
     const maxDate = GLOBAL_DATE_IDS.has(pickerInput.id) ? null : core.parseDate(value("checkout"));
     const selected = core.parseDate(pickerInput.value);
     const today = new Date();
