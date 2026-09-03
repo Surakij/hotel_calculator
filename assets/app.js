@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.3";
+  const APP_VERSION = "1.4.4";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const TYPE_LABELS = {
@@ -1295,6 +1295,22 @@
 
   function renderPicker() {
     picker.innerHTML = "";
+    const row = pickerInput.closest("tr");
+    const todayLimit = todayStart();
+    const fieldMinDate = pickerInput.id === "checkout" || pickerInput.classList.contains("to")
+      ? core.parseDate(row?.querySelector(".from")?.value || value("checkin"))
+      : pickerInput.classList.contains("from")
+        ? core.parseDate(value("checkin"))
+        : null;
+    const minDate = fieldMinDate && fieldMinDate > todayLimit ? fieldMinDate : todayLimit;
+    const maxDate = GLOBAL_DATE_IDS.has(pickerInput.id) ? null : core.parseDate(value("checkout"));
+    const selected = core.parseDate(pickerInput.value);
+    const today = new Date();
+    const canShowMonth = (year, month) => {
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = new Date(year, month + 1, 0);
+      return (!minDate || monthEnd >= minDate) && (!maxDate || monthStart <= maxDate);
+    };
     const head = el("div", { className: "calendar-head" });
     const prevYear = el("button", { className: "calendar-nav", type: "button", title: "Previous year", textContent: "«" });
     const prevMonth = el("button", { className: "calendar-nav", type: "button", title: "Previous month", textContent: "‹" });
@@ -1308,9 +1324,11 @@
     MONTHS.forEach((month, index) => {
       const monthOption = el("button", { type: "button", textContent: month.slice(0, 3) });
       monthOption.classList.toggle("selected", index === pickerMonth.getMonth());
+      monthOption.disabled = !canShowMonth(pickerMonth.getFullYear(), index);
       monthOption.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (monthOption.disabled) return;
         pickerMonth = new Date(pickerMonth.getFullYear(), index, 1);
         renderPicker();
       });
@@ -1318,6 +1336,10 @@
     });
     monthWrap.append(monthButton, monthMenu);
     yearInput.value = pickerMonth.getFullYear();
+    prevYear.disabled = !canShowMonth(pickerMonth.getFullYear() - 1, pickerMonth.getMonth());
+    prevMonth.disabled = !canShowMonth(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1);
+    nextMonth.disabled = !canShowMonth(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1);
+    nextYear.disabled = !canShowMonth(pickerMonth.getFullYear() + 1, pickerMonth.getMonth());
 
     prevYear.addEventListener("click", (event) => {
       event.preventDefault();
@@ -1365,17 +1387,6 @@
     const offset = (first.getDay() + 6) % 7;
     for (let index = 0; index < offset; index += 1) grid.appendChild(el("span", { className: "empty" }));
 
-    const row = pickerInput.closest("tr");
-    const todayLimit = todayStart();
-    const fieldMinDate = pickerInput.id === "checkout" || pickerInput.classList.contains("to")
-      ? core.parseDate(row?.querySelector(".from")?.value || value("checkin"))
-      : pickerInput.classList.contains("from")
-        ? core.parseDate(value("checkin"))
-        : null;
-    const minDate = fieldMinDate && fieldMinDate > todayLimit ? fieldMinDate : todayLimit;
-    const maxDate = GLOBAL_DATE_IDS.has(pickerInput.id) ? null : core.parseDate(value("checkout"));
-    const selected = core.parseDate(pickerInput.value);
-    const today = new Date();
     const days = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 0).getDate();
 
     for (let day = 1; day <= days; day += 1) {

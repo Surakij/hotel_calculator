@@ -52,6 +52,7 @@ body::before {
 }
 
 .app {
+  width: 100%;
   max-width: 1580px;
   margin: 0 auto;
   padding: 0 28px 30px;
@@ -90,6 +91,7 @@ body::before {
 .guests {
   display: grid;
   gap: 0;
+  min-width: 0;
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -322,6 +324,7 @@ input[type="number"]::-webkit-outer-spin-button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
   margin-top: 16px;
   padding: 14px 18px;
   border: 1px solid var(--line);
@@ -470,6 +473,8 @@ button:disabled {
 
 .table-wrap {
   margin-top: 12px;
+  width: 100%;
+  min-width: 0;
   min-height: var(--table-wrap-min-height, 268px);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1107,6 +1112,8 @@ td:last-child {
 }
 
 .calendar-head {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1134,6 +1141,7 @@ td:last-child {
 
 .calendar-month-wrap {
   position: relative;
+  z-index: 3;
   flex: 1;
   min-width: 136px;
 }
@@ -1186,6 +1194,7 @@ td:last-child {
 
 .calendar-month-menu {
   position: absolute;
+  z-index: 4;
   top: calc(100% + 6px);
   left: 0;
   right: 0;
@@ -1196,7 +1205,7 @@ td:last-child {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 14px 30px rgba(8, 39, 88, .16);
+  box-shadow: 0 14px 30px rgba(8, 39, 88, .22);
 }
 
 .calendar-month-wrap.open .calendar-month-menu {
@@ -1207,6 +1216,7 @@ td:last-child {
   width: auto;
   height: 28px;
   font-size: 11px;
+  opacity: 1;
 }
 
 .calendar-month-menu button:hover,
@@ -1216,6 +1226,14 @@ td:last-child {
   color: #fff;
 }
 
+.calendar-month-menu button:disabled {
+  opacity: 1;
+  border-color: #edf1f6;
+  background: #f6f8fb;
+  color: #b3bfcb;
+  cursor: not-allowed;
+}
+
 .calendar-year {
   width: 68px;
   padding: 0 6px;
@@ -1223,6 +1241,8 @@ td:last-child {
 }
 
 .calendar-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
@@ -1265,6 +1285,7 @@ td:last-child {
 }
 
 .calendar-grid button:disabled {
+  opacity: 1;
   color: #c5cbd3;
   cursor: not-allowed;
 }
@@ -1460,6 +1481,12 @@ td:last-child {
   background: var(--navy);
 }
 
+:root[data-theme="dark"] .calendar-month-menu button:disabled {
+  border-color: #203850;
+  background: #10243d;
+  color: #5f7894;
+}
+
 :root[data-theme="dark"] .discount-add {
   background: #152c48;
   color: #c7e0ff;
@@ -1471,18 +1498,141 @@ td:last-child {
   color: #ff7d8e;
 }
 
-@media (max-width: 900px) {
-  .app { padding: 0 12px; }
+@media (max-width: 1280px) {
+  .app { padding: 0 18px 28px; }
+
+  .cards {
+    grid-template-columns: minmax(260px, 2fr) minmax(142px, 1fr) minmax(142px, 1fr) minmax(116px, .7fr) minmax(150px, 1fr);
+    padding: 18px;
+  }
+
+  .guests {
+    grid-template-columns: repeat(3, minmax(132px, .7fr)) minmax(220px, 1.3fr) minmax(220px, 1.3fr);
+    padding: 14px;
+  }
+
+  .guests .guest:last-child {
+    grid-column: span 2;
+  }
+
+  .card,
+  .guest {
+    padding-inline: 12px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 980px) {
+  .cards {
+    grid-template-columns: minmax(260px, 1.4fr) minmax(140px, 1fr) minmax(140px, 1fr);
+    row-gap: 12px;
+  }
+
+  .cards .card:first-child {
+    grid-column: span 3;
+  }
+
+  .cards .card:nth-child(4),
+  .cards .card:nth-child(5) {
+    grid-column: span 1;
+  }
+
+  .guests {
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    row-gap: 12px;
+  }
+
+  .guests .guest:nth-child(4),
+  .guests .guest:nth-child(5),
+  .guests .guest:last-child {
+    grid-column: span 3;
+  }
+
+  .card,
+  .guest {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  body::before { height: 60px; }
+
+  .app { padding: 0 10px 22px; }
+
+  .title {
+    min-height: 60px;
+    font-size: 19px;
+  }
+
+  .brand {
+    gap: 11px;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
   .cards,
-  .guests { grid-template-columns: 1fr 1fr; }
+  .guests {
+    grid-template-columns: 1fr 1fr;
+    padding: 14px;
+    row-gap: 10px;
+  }
+
+  .cards .card:first-child,
+  .cards .card:nth-child(5),
+  .guests .guest:nth-child(4),
+  .guests .guest:nth-child(5),
+  .guests .guest:last-child {
+    grid-column: span 2;
+  }
+
   .card,
   .guest {
     padding: 8px 0;
     border-right: 0;
   }
+
+  .guests .guest:first-child {
+    padding-left: 0;
+  }
+
   .toolbar { align-items: stretch; flex-direction: column; }
   .actions { width: 100%; }
   .actions button { flex: 1 1 150px; }
+  .toolbar .share { margin-left: 0; }
   .history-item { grid-template-columns: 1fr; }
   .history-total { text-align: left; }
+}
+
+@media (max-width: 460px) {
+  .title {
+    font-size: 17px;
+  }
+
+  .cards,
+  .guests {
+    grid-template-columns: 1fr;
+  }
+
+  .cards .card:first-child,
+  .cards .card:nth-child(5),
+  .guests .guest:nth-child(4),
+  .guests .guest:nth-child(5),
+  .guests .guest:last-child {
+    grid-column: auto;
+  }
+
+  .actions button,
+  .rate-toggle {
+    flex: 1 1 100%;
+  }
+
+  .calendar {
+    width: min(332px, calc(100vw - 16px));
+  }
 }
