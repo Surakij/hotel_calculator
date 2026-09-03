@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.3.4";
+  const APP_VERSION = "1.4.0";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_ROOMS = ["2 Bedroom Suite", "Ocean Pool Suite SUNSET", "Beach Pool Villa"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
@@ -26,12 +26,30 @@
     GREEN_TAX: ["Green Tax"],
   };
   const COLORS = {
-    ROOM: { bg: "#eaf3ff", fg: "#1f65b8", border: "#b9d7fb" },
-    MEAL: { bg: "#ecfdf3", fg: "#148043", border: "#b7ebc7" },
-    TRANSFER: { bg: "#f2edff", fg: "#6440b5", border: "#d6c7ff" },
-    EXTRA: { bg: "#fff7ed", fg: "#b45309", border: "#fed7aa" },
-    GREEN_TAX: { bg: "#fefce8", fg: "#997000", border: "#fde68a" },
-    DINNER: { bg: "#fff1f2", fg: "#be123c", border: "#fecdd3" },
+    light: {
+      ROOM: { bg: "#eaf3ff", fg: "#1f65b8", border: "#b9d7fb" },
+      MEAL: { bg: "#ecfdf3", fg: "#148043", border: "#b7ebc7" },
+      TRANSFER: { bg: "#f2edff", fg: "#6440b5", border: "#d6c7ff" },
+      EXTRA: { bg: "#fff7ed", fg: "#b45309", border: "#fed7aa" },
+      GREEN_TAX: { bg: "#fefce8", fg: "#997000", border: "#fde68a" },
+      DINNER: { bg: "#fff1f2", fg: "#be123c", border: "#fecdd3" },
+    },
+    dark: {
+      ROOM: { bg: "#112d4f", fg: "#8dc2ff", border: "#2d5f98" },
+      MEAL: { bg: "#123324", fg: "#7ce6a2", border: "#2f7d54" },
+      TRANSFER: { bg: "#241d46", fg: "#b7a5ff", border: "#5b4ca3" },
+      EXTRA: { bg: "#352514", fg: "#f5bb72", border: "#8a5a21" },
+      GREEN_TAX: { bg: "#312b12", fg: "#f7d85c", border: "#87702a" },
+      DINNER: { bg: "#361924", fg: "#ff9daf", border: "#8f4054" },
+    },
+  };
+  const DEFAULT_APPEARANCE = {
+    theme: "light",
+    colors: {
+      navy: "#082758",
+      blue: "#2563eb",
+      green: "#24a148",
+    },
   };
   const GLOBAL_DATE_IDS = new Set(["checkin", "checkout"]);
   const DATE_RANGE_TYPES = new Set(["ROOM", "EXTRA", "MEAL", "GREEN_TAX"]);
@@ -534,6 +552,74 @@
     return data.type === "ROOM" || data.type === "MEAL" || core.isGreenTax(data) || isPersonExtra(data);
   }
 
+  function isColor(value) {
+    return /^#[0-9a-f]{6}$/i.test(String(value || ""));
+  }
+
+  function normalizeAppearance(settings = {}) {
+    const colors = settings.colors || {};
+    return {
+      theme: settings.theme === "dark" ? "dark" : "light",
+      colors: {
+        navy: isColor(colors.navy) ? colors.navy : DEFAULT_APPEARANCE.colors.navy,
+        blue: isColor(colors.blue) ? colors.blue : DEFAULT_APPEARANCE.colors.blue,
+        green: isColor(colors.green) ? colors.green : DEFAULT_APPEARANCE.colors.green,
+      },
+    };
+  }
+
+  function currentAppearance() {
+    return normalizeAppearance(storage?.appearanceSettings ? storage.appearanceSettings() : DEFAULT_APPEARANCE);
+  }
+
+  function applyAppearance(settings = currentAppearance()) {
+    const next = normalizeAppearance(settings);
+    document.documentElement.dataset.theme = next.theme;
+    Object.entries(next.colors).forEach(([name, color]) => {
+      document.documentElement.style.setProperty(`--${name}`, color);
+    });
+    rowsEl.querySelectorAll("tr").forEach(updateTypeColor);
+    return next;
+  }
+
+  function updateAppearanceControls(settings = currentAppearance()) {
+    const next = normalizeAppearance(settings);
+    const theme = $("appearanceTheme");
+    const navy = $("appearanceNavy");
+    const blue = $("appearanceBlue");
+    const green = $("appearanceGreen");
+    if (theme) theme.value = next.theme;
+    if (navy) navy.value = next.colors.navy;
+    if (blue) blue.value = next.colors.blue;
+    if (green) green.value = next.colors.green;
+  }
+
+  function saveAppearanceFromControls() {
+    const next = normalizeAppearance({
+      theme: $("appearanceTheme")?.value,
+      colors: {
+        navy: $("appearanceNavy")?.value,
+        blue: $("appearanceBlue")?.value,
+        green: $("appearanceGreen")?.value,
+      },
+    });
+    const saved = storage?.saveAppearanceSettings ? storage.saveAppearanceSettings(next) : next;
+    applyAppearance(saved);
+    updateAppearanceControls(saved);
+  }
+
+  function showSettingsModal() {
+    updateAppearanceControls();
+    $("settingsModal").showModal();
+  }
+
+  function resetAppearance() {
+    const settings = storage?.resetAppearanceSettings ? storage.resetAppearanceSettings() : DEFAULT_APPEARANCE;
+    applyAppearance(settings);
+    updateAppearanceControls(settings);
+    toast("Appearance reset");
+  }
+
   function applyAutoQty(tr) {
     const data = rowData(tr);
     const item = data.item.toLowerCase();
@@ -580,7 +666,8 @@
 
   function updateTypeColor(tr) {
     const select = tr.querySelector(".type");
-    const color = COLORS[select.value];
+    const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    const color = COLORS[theme][select.value];
     select.style.background = color ? color.bg : "";
     select.style.color = color ? color.fg : "";
     select.style.borderColor = color ? color.border : "";
@@ -1385,12 +1472,18 @@
     $("redoChange").addEventListener("click", redoChange);
     $("saveCalculation").addEventListener("click", saveCalculation);
     $("showHistory").addEventListener("click", showHistoryModal);
+    $("showSettings").addEventListener("click", showSettingsModal);
     $("showShare").addEventListener("click", showShare);
     $("copyShare").addEventListener("click", copyShare);
     $("downloadShare").addEventListener("click", downloadShare);
     $("downloadShareModal").addEventListener("click", downloadShare);
     $("closeShare").addEventListener("click", () => $("shareModal").close());
     $("closeHistory").addEventListener("click", () => $("historyModal").close());
+    $("closeSettings").addEventListener("click", () => $("settingsModal").close());
+    ["appearanceTheme", "appearanceNavy", "appearanceBlue", "appearanceGreen"].forEach((id) => {
+      $(id).addEventListener("input", saveAppearanceFromControls);
+    });
+    $("resetAppearance").addEventListener("click", resetAppearance);
     $("historySearch").addEventListener("input", renderHistory);
     $("connectDrive").addEventListener("click", connectDrive);
     $("syncDrive").addEventListener("click", syncDrive);
@@ -1427,6 +1520,7 @@
   }
 
   buildLists();
+  applyAppearance();
   wireEvents();
   $("appVersion").textContent = `v${APP_VERSION}`;
   if (!restoreDraft()) createDefaultRows();

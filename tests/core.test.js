@@ -76,6 +76,28 @@ test("keeps rate auto-fill disabled until explicitly enabled", () => {
   assert.equal(storage.setRateAutofillEnabled(false), false);
 });
 
+test("stores appearance settings locally", () => {
+  const saved = storage.saveAppearanceSettings({
+    theme: "dark",
+    colors: {
+      navy: "#0b3268",
+      blue: "#62a8ff",
+      green: "#42d57a",
+    },
+  });
+
+  assert.equal(saved.theme, "dark");
+  assert.deepEqual(storage.appearanceSettings().colors, {
+    navy: "#0b3268",
+    blue: "#62a8ff",
+    green: "#42d57a",
+  });
+
+  const reset = storage.resetAppearanceSettings();
+  assert.equal(reset.theme, "light");
+  assert.equal(reset.colors.navy, "#082758");
+});
+
 test("ignores discounts for green tax and dinners", () => {
   assert.equal(core.calculateRow({ type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "02.09.2026", qty: 2, rate: 12, discounts: [50] }).net, 24);
   assert.equal(core.calculateRow({ type: "DINNER", item: "New Year Gala Dinner - Adult", qty: 2, rate: 100, discounts: [50] }).net, 200);

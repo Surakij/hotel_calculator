@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+- Added Appearance settings with light/dark theme selection and local color customization.
+
 ## 1.3.4
 
 - Made the hotel picker alphabet fit in one compact vertical column.

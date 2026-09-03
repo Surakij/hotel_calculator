@@ -16,6 +16,7 @@
   <meta name="twitter:image" content="https://surakij.github.io/hotel_calculator/assets/social-preview.png">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <script src="assets/initialLayout.js"></script>
+  <script src="assets/appearanceInit.js"></script>
   <link rel="stylesheet" href="assets/styles.css">
   <script src="assets/core.js" defer></script>
   <script src="assets/hotelData.js" defer></script>
@@ -98,6 +99,7 @@
         <button id="saveCalculation" class="save" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M19 21H5V3h11l3 3v15ZM8 3v6h8M8 17h8"/></svg>Save</button>
         <button id="showHistory" class="history" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 8v5l3 2M4 12a8 8 0 1 0 2.3-5.7M4 4v5h5"/></svg>History</button>
         <label class="rate-toggle"><input id="rateAutofill" type="checkbox">Auto-fill rates</label>
+        <button id="showSettings" class="history" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5ZM19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2.1 2.1 0 0 1-2.97 2.97l-.06-.06a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.09 1.65V21a2.1 2.1 0 0 1-4.2 0v-.08a1.8 1.8 0 0 0-1.09-1.65 1.8 1.8 0 0 0-1.98.36l-.06.06a2.1 2.1 0 0 1-2.97-2.97l.06-.06A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.65-1.09H3a2.1 2.1 0 0 1 0-4.2h.08A1.8 1.8 0 0 0 4.73 8.6a1.8 1.8 0 0 0-.36-1.98l-.06-.06A2.1 2.1 0 0 1 7.28 3.6l.06.06a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 10.41 2.4V2a2.1 2.1 0 0 1 4.2 0v.08a1.8 1.8 0 0 0 1.09 1.65 1.8 1.8 0 0 0 1.98-.36l.06-.06a2.1 2.1 0 0 1 2.97 2.97l-.06.06a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.09H22a2.1 2.1 0 0 1 0 4.2h-.08A1.8 1.8 0 0 0 19.4 15Z"/></svg>Settings</button>
         <button id="showShare" class="share" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 8h10v12H8zM6 16H4V4h12v2"/></svg>Copy Share</button>
         <button id="downloadShare" class="download" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v10M8 10l4 4 4-4M5 20h14"/></svg>Download Share</button>
       </div>
@@ -138,7 +140,7 @@
     <section id="staySummary" class="summary-wrap" aria-label="Stay and meal summary"></section>
 
     <footer class="footer">
-      <div class="version" id="appVersion">v1.3.4</div>
+      <div class="version" id="appVersion">v1.4.0</div>
       <div class="app-credit">
         <span>Maldives Hotel Quotation Calculator · Created by <a href="https://www.linkedin.com/in/sergei-kazhaev/" target="_blank" rel="noopener noreferrer">Sergei Kazhaev</a></span>
         <small>© 2026 Sergei Kazhaev</small>
@@ -179,6 +181,40 @@
     </div>
     <div id="driveStatus" class="drive-status"></div>
     <div id="historyList" class="history-list"></div>
+  </dialog>
+
+  <dialog id="settingsModal" class="modal settings-modal">
+    <div class="modal-head">
+      <h2>Settings</h2>
+      <button id="closeSettings" class="close" type="button">Close</button>
+    </div>
+    <section class="settings-section" aria-label="Appearance">
+      <h3>Appearance</h3>
+      <label class="settings-field" for="appearanceTheme">
+        <span>Theme</span>
+        <select id="appearanceTheme">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+      <div class="color-settings">
+        <label class="settings-color" for="appearanceNavy">
+          <span>Main blue</span>
+          <input id="appearanceNavy" type="color" value="#082758">
+        </label>
+        <label class="settings-color" for="appearanceBlue">
+          <span>Action blue</span>
+          <input id="appearanceBlue" type="color" value="#2563eb">
+        </label>
+        <label class="settings-color" for="appearanceGreen">
+          <span>Green accent</span>
+          <input id="appearanceGreen" type="color" value="#24a148">
+        </label>
+      </div>
+      <div class="settings-actions">
+        <button id="resetAppearance" class="history" type="button">Reset colors</button>
+      </div>
+    </section>
   </dialog>
   <!-- Cloudflare Web Analytics -->
   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"84b873b1492941daad3920e7eb50430b"}'></script>

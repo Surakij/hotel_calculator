@@ -6,6 +6,15 @@
   const DRAFT_KEY = "hotelCalculator.draft.v1";
   const RATE_MEMORY_KEY = "hotelCalculator.rateMemory.v1";
   const RATE_AUTOFILL_KEY = "hotelCalculator.rateAutofill.v1";
+  const APPEARANCE_KEY = "hotelCalculator.appearance.v1";
+  const DEFAULT_APPEARANCE = {
+    theme: "light",
+    colors: {
+      navy: "#082758",
+      blue: "#2563eb",
+      green: "#24a148",
+    },
+  };
 
   function readJson(key, fallback) {
     try {
@@ -130,12 +139,48 @@
     return rateAutofillEnabled();
   }
 
+  function isColor(value) {
+    return /^#[0-9a-f]{6}$/i.test(String(value || ""));
+  }
+
+  function appearanceSettings() {
+    const settings = readJson(APPEARANCE_KEY, DEFAULT_APPEARANCE);
+    const colors = settings && typeof settings.colors === "object" ? settings.colors : {};
+    return {
+      theme: settings?.theme === "dark" ? "dark" : "light",
+      colors: {
+        navy: isColor(colors.navy) ? colors.navy : DEFAULT_APPEARANCE.colors.navy,
+        blue: isColor(colors.blue) ? colors.blue : DEFAULT_APPEARANCE.colors.blue,
+        green: isColor(colors.green) ? colors.green : DEFAULT_APPEARANCE.colors.green,
+      },
+    };
+  }
+
+  function saveAppearanceSettings(settings) {
+    const next = {
+      theme: settings?.theme === "dark" ? "dark" : "light",
+      colors: {
+        navy: isColor(settings?.colors?.navy) ? settings.colors.navy : DEFAULT_APPEARANCE.colors.navy,
+        blue: isColor(settings?.colors?.blue) ? settings.colors.blue : DEFAULT_APPEARANCE.colors.blue,
+        green: isColor(settings?.colors?.green) ? settings.colors.green : DEFAULT_APPEARANCE.colors.green,
+      },
+    };
+    writeJson(APPEARANCE_KEY, next);
+    return appearanceSettings();
+  }
+
+  function resetAppearanceSettings() {
+    writeJson(APPEARANCE_KEY, DEFAULT_APPEARANCE);
+    return appearanceSettings();
+  }
+
   function createId() {
     if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
   return {
+    appearanceSettings,
     clearDraft,
     createId,
     deleteHistory,
@@ -149,6 +194,8 @@
     saveDraft,
     saveHistory,
     saveRateMemory,
+    resetAppearanceSettings,
+    saveAppearanceSettings,
     setRateAutofillEnabled,
   };
 });

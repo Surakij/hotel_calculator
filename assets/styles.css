@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --navy: #082758;
   --navy-2: #123a68;
   --blue: #2563eb;
@@ -15,6 +16,20 @@
   --panel: #fff;
   --field: #fbfdff;
   --shadow: 0 12px 30px rgba(8, 39, 88, .08);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --navy: #0b3268;
+  --navy-2: #164472;
+  --line: #243f5e;
+  --line-soft: #18324e;
+  --text: #edf6ff;
+  --muted: #9db1c7;
+  --bg: #071426;
+  --panel: #0d1f36;
+  --field: #091a2d;
+  --shadow: 0 14px 34px rgba(0, 0, 0, .28);
 }
 
 * { box-sizing: border-box; }
@@ -876,6 +891,7 @@ td:last-child {
   border-radius: 12px;
   padding: 20px;
   overflow: auto;
+  background: var(--panel);
   color: var(--text);
   box-shadow: 0 24px 60px rgba(8, 39, 88, .22);
 }
@@ -890,6 +906,61 @@ td:last-child {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.settings-modal {
+  width: min(620px, 92vw);
+}
+
+.settings-section {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.settings-section h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+}
+
+.settings-field,
+.settings-color {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.settings-field select {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0 10px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+}
+
+.color-settings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-color input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 4px;
+  background: var(--field);
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .history-tools {
@@ -1128,6 +1199,186 @@ td:last-child {
   background: #f3f4f6;
   color: var(--red);
   font-size: 12px;
+}
+
+:root[data-theme="dark"] .title,
+:root[data-theme="dark"] body::before,
+:root[data-theme="dark"] th,
+:root[data-theme="dark"] .calc-table thead tr,
+:root[data-theme="dark"] .calc-table th,
+:root[data-theme="dark"] .summary-title,
+:root[data-theme="dark"] .grand,
+:root[data-theme="dark"] #toast {
+  background: var(--navy);
+}
+
+:root[data-theme="dark"] .cards .card:first-child::before {
+  background: #132b49;
+  color: #dbeafe;
+}
+
+:root[data-theme="dark"] .cards .card input::placeholder,
+:root[data-theme="dark"] input::placeholder {
+  color: #879bb4;
+}
+
+:root[data-theme="dark"] .card label,
+:root[data-theme="dark"] .guest label {
+  color: #c7e0ff;
+}
+
+:root[data-theme="dark"] input:focus,
+:root[data-theme="dark"] select:focus {
+  background: var(--field);
+  box-shadow: 0 0 0 3px rgba(98, 168, 255, .16);
+}
+
+:root[data-theme="dark"] .number-stepper .step-button,
+:root[data-theme="dark"] .calendar-head button {
+  background: #132b49;
+  color: #c7e0ff;
+}
+
+:root[data-theme="dark"] .number-stepper .step-button:hover,
+:root[data-theme="dark"] .save:hover,
+:root[data-theme="dark"] .history:hover {
+  background: #1a385a;
+}
+
+:root[data-theme="dark"] .number-stepper .step-button:active {
+  background: var(--blue);
+}
+
+:root[data-theme="dark"] .rate-toggle,
+:root[data-theme="dark"] .add,
+:root[data-theme="dark"] .download,
+:root[data-theme="dark"] .save,
+:root[data-theme="dark"] .history {
+  border-color: #2e4b6d;
+  background: #10243d;
+  color: #c7e0ff;
+}
+
+:root[data-theme="dark"] .clear {
+  border-color: #653044;
+  background: #2a1722;
+  color: #ff9daf;
+}
+
+:root[data-theme="dark"] .share {
+  border-color: #2c724c;
+  background: #102b20;
+  color: #7ce6a2;
+}
+
+:root[data-theme="dark"] .add:hover,
+:root[data-theme="dark"] .download:hover {
+  background: #163153;
+}
+
+:root[data-theme="dark"] .clear:hover {
+  background: #361924;
+}
+
+:root[data-theme="dark"] .share:hover,
+:root[data-theme="dark"] .drive-status.connected {
+  background: #123324;
+}
+
+:root[data-theme="dark"] .close,
+:root[data-theme="dark"] .calendar-actions button {
+  background: #162b45;
+  color: var(--text);
+}
+
+:root[data-theme="dark"] td,
+:root[data-theme="dark"] tr:nth-child(even) td,
+:root[data-theme="dark"] .history-item {
+  background: #0d1f36;
+}
+
+:root[data-theme="dark"] td input,
+:root[data-theme="dark"] td select,
+:root[data-theme="dark"] .history-tools input,
+:root[data-theme="dark"] .calendar-month,
+:root[data-theme="dark"] .calendar-year,
+:root[data-theme="dark"] .settings-field select,
+:root[data-theme="dark"] .settings-color input {
+  border-color: #2b4868;
+  background: var(--field);
+}
+
+:root[data-theme="dark"] .summary-table th,
+:root[data-theme="dark"] .hotel-picker-letters,
+:root[data-theme="dark"] .hotel-group h3 {
+  background: #132b49;
+  color: #c7e0ff;
+}
+
+:root[data-theme="dark"] .summary-table td:last-child,
+:root[data-theme="dark"] .total input,
+:root[data-theme="dark"] .app-credit a,
+:root[data-theme="dark"] .history-date,
+:root[data-theme="dark"] .history-item strong,
+:root[data-theme="dark"] .history-total,
+:root[data-theme="dark"] .share-preview strong,
+:root[data-theme="dark"] .settings-section h3 {
+  color: #c7e0ff;
+}
+
+:root[data-theme="dark"] .hotel-picker,
+:root[data-theme="dark"] .calendar,
+:root[data-theme="dark"] .share-preview {
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .36);
+}
+
+:root[data-theme="dark"] .hotel-choice:hover,
+:root[data-theme="dark"] .hotel-choice:focus,
+:root[data-theme="dark"] .hotel-match {
+  background: #183a61;
+  color: #edf6ff;
+}
+
+:root[data-theme="dark"] .drive-status,
+:root[data-theme="dark"] .share-preview {
+  background: #091a2d;
+}
+
+:root[data-theme="dark"] .ebo-result {
+  background: #091a2d;
+}
+
+:root[data-theme="dark"] .ebo-result.is-future {
+  border-color: #2c724c;
+  background: #102b20;
+  color: #7ce6a2;
+}
+
+:root[data-theme="dark"] .ebo-result.is-past {
+  border-color: #653044;
+  background: #2a1722;
+  color: #ff9daf;
+}
+
+:root[data-theme="dark"] .calendar-grid button {
+  background: #10243d;
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .calendar-grid button:hover:not(:disabled),
+:root[data-theme="dark"] .calendar-grid button.selected {
+  background: var(--navy);
+}
+
+:root[data-theme="dark"] .discount-add {
+  background: #152c48;
+  color: #c7e0ff;
+}
+
+:root[data-theme="dark"] .discount-remove,
+:root[data-theme="dark"] .delete {
+  background: #2a1722;
+  color: #ff7d8e;
 }
 
 @media (max-width: 900px) {
