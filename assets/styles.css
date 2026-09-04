@@ -39,24 +39,11 @@ html {
 }
 
 body {
-  position: relative;
   margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: "Segoe UI", Inter, Arial, sans-serif;
   font-size: 14px;
-}
-
-body::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: min(100%, 1580px);
-  height: 68px;
-  z-index: -1;
-  background: var(--navy);
-  transform: translateX(-50%);
 }
 
 .app {
@@ -1731,7 +1718,6 @@ td:last-child {
 }
 
 :root[data-theme="dark"] .title,
-:root[data-theme="dark"] body::before,
 :root[data-theme="dark"] th,
 :root[data-theme="dark"] .calc-table thead tr,
 :root[data-theme="dark"] .calc-table th,
@@ -2040,8 +2026,6 @@ td:last-child {
 }
 
 @media (max-width: 720px) {
-  body::before { height: 60px; }
-
   .app { padding: 0 10px 22px; }
 
   .title {
