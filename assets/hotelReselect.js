@@ -97,7 +97,7 @@
 
     function openPicker(options = {}) {
       if (!picker.innerHTML) renderShell();
-      if (options.fromClick && isKnownHotel(input.value)) query = "";
+      if (options.fromClick && (!input.value.trim() || isKnownHotel(input.value))) query = "";
       renderList();
       picker.classList.add("open");
       input.setAttribute("aria-expanded", "true");

@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.5.0";
+  const APP_VERSION = "1.5.1";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -331,6 +331,61 @@
     }, { passive: false });
     wrap.append(minus, input, plus);
     return wrap;
+  }
+
+  function childAgeValues() {
+    return String(value("ages") || "")
+      .split(/[,\s/;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => String(Math.min(17, Math.max(0, Number(item) || 0))));
+  }
+
+  function normalizeChildAgeInput(input) {
+    if (!input.value.trim()) return;
+    const next = Math.min(17, Math.max(0, Number(input.value) || 0));
+    input.value = String(next);
+  }
+
+  function syncAgesFromFields() {
+    const fields = [...document.querySelectorAll(".child-age-input")];
+    $("ages").value = fields.map((input) => input.value.trim()).filter(Boolean).join("/");
+  }
+
+  function renderChildAgeFields() {
+    const container = $("childAgeFields");
+    if (!container) return;
+    const count = Math.max(0, Number(value("children") || 0) || 0);
+    const existing = [...container.querySelectorAll(".child-age-input")].map((input) => input.value.trim());
+    const saved = existing.length ? existing : childAgeValues();
+    container.innerHTML = "";
+
+    if (!count) {
+      container.appendChild(el("span", { className: "child-age-empty", textContent: "No children" }));
+      $("ages").value = "";
+      return;
+    }
+
+    for (let index = 0; index < count; index += 1) {
+      const input = el("input", {
+        className: "child-age-input",
+        type: "number",
+        min: "0",
+        max: "17",
+        step: "1",
+        inputmode: "numeric",
+        placeholder: `Age ${index + 1}`,
+        "aria-label": `Child ${index + 1} age`,
+      });
+      input.value = saved[index] || "";
+      input.addEventListener("input", () => {
+        normalizeChildAgeInput(input);
+        syncAgesFromFields();
+        recalc();
+      });
+      container.appendChild(numberStepper(input, true));
+    }
+    syncAgesFromFields();
   }
 
   function toast(message) {
@@ -1241,6 +1296,7 @@
     $("children").value = payload.guests?.children ?? "0";
     $("infants").value = payload.guests?.infants ?? "0";
     $("ages").value = payload.guests?.ages || "";
+    renderChildAgeFields();
     $("spo").value = payload.spo || "";
     updateHotelScopedLists();
     rowsEl.innerHTML = "";
@@ -1544,6 +1600,7 @@
     ["adults", "children", "infants", "nights"].forEach((id) => {
       $(id).value = "0";
     });
+    renderChildAgeFields();
     createDefaultRows();
     recalc();
     storage.clearDraft();
@@ -1764,6 +1821,7 @@
     $("nights").addEventListener("input", setCheckoutFromNights);
     ["adults", "children", "infants"].forEach((id) => {
       $(id).addEventListener("input", () => {
+        if (id === "children") renderChildAgeFields();
         rowsEl.querySelectorAll("tr").forEach(applyAutoQty);
         recalc();
       });
@@ -1773,6 +1831,7 @@
       input.parentNode.appendChild(numberStepper(input));
     });
     $("eboResult").before(numberStepper($("eboDays")));
+    renderChildAgeFields();
     ["ages", "spo", "eboDays"].forEach((id) => $(id).addEventListener("input", recalc));
 
     $("addRow").addEventListener("click", (event) => {

@@ -260,6 +260,38 @@ body {
   color: #b91c1c;
 }
 
+.child-age-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 40px;
+  align-items: center;
+}
+
+.child-age-fields .number-stepper {
+  width: 88px;
+  height: 34px;
+  grid-template-columns: 26px minmax(30px, 1fr) 26px;
+}
+
+.child-age-fields .number-stepper .step-button {
+  min-width: 26px;
+}
+
+.child-age-fields .number-stepper input {
+  padding: 0 3px;
+  font-size: 13px;
+}
+
+.child-age-empty {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 input:focus,
 select:focus {
   outline: 0;
