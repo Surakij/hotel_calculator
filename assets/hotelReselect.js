@@ -127,8 +127,13 @@
       list.scrollTo({ top: group.offsetTop, behavior: "smooth" });
     }
 
-    input.addEventListener("focus", () => openPicker({ fromClick: true }));
-    input.addEventListener("click", () => openPicker({ fromClick: true }));
+    input.addEventListener("click", () => {
+      if (open) {
+        closePicker();
+        return;
+      }
+      openPicker({ fromClick: true });
+    });
     input.addEventListener("input", () => {
       query = input.value;
       openPicker();

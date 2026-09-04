@@ -14,9 +14,9 @@
   <text x="116" y="374" fill="#66758a" font-family="Segoe UI, Arial, sans-serif" font-size="23">split stays, meal plans, transfers and Green Tax.</text>
   <g font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700">
     <rect x="116" y="422" width="150" height="44" rx="10" fill="#eaf3ff" stroke="#b9d7fb"/>
-    <text x="146" y="451" fill="#1f65b8">177 Resorts</text>
+    <text x="146" y="451" fill="#1f65b8">178 Resorts</text>
     <rect x="284" y="422" width="155" height="44" rx="10" fill="#ecfdf3" stroke="#b7ebc7"/>
-    <text x="313" y="451" fill="#148043">177 Meal Plans</text>
+    <text x="313" y="451" fill="#148043">178 Meal Plans</text>
     <rect x="457" y="422" width="178" height="44" rx="10" fill="#fff7ed" stroke="#fed7aa"/>
     <text x="486" y="451" fill="#b45309">Share-Ready Output</text>
   </g>

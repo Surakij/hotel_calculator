@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.5
+
+- Preserved manually split row dates during Undo/Redo restoration.
+- Polished popup behavior for calendars, hotel, item, and type selectors.
+- Added a switch-style Auto-fill rates control and refined calendar/type picker states.
+- Added Hideaway Beach Resort & Spa and refreshed resort counts to 178.
+
 ## 1.4.2
 
 - Removed generic room suggestions before a hotel is selected.

@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.4";
+  const APP_VERSION = "1.4.5";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const TYPE_LABELS = {
@@ -59,6 +59,9 @@
   let picker = null;
   let pickerInput = null;
   let pickerMonth = null;
+  let itemPicker = null;
+  let itemPickerInput = null;
+  let itemPickerRow = null;
   let draftTimer = null;
   let undoTimer = null;
   let suppressDraft = false;
@@ -154,6 +157,83 @@
   function restoreItemIfEmpty(input) {
     if (!input.value && input.dataset.previousValue) input.value = input.dataset.previousValue;
     delete input.dataset.previousValue;
+  }
+
+  function itemOptions(tr) {
+    const type = tr.querySelector(".type")?.value || "";
+    if (!type) return [];
+    if (type === "ROOM") return recordRooms(selectedHotelRecord());
+    if (type === "MEAL") {
+      const meals = recordMeals(selectedHotelRecord());
+      return meals.length ? meals : LISTS.MEAL;
+    }
+    return LISTS[type] || [];
+  }
+
+  function closeItemPicker({ restore = true, refocus = false } = {}) {
+    if (itemPicker) itemPicker.remove();
+    if (restore && itemPickerInput) restoreItemIfEmpty(itemPickerInput);
+    if (itemPickerInput) itemPickerInput.dataset.pickerOpen = "0";
+    const input = itemPickerInput;
+    itemPicker = null;
+    itemPickerInput = null;
+    itemPickerRow = null;
+    if (refocus && input) input.focus();
+  }
+
+  function positionItemPicker() {
+    if (!itemPicker || !itemPickerInput) return;
+    const rect = itemPickerInput.getBoundingClientRect();
+    const width = Math.max(rect.width, 260);
+    const maxHeight = Math.min(320, window.innerHeight - rect.bottom - 14);
+    itemPicker.style.left = `${rect.left}px`;
+    itemPicker.style.top = `${rect.bottom + 6}px`;
+    itemPicker.style.width = `${Math.min(width, window.innerWidth - rect.left - 12)}px`;
+    itemPicker.style.maxHeight = `${Math.max(150, maxHeight)}px`;
+  }
+
+  function renderItemPicker() {
+    if (!itemPicker || !itemPickerInput || !itemPickerRow) return;
+    const query = itemPickerInput.value.trim().toLowerCase();
+    const options = itemOptions(itemPickerRow).filter((option) => option.toLowerCase().includes(query));
+    itemPicker.innerHTML = "";
+    if (!options.length) {
+      itemPicker.appendChild(el("div", { className: "item-picker-empty", textContent: "No matches" }));
+      return;
+    }
+    options.forEach((option) => {
+      const button = el("button", { className: "item-picker-choice", type: "button", textContent: option });
+      button.dataset.value = option;
+      itemPicker.appendChild(button);
+    });
+  }
+
+  function openItemPicker(input, tr, { clearCurrent = false } = {}) {
+    closeItemPicker({ restore: false });
+    itemPickerInput = input;
+    itemPickerRow = tr;
+    if (clearCurrent) prepareItemReselect(input, tr);
+    itemPicker = el("div", { className: "item-picker open" });
+    itemPicker.addEventListener("wheel", (event) => event.stopPropagation());
+    document.body.appendChild(itemPicker);
+    input.dataset.pickerOpen = "1";
+    positionItemPicker();
+    renderItemPicker();
+  }
+
+  function chooseItemPickerValue(value) {
+    if (!itemPickerInput) return;
+    itemPickerInput.value = value;
+    delete itemPickerInput.dataset.previousValue;
+    itemPickerInput.dispatchEvent(new Event("input", { bubbles: true }));
+    closeItemPicker({ restore: false, refocus: true });
+  }
+
+  function isInsideFloatingPanel(target) {
+    return target instanceof Element && (
+      (picker && picker.contains(target))
+      || (itemPicker && itemPicker.contains(target))
+    );
   }
 
   function handleDateKeydown(input, event, onApply) {
@@ -351,18 +431,100 @@
   }
 
   function createTypeSelect(selected = "") {
-    const select = el("select", { className: "type" });
+    const wrap = el("div", { className: "type-picker-wrap" });
+    const select = el("select", { className: "type type-native", tabindex: "-1", "aria-hidden": "true" });
     const placeholder = el("option", { value: "", textContent: "" });
     placeholder.selected = !selected;
     placeholder.disabled = true;
     placeholder.hidden = true;
     select.appendChild(placeholder);
+
+    const button = el("button", {
+      className: "type-picker-button",
+      type: "button",
+      textContent: selected ? TYPE_LABELS[selected] || selected : "",
+      "aria-haspopup": "listbox",
+      "aria-expanded": "false",
+    });
+    const menu = el("div", { className: "type-picker-menu", role: "listbox" });
+    wrap.typePickerMenu = menu;
+
     ROW_TYPE_ORDER.forEach((type) => {
       const option = el("option", { value: type, textContent: TYPE_LABELS[type] || type });
       option.selected = type === selected;
       select.appendChild(option);
+
+      const choice = el("button", {
+        className: "type-picker-choice",
+        type: "button",
+        textContent: TYPE_LABELS[type] || type,
+        role: "option",
+      });
+      choice.dataset.value = type;
+      choice.dataset.type = type;
+      choice.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        select.value = type;
+        button.textContent = TYPE_LABELS[type] || type;
+        closeTypePickers();
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      menu.appendChild(choice);
     });
-    return select;
+
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const isOpen = wrap.classList.contains("open");
+      closeTypePickers();
+      if (!isOpen) openTypePicker(wrap);
+    });
+
+    wrap.append(select, button, menu);
+    return wrap;
+  }
+
+  function positionTypePicker(wrap) {
+    const button = wrap.querySelector(".type-picker-button");
+    const menu = wrap.typePickerMenu;
+    if (!button || !menu) return;
+    const rect = button.getBoundingClientRect();
+    const width = Math.max(rect.width, 136);
+    const menuHeight = Math.min(menu.scrollHeight || 212, 240);
+    const below = window.innerHeight - rect.bottom - 8;
+    const top = below >= menuHeight || rect.top < menuHeight + 8
+      ? rect.bottom + 5
+      : rect.top - menuHeight - 5;
+    menu.style.left = `${Math.min(Math.max(8, rect.left), window.innerWidth - width - 8)}px`;
+    menu.style.top = `${Math.max(8, top)}px`;
+    menu.style.width = `${width}px`;
+    menu.style.maxHeight = `${menuHeight}px`;
+  }
+
+  function openTypePicker(wrap) {
+    const menu = wrap.typePickerMenu;
+    const button = wrap.querySelector(".type-picker-button");
+    if (!menu || !button) return;
+    document.body.appendChild(menu);
+    wrap.classList.add("open");
+    menu.classList.add("open");
+    button.setAttribute("aria-expanded", "true");
+    positionTypePicker(wrap);
+  }
+
+  function closeTypePickers() {
+    document.querySelectorAll(".type-picker-wrap.open").forEach((wrap) => {
+      wrap.classList.remove("open");
+      wrap.querySelector(".type-picker-button")?.setAttribute("aria-expanded", "false");
+    });
+    document.querySelectorAll(".type-picker-menu.open").forEach((menu) => {
+      menu.classList.remove("open");
+    });
+  }
+
+  function positionOpenTypePickers() {
+    document.querySelectorAll(".type-picker-wrap.open").forEach(positionTypePicker);
   }
 
   function addDiscount(container, value = 0, removable = true) {
@@ -415,6 +577,7 @@
       qty: Number(tr.querySelector(".qty").value || 0),
       rateFormula: tr.querySelector(".rate").value.trim(),
       discounts: [...tr.querySelectorAll(".discount")].map((input) => Number(input.value || 0)).filter((item) => item > 0),
+      followGlobal: tr.dataset.followGlobal === "1",
     };
   }
 
@@ -665,11 +828,17 @@
 
   function updateTypeColor(tr) {
     const select = tr.querySelector(".type");
+    const button = tr.querySelector(".type-picker-button");
     const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     const color = COLORS[theme][select.value];
-    select.style.background = color ? color.bg : "";
-    select.style.color = color ? color.fg : "";
-    select.style.borderColor = color ? color.border : "";
+    const target = button || select;
+    target.textContent = select.value ? TYPE_LABELS[select.value] || select.value : "";
+    target.style.background = color ? color.bg : "";
+    target.style.color = color ? color.fg : "";
+    target.style.borderColor = color ? color.border : "";
+    tr.querySelectorAll(".type-picker-choice").forEach((choice) => {
+      choice.classList.toggle("selected", choice.dataset.value === select.value);
+    });
   }
 
   function updateRowState(tr) {
@@ -730,7 +899,6 @@
     });
 
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
-    $("topTotal").value = core.money(calculated.total);
     renderStaySummary();
     renderEboCheck();
     scheduleDraftSave();
@@ -779,7 +947,7 @@
 
   function addRow(data = {}) {
     const tr = el("tr");
-    tr.dataset.followGlobal = "0";
+    tr.dataset.followGlobal = data.followGlobal === true ? "1" : "0";
 
     const typeCell = el("td");
     typeCell.appendChild(createTypeSelect(data.type || ""));
@@ -787,7 +955,6 @@
     const itemCell = el("td");
     const item = el("input", { className: "item", placeholder: "Choose or type manually", autocomplete: "off" });
     item.value = data.item || "";
-    item.setAttribute("list", data.type ? `list_${data.type}` : "");
     itemCell.appendChild(item);
 
     const fromCell = el("td");
@@ -827,7 +994,7 @@
     const type = tr.querySelector(".type");
     type.addEventListener("change", () => {
       item.value = "";
-      item.setAttribute("list", type.value ? `list_${type.value}` : "");
+      closeItemPicker({ restore: false });
       tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
       applyAutoQty(tr);
       applyRememberedRate(tr);
@@ -839,6 +1006,7 @@
 
     item.addEventListener("input", () => {
       delete item.dataset.previousValue;
+      if (itemPickerInput === item) renderItemPicker();
       if (isGlobalDateRow(tr)) tr.dataset.followGlobal = "1";
       applyAutoQty(tr);
       clampRowDates(tr);
@@ -846,9 +1014,25 @@
       updateRowState(tr);
       recalc();
     });
-    item.addEventListener("focus", () => prepareItemReselect(item, tr));
-    item.addEventListener("click", () => prepareItemReselect(item, tr));
+    item.addEventListener("click", () => {
+      if (item.dataset.pickerOpen === "1") {
+        closeItemPicker();
+        return;
+      }
+      openItemPicker(item, tr, { clearCurrent: true });
+    });
+    item.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeItemPicker();
+        item.blur();
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (item.dataset.pickerOpen !== "1") openItemPicker(item, tr);
+        itemPicker?.querySelector(".item-picker-choice")?.focus();
+      }
+    });
     item.addEventListener("blur", () => {
+      if (itemPickerInput === item) return;
       restoreItemIfEmpty(item);
       applyAutoQty(tr);
       clampRowDates(tr);
@@ -865,10 +1049,7 @@
         applyRememberedRate(tr);
         recalc();
       });
-      input.addEventListener("focus", () => openPicker(input));
-      input.addEventListener("click", () => {
-        if (!picker || pickerInput !== input) openPicker(input);
-      });
+      input.addEventListener("click", () => togglePicker(input));
       input.addEventListener("keydown", (event) => {
         handleDateKeydown(input, event, () => {
           tr.dataset.followGlobal = "0";
@@ -902,7 +1083,9 @@
       recalc();
     });
 
-    tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
+    if (data.followGlobal !== true && data.followGlobal !== false) {
+      tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
+    }
     applyAutoQty(tr);
     clampRowDates(tr);
     updateRowState(tr);
@@ -1013,7 +1196,7 @@
 
   function calculationEntry() {
     const payload = sharePayload();
-    const total = Number(String(value("topTotal") || "0").replace(/,/g, ""));
+    const total = Number(String($("grandTotal").textContent || "0").replace(/[$,]/g, ""));
     return {
       id: storage.createId(),
       appVersion: APP_VERSION,
@@ -1311,6 +1494,13 @@
       const monthEnd = new Date(year, month + 1, 0);
       return (!minDate || monthEnd >= minDate) && (!maxDate || monthStart <= maxDate);
     };
+    const moveCalendar = (months) => {
+      const next = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + months, 1);
+      if (!canShowMonth(next.getFullYear(), next.getMonth())) return;
+      pickerMonth = next;
+      renderPicker();
+    };
+    const moveCalendarYear = (years) => moveCalendar(years * 12);
     const head = el("div", { className: "calendar-head" });
     const prevYear = el("button", { className: "calendar-nav", type: "button", title: "Previous year", textContent: "«" });
     const prevMonth = el("button", { className: "calendar-nav", type: "button", title: "Previous month", textContent: "‹" });
@@ -1344,26 +1534,22 @@
     prevYear.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      pickerMonth = new Date(pickerMonth.getFullYear() - 1, pickerMonth.getMonth(), 1);
-      renderPicker();
+      moveCalendarYear(-1);
     });
     prevMonth.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      pickerMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1, 1);
-      renderPicker();
+      moveCalendar(-1);
     });
     nextMonth.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      pickerMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 1);
-      renderPicker();
+      moveCalendar(1);
     });
     nextYear.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      pickerMonth = new Date(pickerMonth.getFullYear() + 1, pickerMonth.getMonth(), 1);
-      renderPicker();
+      moveCalendarYear(1);
     });
     monthButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -1376,6 +1562,13 @@
       pickerMonth = new Date(year, pickerMonth.getMonth(), 1);
       renderPicker();
     });
+    picker.onwheel = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const direction = event.deltaY > 0 ? 1 : -1;
+      if (event.target === yearInput) moveCalendarYear(direction);
+      else moveCalendar(direction);
+    };
 
     head.append(prevYear, prevMonth, monthWrap, yearInput, nextMonth, nextYear);
     picker.appendChild(head);
@@ -1442,6 +1635,14 @@
     renderPicker();
   }
 
+  function togglePicker(input) {
+    if (picker && pickerInput === input) {
+      closePicker();
+      return;
+    }
+    openPicker(input);
+  }
+
   function wireEvents() {
     $("hotel").addEventListener("input", () => {
       updateHotelScopedLists();
@@ -1466,10 +1667,7 @@
       const input = $(id);
       input.addEventListener("input", () => cleanDateInput(input));
       input.addEventListener("blur", () => handleGlobalDate(input));
-      input.addEventListener("focus", () => openPicker(input));
-      input.addEventListener("click", () => {
-        if (!picker || pickerInput !== input) openPicker(input);
-      });
+      input.addEventListener("click", () => togglePicker(input));
       input.addEventListener("keydown", (event) => handleDateKeydown(input, event, () => handleGlobalDate(input)));
     });
 
@@ -1535,9 +1733,30 @@
     });
     document.addEventListener("click", (event) => {
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
+      if (itemPicker && !itemPicker.contains(event.target) && event.target !== itemPickerInput) closeItemPicker();
+      if (!event.target.closest(".type-picker-wrap") && !event.target.closest(".type-picker-menu")) closeTypePickers();
     });
-    window.addEventListener("resize", closePicker);
-    window.addEventListener("scroll", closePicker, true);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeItemPicker();
+        closeTypePickers();
+      }
+    });
+    document.addEventListener("click", (event) => {
+      const choice = event.target.closest(".item-picker-choice");
+      if (choice && itemPicker?.contains(choice)) chooseItemPickerValue(choice.dataset.value || "");
+    });
+    window.addEventListener("resize", () => {
+      closePicker();
+      closeItemPicker();
+      closeTypePickers();
+    });
+    window.addEventListener("scroll", (event) => {
+      if (isInsideFloatingPanel(event.target)) return;
+      closePicker();
+      closeItemPicker();
+      positionOpenTypePickers();
+    }, true);
   }
 
   buildLists();

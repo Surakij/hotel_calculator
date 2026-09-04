@@ -1404,6 +1404,34 @@
       "FB - Child"
     ]
   },
+  "Hideaway Beach Resort & Spa": {
+    "rooms": [
+      "Sunset Beach Villa",
+      "Beach Residence with Plunge Pool",
+      "Deluxe Beach Residence with Lap Pool",
+      "Deluxe Sunset Beach Villa with Pool",
+      "Sunset Beach Residence with Pool",
+      "Two-Bedroom Beach Residence with Pool",
+      "Deluxe Water Villa with Pool",
+      "Ocean Villa with Pool",
+      "Two-Bedroom Ocean Villa with Pool",
+      "Signature Beach Residence",
+      "Grand Beach Residence",
+      "Sultan Beach Residence with Pool"
+    ],
+    "meals": [
+      "Breakfast Only - Adult",
+      "Breakfast Only - Child",
+      "HB - Adult",
+      "HB - Child",
+      "FB - Adult",
+      "FB - Child",
+      "White Platinum Plan - Adult",
+      "White Platinum Plan - Child",
+      "Signature Platinum Plan - Adult",
+      "Signature Platinum Plan - Child"
+    ]
+  },
   "Inter Continental Maldives Maamunagau": {
     "rooms": [
       "Beach Pool Villa",
