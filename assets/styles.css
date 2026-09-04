@@ -1327,7 +1327,11 @@ td:last-child {
 
 .item-picker.structured {
   overflow: auto;
-  padding: 14px 16px;
+  padding: 12px 14px;
+}
+
+.item-picker.drop-up {
+  transform: translateY(-4px);
 }
 
 .item-picker.open {
@@ -1367,9 +1371,17 @@ td:last-child {
 
 .item-picker-row-section {
   display: grid;
-  grid-template-columns: minmax(130px, .7fr) minmax(280px, 1.3fr);
-  column-gap: 14px;
+  grid-template-columns: minmax(124px, .56fr) minmax(312px, 1.44fr);
+  column-gap: 12px;
   align-items: center;
+}
+
+.item-picker[data-item-type="TRANSFER"] .item-picker-row-section {
+  grid-template-columns: 132px minmax(360px, 1fr);
+}
+
+.item-picker[data-item-type="DINNER"] .item-picker-row-section {
+  grid-template-columns: 166px 170px;
 }
 
 .item-picker-row-section.no-title {
@@ -1390,16 +1402,16 @@ td:last-child {
 
 .item-picker-icon {
   display: inline-flex;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   align-items: center;
   justify-content: center;
   color: currentColor;
 }
 
 .item-picker-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -1415,8 +1427,12 @@ td:last-child {
 }
 
 .item-picker-section-title strong {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.2;
+}
+
+.item-picker[data-item-type="DINNER"] .item-picker-section-title strong {
+  white-space: nowrap;
 }
 
 .item-picker-section-title span {
@@ -1435,15 +1451,25 @@ td:last-child {
   grid-template-columns: repeat(4, minmax(72px, 1fr));
 }
 
+.item-picker[data-item-type="TRANSFER"] .item-picker-chip-grid {
+  grid-template-columns: repeat(4, minmax(78px, 1fr));
+  gap: 7px;
+}
+
+.item-picker[data-item-type="DINNER"] .item-picker-chip-grid {
+  grid-template-columns: repeat(2, 80px);
+  justify-content: start;
+}
+
 .item-picker-row-section.no-title .item-picker-chip-grid {
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
 
 .item-picker-chip {
-  min-height: 34px;
+  min-height: 32px;
   border: 1px solid #bfd7f8;
   border-radius: 7px;
-  padding: 7px 10px;
+  padding: 6px 10px;
   background: linear-gradient(180deg, #ffffff, #f7fbff);
   color: #155aa8;
   font-size: 13px;
@@ -1456,6 +1482,11 @@ td:last-child {
 .item-picker-row-section .item-picker-chip {
   padding-right: 8px;
   padding-left: 8px;
+}
+
+.item-picker[data-item-type="TRANSFER"] .item-picker-chip {
+  min-height: 30px;
+  white-space: nowrap;
 }
 
 .item-picker-chip:hover,

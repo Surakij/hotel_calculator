@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.5.3";
+  const APP_VERSION = "1.5.4";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -193,6 +193,7 @@
   function pickerChoice(label, value, type) {
     const button = el("button", { className: "item-picker-choice item-picker-chip", type: "button", textContent: label });
     button.dataset.value = value;
+    button.title = value;
     button.classList.toggle("selected", itemPickerInput?.value === value);
     if (type) button.dataset.type = type;
     return button;
@@ -260,9 +261,9 @@
     const sections = [];
     if (type === "TRANSFER") {
       [
-        { title: "Seaplane", icon: "seaplane", type: "TRANSFER", values: [["Adult", "Seaplane - Adult"], ["Child", "Seaplane - Child"], ["OW Adult", "Seaplane OW - Adult"], ["OW Child", "Seaplane OW - Child"]] },
-        { title: "Domestic", icon: "domestic", type: "TRANSFER", values: [["Adult", "Domestic - Adult"], ["Child", "Domestic - Child"], ["OW Adult", "Domestic OW - Adult"], ["OW Child", "Domestic OW - Child"]] },
-        { title: "Speedboat", icon: "speedboat", type: "TRANSFER", values: [["Adult", "Speedboat - Adult"], ["Child", "Speedboat - Child"], ["OW Adult", "Speedboat OW - Adult"], ["OW Child", "Speedboat OW - Child"]] },
+        { title: "Seaplane", icon: "seaplane", type: "TRANSFER", values: [["Adult", "Seaplane - Adult"], ["Child", "Seaplane - Child"], ["OW ADL", "Seaplane OW - Adult"], ["OW CHD", "Seaplane OW - Child"]] },
+        { title: "Domestic", icon: "domestic", type: "TRANSFER", values: [["Adult", "Domestic - Adult"], ["Child", "Domestic - Child"], ["OW ADL", "Domestic OW - Adult"], ["OW CHD", "Domestic OW - Child"]] },
+        { title: "Speedboat", icon: "speedboat", type: "TRANSFER", values: [["Adult", "Speedboat - Adult"], ["Child", "Speedboat - Child"], ["OW ADL", "Speedboat OW - Adult"], ["OW CHD", "Speedboat OW - Child"]] },
       ].forEach((group) => {
         const choices = group.values.map(([label, value]) => ({ label, value })).filter((choice) => matchesItemQuery(choice, query));
         if (choices.length) sections.push(pickerRowSection({ title: group.title, icon: group.icon, type: group.type, choices }));
@@ -272,8 +273,8 @@
       if (!groups) return false;
       const adult = groups.adult.filter((choice) => matchesItemQuery(choice, query));
       const child = groups.child.filter((choice) => matchesItemQuery(choice, query));
-      if (adult.length) sections.push(pickerSection({ title: "ADL", subtitle: "Adult", icon: "meal", type: "MEAL", choices: adult }));
-      if (child.length) sections.push(pickerSection({ title: "CHD", subtitle: "Child", icon: "meal", type: "MEAL", choices: child }));
+      if (adult.length) sections.push(pickerSection({ title: "Adult", icon: "meal", type: "MEAL", choices: adult }));
+      if (child.length) sections.push(pickerSection({ title: "Child", icon: "meal", type: "MEAL", choices: child }));
     } else if (type === "DINNER") {
       const byEvent = new Map();
       LISTS.DINNER.forEach((value) => {
@@ -315,12 +316,27 @@
     if (!itemPicker || !itemPickerInput) return;
     const rect = itemPickerInput.getBoundingClientRect();
     const structured = itemPicker.classList.contains("structured");
-    const width = structured ? Math.max(rect.width, 520) : Math.max(rect.width, 260);
-    const maxHeight = Math.min(structured ? 420 : 320, window.innerHeight - rect.bottom - 14);
-    itemPicker.style.left = `${rect.left}px`;
-    itemPicker.style.top = `${rect.bottom + 6}px`;
-    itemPicker.style.width = `${Math.min(width, window.innerWidth - rect.left - 12)}px`;
-    itemPicker.style.maxHeight = `${Math.max(150, maxHeight)}px`;
+    const itemType = itemPicker.dataset.itemType;
+    const structuredWidth = itemType === "TRANSFER" ? 560 : itemType === "DINNER" ? 420 : 520;
+    const width = structured ? Math.max(rect.width, structuredWidth) : Math.max(rect.width, 260);
+    const clampedWidth = Math.min(width, window.innerWidth - 24);
+    const left = Math.min(Math.max(12, rect.left), window.innerWidth - clampedWidth - 12);
+    const desiredMax = structured ? 420 : 320;
+    const bottomSpace = window.innerHeight - rect.bottom - 14;
+    const topSpace = rect.top - 14;
+
+    itemPicker.style.left = `${left}px`;
+    itemPicker.style.width = `${clampedWidth}px`;
+    itemPicker.style.maxHeight = `${desiredMax}px`;
+
+    const estimatedHeight = Math.min(itemPicker.scrollHeight || desiredMax, desiredMax);
+    const openUp = bottomSpace < estimatedHeight && topSpace > bottomSpace;
+    const availableHeight = openUp ? topSpace - 8 : bottomSpace;
+    itemPicker.classList.toggle("drop-up", openUp);
+    itemPicker.style.maxHeight = `${Math.max(150, Math.min(desiredMax, availableHeight))}px`;
+    itemPicker.style.top = openUp
+      ? `${Math.max(12, rect.top - Math.min(estimatedHeight, Math.max(150, availableHeight)) - 6)}px`
+      : `${rect.bottom + 6}px`;
   }
 
   function renderItemPicker() {
@@ -330,6 +346,7 @@
     const options = itemOptions(itemPickerRow).filter((option) => option.toLowerCase().includes(query));
     itemPicker.innerHTML = "";
     itemPicker.classList.remove("structured");
+    itemPicker.dataset.itemType = type;
     if (renderStructuredItemPicker(type, query)) {
       if (!itemPicker.children.length) itemPicker.appendChild(el("div", { className: "item-picker-empty", textContent: "No matches. Manual entry is available." }));
       positionItemPicker();
