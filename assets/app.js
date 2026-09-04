@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.8";
+  const APP_VERSION = "1.4.9";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -104,20 +104,6 @@
     }
 
     return svg;
-  }
-
-  function similarRowData(tr) {
-    const data = rowData(tr);
-    return {
-      type: data.type,
-      item: data.item,
-      from: data.from,
-      to: data.to,
-      qty: data.qty,
-      rateFormula: data.rateFormula,
-      discounts: [...data.discounts],
-      followGlobal: data.followGlobal,
-    };
   }
 
   function value(id) {
@@ -1163,7 +1149,8 @@
     tr.querySelector(".discounts").addEventListener("input", recalc);
     tr.querySelector(".add-same-service").addEventListener("click", () => {
       flushUndoSnapshot();
-      const created = addRow(similarRowData(tr), { after: tr, preserveValues: true });
+      const nextType = tr.querySelector(".type").value;
+      const created = addRow(serviceDefaults(nextType), { after: tr });
       if (created) created.querySelector(".item")?.focus();
     });
     tr.querySelector(".delete").addEventListener("click", () => {
