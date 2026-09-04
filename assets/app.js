@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.5.2";
+  const APP_VERSION = "1.5.3";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -176,6 +176,130 @@
     return LISTS[type] || [];
   }
 
+  function pickerIcon(name) {
+    const icons = {
+      seaplane: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14.5h12.5L21 10l-1.4-1.6-6.2 2.2-4-3.1H7l2.5 4H4.5L3.3 10H2l1 4.5Zm3.5 3.5h11"/></svg>',
+      domestic: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15.5 20 8l-1.4-1.7-7 1.8-4.1-2.9-2 .8 2.4 3.8-4.7 1.3L2 10l-1 .5 3 5Zm2.5 3h11"/></svg>',
+      speedboat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14h12.5l3-3.5H9.3L7.5 8H5l1.4 2.5H2.5L3 14Zm1 4c1.2.9 2.8.9 4 0 1.2.9 2.8.9 4 0 1.2.9 2.8.9 4 0 1.2.9 2.8.9 4 0"/></svg>',
+      meal: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M4.5 3v8M9.5 3v8M4.5 11h5L8 21H6l-1.5-10Zm9-8v18M14 3c4 2.8 4 7.2 0 10"/></svg>',
+      dinner: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10v14H7zM7 9h10M10 3v4M14 3v4M10 13h4"/></svg>',
+      extra: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    };
+    const span = el("span", { className: "item-picker-icon" });
+    span.innerHTML = icons[name] || icons.extra;
+    return span;
+  }
+
+  function pickerChoice(label, value, type) {
+    const button = el("button", { className: "item-picker-choice item-picker-chip", type: "button", textContent: label });
+    button.dataset.value = value;
+    button.classList.toggle("selected", itemPickerInput?.value === value);
+    if (type) button.dataset.type = type;
+    return button;
+  }
+
+  function pickerSection({ title, subtitle = "", icon = "extra", type = "", choices = [] }) {
+    const section = el("section", { className: "item-picker-section" });
+    if (type) section.dataset.type = type;
+    if (title) {
+      const head = el("div", { className: "item-picker-section-head" });
+      head.appendChild(pickerIcon(icon));
+      const text = el("div", { className: "item-picker-section-title" });
+      text.appendChild(el("strong", { textContent: title }));
+      if (subtitle) text.appendChild(el("span", { textContent: subtitle }));
+      head.appendChild(text);
+      section.appendChild(head);
+    } else {
+      section.classList.add("no-title");
+    }
+    const grid = el("div", { className: "item-picker-chip-grid" });
+    choices.forEach((choice) => grid.appendChild(pickerChoice(choice.label, choice.value, type)));
+    section.appendChild(grid);
+    return section;
+  }
+
+  function pickerRowSection({ title, subtitle = "", icon = "extra", type = "", choices = [] }) {
+    const section = pickerSection({ title, subtitle, icon, type, choices });
+    section.classList.add("item-picker-row-section");
+    return section;
+  }
+
+  function matchesItemQuery(choice, query) {
+    return !query || choice.label.toLowerCase().includes(query) || choice.value.toLowerCase().includes(query);
+  }
+
+  function stripGuestSuffix(value) {
+    return String(value || "").replace(/\s+-\s+(Adult|Child)$/i, "").trim();
+  }
+
+  function dinnerLabel(value) {
+    return stripGuestSuffix(value).replace(/\s+Dinner$/i, "").trim();
+  }
+
+  function dinnerEventName(value) {
+    const label = dinnerLabel(value);
+    if (/christmas/i.test(label)) return "Christmas 24.12";
+    if (/new year/i.test(label)) return "New Year 31.12";
+    return label;
+  }
+
+  function mealPickerGroups() {
+    const recordMealsList = recordMeals(selectedHotelRecord());
+    if (!recordMealsList.length) return null;
+    const groups = { adult: [], child: [] };
+    recordMealsList.forEach((meal) => {
+      if (/^BB\s+-\s+/i.test(meal)) return;
+      const guest = /\s+-\s+Adult$/i.test(meal) ? "adult" : /\s+-\s+Child$/i.test(meal) ? "child" : "";
+      if (!guest) return;
+      groups[guest].push({ label: stripGuestSuffix(meal), value: meal });
+    });
+    return groups;
+  }
+
+  function renderStructuredItemPicker(type, query) {
+    const sections = [];
+    if (type === "TRANSFER") {
+      [
+        { title: "Seaplane", icon: "seaplane", type: "TRANSFER", values: [["Adult", "Seaplane - Adult"], ["Child", "Seaplane - Child"], ["OW Adult", "Seaplane OW - Adult"], ["OW Child", "Seaplane OW - Child"]] },
+        { title: "Domestic", icon: "domestic", type: "TRANSFER", values: [["Adult", "Domestic - Adult"], ["Child", "Domestic - Child"], ["OW Adult", "Domestic OW - Adult"], ["OW Child", "Domestic OW - Child"]] },
+        { title: "Speedboat", icon: "speedboat", type: "TRANSFER", values: [["Adult", "Speedboat - Adult"], ["Child", "Speedboat - Child"], ["OW Adult", "Speedboat OW - Adult"], ["OW Child", "Speedboat OW - Child"]] },
+      ].forEach((group) => {
+        const choices = group.values.map(([label, value]) => ({ label, value })).filter((choice) => matchesItemQuery(choice, query));
+        if (choices.length) sections.push(pickerRowSection({ title: group.title, icon: group.icon, type: group.type, choices }));
+      });
+    } else if (type === "MEAL") {
+      const groups = mealPickerGroups();
+      if (!groups) return false;
+      const adult = groups.adult.filter((choice) => matchesItemQuery(choice, query));
+      const child = groups.child.filter((choice) => matchesItemQuery(choice, query));
+      if (adult.length) sections.push(pickerSection({ title: "ADL", subtitle: "Adult", icon: "meal", type: "MEAL", choices: adult }));
+      if (child.length) sections.push(pickerSection({ title: "CHD", subtitle: "Child", icon: "meal", type: "MEAL", choices: child }));
+    } else if (type === "DINNER") {
+      const byEvent = new Map();
+      LISTS.DINNER.forEach((value) => {
+        const event = dinnerEventName(value);
+        const label = /\s+-\s+Adult$/i.test(value) ? "ADL" : /\s+-\s+Child$/i.test(value) ? "CHD" : dinnerLabel(value);
+        if (!byEvent.has(event)) byEvent.set(event, []);
+        byEvent.get(event).push({ label, value });
+      });
+      byEvent.forEach((choices, title) => {
+        const filtered = choices.filter((choice) => matchesItemQuery(choice, query) || title.toLowerCase().includes(query));
+        if (filtered.length) sections.push(pickerRowSection({ title, icon: "dinner", type: "DINNER", choices: filtered }));
+      });
+    } else if (type === "EXTRA") {
+      const choices = LISTS.EXTRA
+        .map((value) => ({ label: value, value }))
+        .filter((choice) => matchesItemQuery(choice, query));
+      if (choices.length) sections.push(pickerRowSection({ type: "EXTRA", choices }));
+    } else {
+      return false;
+    }
+    if (!sections.length) return true;
+    itemPicker.classList.add("structured");
+    sections.forEach((section) => itemPicker.appendChild(section));
+    return true;
+  }
+
   function closeItemPicker({ restore = true, refocus = false } = {}) {
     if (itemPicker) itemPicker.remove();
     if (restore && itemPickerInput) restoreItemIfEmpty(itemPickerInput);
@@ -190,8 +314,9 @@
   function positionItemPicker() {
     if (!itemPicker || !itemPickerInput) return;
     const rect = itemPickerInput.getBoundingClientRect();
-    const width = Math.max(rect.width, 260);
-    const maxHeight = Math.min(320, window.innerHeight - rect.bottom - 14);
+    const structured = itemPicker.classList.contains("structured");
+    const width = structured ? Math.max(rect.width, 520) : Math.max(rect.width, 260);
+    const maxHeight = Math.min(structured ? 420 : 320, window.innerHeight - rect.bottom - 14);
     itemPicker.style.left = `${rect.left}px`;
     itemPicker.style.top = `${rect.bottom + 6}px`;
     itemPicker.style.width = `${Math.min(width, window.innerWidth - rect.left - 12)}px`;
@@ -201,8 +326,15 @@
   function renderItemPicker() {
     if (!itemPicker || !itemPickerInput || !itemPickerRow) return;
     const query = itemPickerInput.value.trim().toLowerCase();
+    const type = itemPickerRow.querySelector(".type")?.value || "";
     const options = itemOptions(itemPickerRow).filter((option) => option.toLowerCase().includes(query));
     itemPicker.innerHTML = "";
+    itemPicker.classList.remove("structured");
+    if (renderStructuredItemPicker(type, query)) {
+      if (!itemPicker.children.length) itemPicker.appendChild(el("div", { className: "item-picker-empty", textContent: "No matches. Manual entry is available." }));
+      positionItemPicker();
+      return;
+    }
     if (!options.length) {
       itemPicker.appendChild(el("div", { className: "item-picker-empty", textContent: "No matches" }));
       return;
