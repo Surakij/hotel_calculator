@@ -15,16 +15,16 @@
   <meta name="twitter:description" content="A browser-based workflow automation tool designed for Maldives resort quotation and reservation pricing.">
   <meta name="twitter:image" content="https://surakij.github.io/hotel_calculator/assets/social-preview.png">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <script src="assets/initialLayout.js?v=1.4.5"></script>
-  <script src="assets/appearanceInit.js?v=1.4.5"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=1.4.5">
-  <script src="assets/core.js?v=1.4.5" defer></script>
-  <script src="assets/hotelData.js?v=1.4.5" defer></script>
-  <script src="assets/storage.js?v=1.4.5" defer></script>
-  <script src="assets/googleConfig.js?v=1.4.5" defer></script>
-  <script src="assets/googleDrive.js?v=1.4.5" defer></script>
-  <script src="assets/app.js?v=1.4.5" defer></script>
-  <script src="assets/hotelReselect.js?v=1.4.5" defer></script>
+  <script src="assets/initialLayout.js?v=1.4.6"></script>
+  <script src="assets/appearanceInit.js?v=1.4.6"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=1.4.6">
+  <script src="assets/core.js?v=1.4.6" defer></script>
+  <script src="assets/hotelData.js?v=1.4.6" defer></script>
+  <script src="assets/storage.js?v=1.4.6" defer></script>
+  <script src="assets/googleConfig.js?v=1.4.6" defer></script>
+  <script src="assets/googleDrive.js?v=1.4.6" defer></script>
+  <script src="assets/app.js?v=1.4.6" defer></script>
+  <script src="assets/hotelReselect.js?v=1.4.6" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -89,7 +89,10 @@
     <section class="toolbar" aria-label="Calculation actions">
       <div class="hint">One row = one charge / rate period. TYPE -> ITEM. Manual entry is allowed.</div>
       <div class="actions">
-        <button id="addRow" class="add" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add row</button>
+        <div class="add-service-wrap">
+          <button id="addRow" class="add" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add Type</button>
+          <div id="addServiceMenu" class="add-service-menu" role="menu"></div>
+        </div>
         <button id="clearAll" class="clear" type="button"><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Clear all</button>
         <button id="undoChange" class="history" type="button" disabled><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 6 6v1"/></svg>Undo</button>
         <button id="redoChange" class="history" type="button" disabled><svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0-6 6v1"/></svg>Redo</button>

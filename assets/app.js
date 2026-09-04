@@ -4,9 +4,10 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.5";
+  const APP_VERSION = "1.4.6";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
+  const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
   const TYPE_LABELS = {
     ROOM: "ROOM",
     MEAL: "MEAL",
@@ -62,6 +63,7 @@
   let itemPicker = null;
   let itemPickerInput = null;
   let itemPickerRow = null;
+  let addServiceMenuOpen = false;
   let draftTimer = null;
   let undoTimer = null;
   let suppressDraft = false;
@@ -97,6 +99,21 @@
       vertical.setAttribute("d", "M12 6v12");
       svg.appendChild(vertical);
     }
+
+    return svg;
+  }
+
+  function addSameServiceIcon() {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "row-action-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+
+    ["M12 5v10", "M7 10l5 5 5-5", "M6 19h12", "M19 5h-4", "M17 3v4"].forEach((pathData) => {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", pathData);
+      svg.appendChild(path);
+    });
 
     return svg;
   }
@@ -318,6 +335,12 @@
 
     bindHold(minus, -1);
     bindHold(plus, 1);
+    wrap.addEventListener("wheel", (event) => {
+      if (input.disabled) return;
+      event.preventDefault();
+      event.stopPropagation();
+      stepNumber(input, event.deltaY > 0 ? -1 : 1);
+    }, { passive: false });
     wrap.append(minus, input, plus);
     return wrap;
   }
@@ -408,6 +431,78 @@
     renderDatalist("list_ROOM", rooms);
   }
 
+  function serviceDefaults(type) {
+    if (type === "ROOM") return { type, qty: 1 };
+    if (type === "MEAL") return { type, qty: Number(value("adults") || 0) };
+    if (type === "TRANSFER") return { type, qty: Number(value("adults") || 0) };
+    if (type === "GREEN_TAX") return { type, item: "Green Tax", qty: 0, rate: 12 };
+    return { type, qty: 0 };
+  }
+
+  function currentServiceTypes() {
+    return new Set([...rowsEl.querySelectorAll("tr")]
+      .map((tr) => tr.querySelector(".type")?.value)
+      .filter(Boolean));
+  }
+
+  function closeAddServiceMenu() {
+    const menu = $("addServiceMenu");
+    const button = $("addRow");
+    if (menu) {
+      menu.classList.remove("open");
+      menu.innerHTML = "";
+    }
+    if (button) button.setAttribute("aria-expanded", "false");
+    addServiceMenuOpen = false;
+  }
+
+  function renderAddServiceMenu() {
+    const menu = $("addServiceMenu");
+    if (!menu) return;
+    const used = currentServiceTypes();
+    const available = ADD_TYPE_ORDER.filter((type) => !used.has(type));
+    menu.innerHTML = "";
+
+    if (!available.length) {
+      menu.appendChild(el("div", { className: "add-service-empty", textContent: "All types already added" }));
+      return;
+    }
+
+    available.forEach((type) => {
+      const button = el("button", {
+        className: "add-service-choice",
+        type: "button",
+        role: "menuitem",
+        textContent: TYPE_LABELS[type] || type,
+      });
+      button.dataset.type = type;
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        addRow(serviceDefaults(type));
+        closeAddServiceMenu();
+      });
+      menu.appendChild(button);
+    });
+  }
+
+  function toggleAddServiceMenu() {
+    const menu = $("addServiceMenu");
+    const button = $("addRow");
+    if (!menu || !button) return;
+    if (addServiceMenuOpen) {
+      closeAddServiceMenu();
+      return;
+    }
+    closeTypePickers();
+    closeItemPicker();
+    closePicker();
+    renderAddServiceMenu();
+    menu.classList.add("open");
+    button.setAttribute("aria-expanded", "true");
+    addServiceMenuOpen = true;
+  }
+
   function updateMealList() {
     const record = selectedHotelRecord();
     const meals = recordMeals(record);
@@ -431,7 +526,7 @@
   }
 
   function createTypeSelect(selected = "") {
-    const wrap = el("div", { className: "type-picker-wrap" });
+    const wrap = el("div", { className: "type-picker-wrap type-static-wrap" });
     const select = el("select", { className: "type type-native", tabindex: "-1", "aria-hidden": "true" });
     const placeholder = el("option", { value: "", textContent: "" });
     placeholder.selected = !selected;
@@ -439,49 +534,18 @@
     placeholder.hidden = true;
     select.appendChild(placeholder);
 
-    const button = el("button", {
-      className: "type-picker-button",
-      type: "button",
+    const label = el("span", {
+      className: "type-picker-button type-static-label",
       textContent: selected ? TYPE_LABELS[selected] || selected : "",
-      "aria-haspopup": "listbox",
-      "aria-expanded": "false",
     });
-    const menu = el("div", { className: "type-picker-menu", role: "listbox" });
-    wrap.typePickerMenu = menu;
 
     ROW_TYPE_ORDER.forEach((type) => {
       const option = el("option", { value: type, textContent: TYPE_LABELS[type] || type });
       option.selected = type === selected;
       select.appendChild(option);
-
-      const choice = el("button", {
-        className: "type-picker-choice",
-        type: "button",
-        textContent: TYPE_LABELS[type] || type,
-        role: "option",
-      });
-      choice.dataset.value = type;
-      choice.dataset.type = type;
-      choice.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        select.value = type;
-        button.textContent = TYPE_LABELS[type] || type;
-        closeTypePickers();
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-      menu.appendChild(choice);
     });
 
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const isOpen = wrap.classList.contains("open");
-      closeTypePickers();
-      if (!isOpen) openTypePicker(wrap);
-    });
-
-    wrap.append(select, button, menu);
+    wrap.append(select, label);
     return wrap;
   }
 
@@ -832,10 +896,15 @@
     const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     const color = COLORS[theme][select.value];
     const target = button || select;
+    const addSame = tr.querySelector(".add-same-service");
     target.textContent = select.value ? TYPE_LABELS[select.value] || select.value : "";
     target.style.background = color ? color.bg : "";
     target.style.color = color ? color.fg : "";
     target.style.borderColor = color ? color.border : "";
+    if (addSame) {
+      addSame.style.color = color ? color.fg : "";
+      addSame.style.borderColor = color ? color.border : "";
+    }
     tr.querySelectorAll(".type-picker-choice").forEach((choice) => {
       choice.classList.toggle("selected", choice.dataset.value === select.value);
     });
@@ -869,6 +938,12 @@
     discountControls.forEach((control) => {
       control.disabled = !allowDiscounts;
     });
+    const addSame = tr.querySelector(".add-same-service");
+    if (addSame) {
+      addSame.disabled = !hasType;
+      addSame.title = hasType ? `Add another ${TYPE_LABELS[data.type] || data.type}` : "Choose type first";
+      addSame.setAttribute("aria-label", addSame.title);
+    }
 
     item.closest("td").classList.toggle("muted-cell", hideItem);
     nights.closest("td").classList.toggle("muted-cell", hideNights);
@@ -945,12 +1020,15 @@
     `;
   }
 
-  function addRow(data = {}) {
+  function addRow(data = {}, options = {}) {
     const tr = el("tr");
     tr.dataset.followGlobal = data.followGlobal === true ? "1" : "0";
 
-    const typeCell = el("td");
+    const typeCell = el("td", { className: "type-cell" });
     typeCell.appendChild(createTypeSelect(data.type || ""));
+    const addSame = el("button", { className: "add-same-service", type: "button", title: "Add another same type", "aria-label": "Add another same type" });
+    addSame.appendChild(addSameServiceIcon());
+    typeCell.appendChild(addSame);
 
     const itemCell = el("td");
     const item = el("input", { className: "item", placeholder: "Choose or type manually", autocomplete: "off" });
@@ -986,10 +1064,11 @@
 
     const netCell = el("td", { className: "net", textContent: "0.00" });
     const deleteCell = el("td");
-    deleteCell.appendChild(el("button", { className: "delete", type: "button", textContent: "x" }));
+    deleteCell.appendChild(el("button", { className: "delete", type: "button", title: "Delete row", "aria-label": "Delete row", textContent: "x" }));
 
     [typeCell, itemCell, fromCell, toCell, nightsCell, qtyCell, rateCell, discountsCell, netCell, deleteCell].forEach((cell) => tr.appendChild(cell));
-    rowsEl.appendChild(tr);
+    if (options.after && options.after.parentNode === rowsEl) options.after.after(tr);
+    else rowsEl.appendChild(tr);
 
     const type = tr.querySelector(".type");
     type.addEventListener("change", () => {
@@ -1078,7 +1157,14 @@
       recalc();
     });
     tr.querySelector(".discounts").addEventListener("input", recalc);
+    tr.querySelector(".add-same-service").addEventListener("click", () => {
+      const nextType = tr.querySelector(".type").value;
+      const created = addRow(serviceDefaults(nextType), { after: tr });
+      if (created) created.querySelector(".item")?.focus();
+    });
     tr.querySelector(".delete").addEventListener("click", () => {
+      closeTypePickers();
+      closeItemPicker({ restore: false });
       tr.remove();
       recalc();
     });
@@ -1091,6 +1177,7 @@
     updateRowState(tr);
     if (data.type) groupRowsByType();
     recalc();
+    return tr;
   }
 
   function createDefaultRows() {
@@ -1685,7 +1772,11 @@
     $("eboResult").before(numberStepper($("eboDays")));
     ["ages", "spo", "eboDays"].forEach((id) => $(id).addEventListener("input", recalc));
 
-    $("addRow").addEventListener("click", () => addRow());
+    $("addRow").addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleAddServiceMenu();
+    });
     $("clearAll").addEventListener("click", clearAll);
     $("undoChange").addEventListener("click", undoChange);
     $("redoChange").addEventListener("click", redoChange);
@@ -1735,9 +1826,11 @@
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
       if (itemPicker && !itemPicker.contains(event.target) && event.target !== itemPickerInput) closeItemPicker();
       if (!event.target.closest(".type-picker-wrap") && !event.target.closest(".type-picker-menu")) closeTypePickers();
+      if (!event.target.closest(".add-service-wrap")) closeAddServiceMenu();
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        closeAddServiceMenu();
         closeItemPicker();
         closeTypePickers();
       }
@@ -1750,11 +1843,13 @@
       closePicker();
       closeItemPicker();
       closeTypePickers();
+      closeAddServiceMenu();
     });
     window.addEventListener("scroll", (event) => {
       if (isInsideFloatingPanel(event.target)) return;
       closePicker();
       closeItemPicker();
+      closeAddServiceMenu();
       positionOpenTypePickers();
     }, true);
   }
