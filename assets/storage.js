@@ -90,21 +90,33 @@
       entry.item,
       entry.from || "",
       entry.to || "",
+      entry.spo || "",
     ].map((value) => String(value || "").trim().toLowerCase()).join("|");
+  }
+
+  function normalizeDiscounts(discounts) {
+    return (Array.isArray(discounts) ? discounts : [])
+      .map((item) => Number(item || 0))
+      .filter((item) => item > 0 && item <= 100)
+      .slice(0, 4);
   }
 
   function saveRateMemory(entry) {
     if (!entry || !entry.hotel || !entry.type || !entry.item || !entry.rateFormula || Number(entry.rate || 0) <= 0) return null;
+    const spo = String(entry.spo || "").trim();
     const nextEntry = {
       hotel: String(entry.hotel).trim(),
       type: String(entry.type).trim(),
       item: String(entry.item).trim(),
       from: String(entry.from || "").trim(),
       to: String(entry.to || "").trim(),
+      spo,
       rate: Number(entry.rate || 0),
       rateFormula: String(entry.rateFormula).trim(),
       savedAt: new Date().toISOString(),
     };
+    const discounts = spo ? normalizeDiscounts(entry.discounts) : [];
+    if (discounts.length) nextEntry.discounts = discounts;
     const nextKey = rateKey(nextEntry);
     const next = [nextEntry, ...rateMemory().filter((item) => rateKey(item) !== nextKey)];
     writeJson(RATE_MEMORY_KEY, next.slice(0, 1000));
@@ -119,15 +131,24 @@
       item: String(query.item).trim().toLowerCase(),
       from: String(query.from || "").trim(),
       to: String(query.to || "").trim(),
+      spo: String(query.spo || "").trim().toLowerCase(),
     };
-    return rateMemory().find((entry) => (
+    const matchesBase = (entry) => (
       String(entry.hotel || "").trim().toLowerCase() === normalized.hotel
       && String(entry.type || "").trim().toLowerCase() === normalized.type
       && String(entry.item || "").trim().toLowerCase() === normalized.item
       && String(entry.from || "").trim() === normalized.from
       && String(entry.to || "").trim() === normalized.to
       && entry.rateFormula
-    )) || null;
+    );
+    const rows = rateMemory();
+    const exact = rows.find((entry) => (
+      matchesBase(entry)
+      && String(entry.spo || "").trim().toLowerCase() === normalized.spo
+    ));
+    if (exact) return exact;
+    if (normalized.spo) return rows.find((entry) => matchesBase(entry) && !String(entry.spo || "").trim()) || null;
+    return null;
   }
 
   function rateAutofillEnabled() {

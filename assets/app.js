@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.9";
+  const APP_VERSION = "1.5.0";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -652,6 +652,7 @@
       item: data.item,
       from: data.from,
       to: data.to,
+      spo: value("spo"),
     };
   }
 
@@ -665,7 +666,17 @@
       ...query,
       rate: calculated.rate,
       rateFormula: data.rateFormula,
+      discounts: value("spo").trim() && core.isDiscountable(data) ? data.discounts : [],
     });
+  }
+
+  function setDiscountValues(tr, discounts) {
+    const values = Array.isArray(discounts) ? discounts.filter((item) => Number(item) > 0) : [];
+    if (!values.length) return;
+    const container = tr.querySelector(".discounts");
+    if (!container) return;
+    container.innerHTML = "";
+    setupDiscounts(container, { discounts: values });
   }
 
   function applyRememberedRate(tr, { force = false } = {}) {
@@ -678,6 +689,7 @@
     if (!remembered) return false;
     rate.value = remembered.rateFormula;
     rate.title = "Filled from local rate memory";
+    if (query.spo && Array.isArray(remembered.discounts)) setDiscountValues(tr, remembered.discounts);
     return true;
   }
 

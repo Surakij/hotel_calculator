@@ -69,6 +69,32 @@ test("stores and finds local rate memory by hotel, item, and dates", () => {
   assert.equal(match.rate, 400);
 });
 
+test("stores SPO discounts with local rate memory", () => {
+  storage.saveRateMemory({
+    hotel: "Jawakara Islands Maldives",
+    type: "ROOM",
+    item: "Mabin Beach Villa",
+    from: "01.09.2026",
+    to: "05.09.2026",
+    spo: "JWK-RM40",
+    rate: 400,
+    rateFormula: "200*2",
+    discounts: [40, 5],
+  });
+
+  const match = storage.findRateMemory({
+    hotel: "Jawakara Islands Maldives",
+    type: "ROOM",
+    item: "Mabin Beach Villa",
+    from: "01.09.2026",
+    to: "05.09.2026",
+    spo: "JWK-RM40",
+  });
+
+  assert.equal(match.rateFormula, "200*2");
+  assert.deepEqual(match.discounts, [40, 5]);
+});
+
 test("keeps rate auto-fill disabled until explicitly enabled", () => {
   assert.equal(storage.rateAutofillEnabled(), false);
   assert.equal(storage.setRateAutofillEnabled(true), true);
