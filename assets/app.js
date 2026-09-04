@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.5.1";
+  const APP_VERSION = "1.5.2";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -73,6 +73,7 @@
   let undoReady = false;
   let restoringUndoState = false;
   let lastUndoSignature = "";
+  let savedPayloadSignature = "";
   const undoStack = [];
   const redoStack = [];
   const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(2026, index, 1).toLocaleString("en-US", { month: "long" }));
@@ -424,6 +425,34 @@
     const redo = $("redoChange");
     if (undo) undo.disabled = undoStack.length <= 1;
     if (redo) redo.disabled = redoStack.length === 0;
+  }
+
+  function setSaveButtonSaved(saved) {
+    const button = $("saveCalculation");
+    if (!button) return;
+    const label = button.querySelector(".save-label");
+    button.disabled = saved;
+    button.classList.toggle("is-saved", saved);
+    if (label) label.textContent = saved ? "Saved" : "Save";
+  }
+
+  function markCalculationSaved(payload) {
+    savedPayloadSignature = payloadSignature(payload);
+    setSaveButtonSaved(true);
+  }
+
+  function clearSaveStatus() {
+    savedPayloadSignature = "";
+    setSaveButtonSaved(false);
+  }
+
+  function updateSaveStatus() {
+    if (!savedPayloadSignature) {
+      setSaveButtonSaved(false);
+      return;
+    }
+    const currentSignature = payloadSignature(sharePayload());
+    setSaveButtonSaved(currentSignature === savedPayloadSignature);
   }
 
   function pushUndoSnapshot({ clearRedo = true } = {}) {
@@ -1034,6 +1063,7 @@
     $("grandTotal").textContent = `$${core.money(calculated.total)}`;
     renderStaySummary();
     renderEboCheck();
+    updateSaveStatus();
     scheduleDraftSave();
     scheduleUndoSnapshot();
   }
@@ -1434,6 +1464,7 @@
     recalc();
     const entry = calculationEntry();
     storage.saveHistory(entry);
+    markCalculationSaved(entry.payload);
     renderHistory();
     toast("Calculation saved");
   }
@@ -1602,6 +1633,7 @@
     });
     renderChildAgeFields();
     createDefaultRows();
+    clearSaveStatus();
     recalc();
     storage.clearDraft();
     toast("Calculation cleared");
@@ -1873,6 +1905,7 @@
       if (!entry) return;
       if (event.target.closest(".history-open")) {
         applyPayload(entry.payload);
+        markCalculationSaved(entry.payload);
         $("historyModal").close();
         toast("Saved calculation opened");
       } else if (event.target.closest(".history-copy")) {

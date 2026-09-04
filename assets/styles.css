@@ -633,6 +633,13 @@ button:disabled {
   color: var(--navy);
 }
 
+.save.is-saved:disabled {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+  opacity: 1;
+}
+
 .add:hover,
 .download:hover {
   background: #eaf3ff;
@@ -1839,6 +1846,12 @@ td:last-child {
   border-color: #2e4b6d;
   background: #10243d;
   color: #c7e0ff;
+}
+
+:root[data-theme="dark"] .save.is-saved:disabled {
+  border-color: #2f7d54;
+  background: #123324;
+  color: #7ce6a2;
 }
 
 :root[data-theme="dark"] .clear {
