@@ -5,6 +5,7 @@
   const discountStepWidth = 140;
   const tableHeaderHeight = 42;
   const tableRowHeight = 48;
+  const tableBottomSpace = 20;
   const summaryBaseHeight = 88;
   const summaryRowHeight = 44;
 
@@ -19,10 +20,10 @@
     const pricedRoomRows = rows.filter((row) => row?.type === "ROOM" && (row.rateFormula || Number(row.rate) > 0)).length;
 
     root.style.setProperty("--discount-column-width", `${discountBaseWidth + (maxDiscounts - 1) * discountStepWidth}px`);
-    root.style.setProperty("--table-wrap-min-height", `${Math.max(268, tableHeaderHeight + rowCount * tableRowHeight)}px`);
+    root.style.setProperty("--table-wrap-min-height", `${tableHeaderHeight + rowCount * tableRowHeight + tableBottomSpace}px`);
     root.style.setProperty("--initial-summary-height", pricedRoomRows ? `${summaryBaseHeight + Math.min(pricedRoomRows, 8) * summaryRowHeight}px` : "0px");
   } catch {
-    root.style.setProperty("--table-wrap-min-height", "268px");
+    root.style.setProperty("--table-wrap-min-height", `${tableHeaderHeight + fallbackRows * tableRowHeight + tableBottomSpace}px`);
     root.style.setProperty("--initial-summary-height", "0px");
   }
 })();

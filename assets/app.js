@@ -4,7 +4,7 @@
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.4.7";
+  const APP_VERSION = "1.4.8";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -54,6 +54,9 @@
   const GLOBAL_DATE_IDS = new Set(["checkin", "checkout"]);
   const DATE_RANGE_TYPES = new Set(["ROOM", "EXTRA", "MEAL", "GREEN_TAX"]);
   const UNDO_LIMIT = 80;
+  const TABLE_HEADER_HEIGHT = 42;
+  const TABLE_ROW_HEIGHT = 48;
+  const TABLE_BOTTOM_SPACE = 20;
 
   const $ = (id) => document.getElementById(id);
   const rowsEl = $("rows");
@@ -103,19 +106,18 @@
     return svg;
   }
 
-  function addSameServiceIcon() {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "row-action-icon");
-    svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("aria-hidden", "true");
-
-    ["M12 5v10", "M7 10l5 5 5-5", "M6 19h12", "M19 5h-4", "M17 3v4"].forEach((pathData) => {
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", pathData);
-      svg.appendChild(path);
-    });
-
-    return svg;
+  function similarRowData(tr) {
+    const data = rowData(tr);
+    return {
+      type: data.type,
+      item: data.item,
+      from: data.from,
+      to: data.to,
+      qty: data.qty,
+      rateFormula: data.rateFormula,
+      discounts: [...data.discounts],
+      followGlobal: data.followGlobal,
+    };
   }
 
   function value(id) {
@@ -632,6 +634,12 @@
     document.documentElement.style.setProperty("--discount-column-width", `${152 + (maxDiscounts - 1) * 140}px`);
   }
 
+  function syncTableMinHeight() {
+    const rowCount = Math.max(1, rowsEl.querySelectorAll("tr").length);
+    const height = TABLE_HEADER_HEIGHT + rowCount * TABLE_ROW_HEIGHT + TABLE_BOTTOM_SPACE;
+    document.documentElement.style.setProperty("--table-wrap-min-height", `${height}px`);
+  }
+
   function rowData(tr) {
     return {
       type: tr.querySelector(".type").value,
@@ -901,10 +909,6 @@
     target.style.background = color ? color.bg : "";
     target.style.color = color ? color.fg : "";
     target.style.borderColor = color ? color.border : "";
-    if (addSame) {
-      addSame.style.color = color ? color.fg : "";
-      addSame.style.borderColor = color ? color.border : "";
-    }
     tr.querySelectorAll(".type-picker-choice").forEach((choice) => {
       choice.classList.toggle("selected", choice.dataset.value === select.value);
     });
@@ -954,6 +958,7 @@
     syncGlobalRows();
     rowsEl.querySelectorAll("tr").forEach(clampRowDates);
     syncDiscountColumnWidth();
+    syncTableMinHeight();
     $("nights").value = core.nightsBetween(value("checkin"), value("checkout"));
 
     const calculated = core.calculateRows(currentRows());
@@ -1026,8 +1031,7 @@
 
     const typeCell = el("td", { className: "type-cell" });
     typeCell.appendChild(createTypeSelect(data.type || ""));
-    const addSame = el("button", { className: "add-same-service", type: "button", title: "Add another same type", "aria-label": "Add another same type" });
-    addSame.appendChild(addSameServiceIcon());
+    const addSame = el("button", { className: "add-same-service", type: "button", title: "Add similar service", "aria-label": "Add similar service", textContent: "+" });
     typeCell.appendChild(addSame);
 
     const itemCell = el("td");
@@ -1158,8 +1162,8 @@
     });
     tr.querySelector(".discounts").addEventListener("input", recalc);
     tr.querySelector(".add-same-service").addEventListener("click", () => {
-      const nextType = tr.querySelector(".type").value;
-      const created = addRow(serviceDefaults(nextType), { after: tr });
+      flushUndoSnapshot();
+      const created = addRow(similarRowData(tr), { after: tr, preserveValues: true });
       if (created) created.querySelector(".item")?.focus();
     });
     tr.querySelector(".delete").addEventListener("click", () => {
@@ -1172,7 +1176,7 @@
     if (data.followGlobal !== true && data.followGlobal !== false) {
       tr.dataset.followGlobal = isGlobalDateRow(tr) ? "1" : "0";
     }
-    applyAutoQty(tr);
+    if (!options.preserveValues) applyAutoQty(tr);
     clampRowDates(tr);
     updateRowState(tr);
     if (data.type) groupRowsByType();
