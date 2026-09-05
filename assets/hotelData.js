@@ -1016,8 +1016,8 @@
       "Water Villas with Pool"
     ],
     "meals": [
-      "Deluxe AI Sanctuary - Adult",
-      "Deluxe AI Sanctuary - Child"
+      "AI - Deluxe - Adult",
+      "AI - Deluxe - Child"
     ]
   },
   "Eri Maldives": {
@@ -2587,7 +2587,7 @@
       "AI made by ROBINSON - Child"
     ]
   },
-  "Robinson": {
+  "Robinson Noonu": {
     "rooms": [
       "Beach Villa Pool",
       "Beach Villa Private Pool",
@@ -3004,8 +3004,8 @@
       "HB - Child",
       "FB - Adult",
       "FB - Child",
-      "24/7 AI Dine Around - Adult",
-      "24/7 AI Dine Around - Child"
+      "AI - Adult",
+      "AI - Child"
     ]
   },
   "Sun Siyam Vilu Reef Maldives": {

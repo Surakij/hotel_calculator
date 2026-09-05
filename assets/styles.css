@@ -1589,6 +1589,131 @@ td:last-child {
   width: min(620px, 92vw);
 }
 
+.samo-import-modal {
+  width: min(760px, 92vw);
+}
+
+.samo-import-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.samo-import-field textarea {
+  min-height: 180px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--field);
+  color: var(--text);
+  font: 13px/1.45 "Segoe UI", Inter, Arial, sans-serif;
+}
+
+.samo-import-field textarea:focus {
+  outline: 0;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.samo-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.samo-import-preview {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 14px;
+}
+
+.samo-import-preview h3 {
+  margin: 6px 0 2px;
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.samo-preview-line {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: rgba(248, 251, 255, .72);
+}
+
+.samo-preview-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.samo-preview-line strong {
+  min-width: 0;
+  color: var(--text);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.samo-status {
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #eaf3ff;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.samo-status.mapped {
+  background: #ecfdf3;
+  color: #148043;
+}
+
+.samo-status.unresolved {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.samo-preview-rooms {
+  display: grid;
+  gap: 7px;
+}
+
+.samo-preview-room {
+  border-left: 3px solid #b9d7fb;
+  padding: 5px 0 5px 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.samo-preview-warnings {
+  display: grid;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.samo-import-empty {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+
 .settings-section {
   display: grid;
   gap: 14px;
@@ -2228,6 +2353,35 @@ td:last-child {
   border-color: #653044;
   background: #2a1722;
   color: #ff9daf;
+}
+
+:root[data-theme="dark"] .samo-import-field textarea,
+:root[data-theme="dark"] .samo-preview-line {
+  background: #091a2d;
+}
+
+:root[data-theme="dark"] .samo-preview-room {
+  border-left-color: #31577f;
+}
+
+:root[data-theme="dark"] .samo-status {
+  background: #183a61;
+  color: #edf6ff;
+}
+
+:root[data-theme="dark"] .samo-status.mapped {
+  background: #102b20;
+  color: #7ce6a2;
+}
+
+:root[data-theme="dark"] .samo-status.unresolved {
+  background: #2a1722;
+  color: #ff9daf;
+}
+
+:root[data-theme="dark"] .samo-preview-warnings {
+  background: #352514;
+  color: #f5bb72;
 }
 
 :root[data-theme="dark"] .calendar-grid button {

@@ -2,9 +2,10 @@
   const core = window.HotelCalcCore;
   const storage = window.HotelCalculatorStorage;
   const googleDrive = window.HotelCalculatorGoogleDrive;
+  const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.5.4";
+  const APP_VERSION = "1.6.0";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -74,6 +75,7 @@
   let restoringUndoState = false;
   let lastUndoSignature = "";
   let savedPayloadSignature = "";
+  let samoImportData = null;
   const undoStack = [];
   const redoStack = [];
   const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(2026, index, 1).toLocaleString("en-US", { month: "long" }));
@@ -1486,6 +1488,269 @@
     return true;
   }
 
+  function hasMeaningfulCalculation() {
+    const payload = sharePayload();
+    if (payload.hotel || payload.checkin || payload.checkout || payload.spo) return true;
+    const guests = payload.guests || {};
+    if (Number(guests.adults || 0) || Number(guests.children || 0) || Number(guests.infants || 0) || guests.ages) return true;
+    return payload.rows.some((row) => {
+      if (!row.type) return false;
+      if (core.isGreenTax(row) && !row.from && !row.to && !Number(row.qty || 0)) return false;
+      return Boolean(row.item || row.from || row.to || row.rateFormula || row.discounts?.length);
+    });
+  }
+
+  function normalizedMealPlan(value) {
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function mealPlanTokens(value) {
+    return normalizedMealPlan(value)
+      .replace(/\s+-\s+/g, " ")
+      .split(/\s+/)
+      .filter(Boolean)
+      .sort()
+      .join(" ");
+  }
+
+  function findMealValue(record, plan, guest) {
+    const wanted = normalizedMealPlan(plan);
+    if (!record || !wanted) return "";
+    const suffix = guest === "child" ? "Child" : "Adult";
+    const wantedTokens = mealPlanTokens(plan);
+    const matchingGuestMeals = recordMeals(record).filter((meal) => new RegExp(`\\s+-\\s+${suffix}$`, "i").test(meal));
+    const exact = matchingGuestMeals.find((meal) => {
+      if (!new RegExp(`\\s+-\\s+${suffix}$`, "i").test(meal)) return false;
+      return normalizedMealPlan(stripGuestSuffix(meal)) === wanted;
+    });
+    if (exact) return exact;
+    const tokenMatch = matchingGuestMeals.filter((meal) => mealPlanTokens(stripGuestSuffix(meal)) === wantedTokens);
+    if (tokenMatch.length === 1) return tokenMatch[0];
+    if (/^[a-z]{2,4}$/i.test(wanted)) {
+      const codeMatches = matchingGuestMeals.filter((meal) => new RegExp(`\\b${wanted}\\b`, "i").test(stripGuestSuffix(meal)));
+      if (codeMatches.length === 1) return codeMatches[0];
+    }
+    return "";
+  }
+
+  function transferItem(mode, guest, oneWay) {
+    const names = { SPEEDBOAT: "Speedboat", SEAPLANE: "Seaplane", DOMESTIC: "Domestic" };
+    const base = names[mode] || "";
+    if (!base) return "";
+    const suffix = guest === "child" ? "Child" : "Adult";
+    return oneWay ? `${base} OW - ${suffix}` : `${base} - ${suffix}`;
+  }
+
+  function roomsWithQuotationRates(rooms, quotation) {
+    const components = quotation?.components || [];
+    if (!Array.isArray(rooms) || !rooms.length || components.length !== rooms.length) return rooms;
+    const exact = rooms.every((room, index) => Number(room.nights || core.nightsBetween(room.from, room.to)) === Number(components[index]?.nights || 0));
+    if (!exact) return rooms;
+    return rooms.map((room, index) => ({ ...room, rateFormula: String(components[index].rate) }));
+  }
+
+  function samoGalaDinnerText(galaDinners = []) {
+    return galaDinners
+      .map((gala) => {
+        const name = gala.itemBase || gala.raw || "";
+        const date = gala.from && gala.to && gala.from !== gala.to ? `${gala.from} - ${gala.to}` : gala.from || gala.to || "";
+        return [name, date].filter(Boolean).join(" · ");
+      })
+      .filter(Boolean)
+      .join("; ");
+  }
+
+  function addSamoDinnerRows(rows, warnings, galaDinners, adults, children) {
+    (galaDinners || []).forEach((gala) => {
+      if (!gala.itemBase) {
+        warnings.push(`Gala dinner "${gala.raw}" was not safely mapped.`);
+        return;
+      }
+      const adultItem = `${gala.itemBase} - Adult`;
+      const childItem = `${gala.itemBase} - Child`;
+      if (adults > 0 && LISTS.DINNER.includes(adultItem)) {
+        rows.push({ type: "DINNER", item: adultItem, from: gala.from, to: gala.to, qty: adults });
+      }
+      if (children > 0 && LISTS.DINNER.includes(childItem)) {
+        rows.push({ type: "DINNER", item: childItem, from: gala.from, to: gala.to, qty: children });
+      }
+    });
+  }
+
+  function buildSamoPayload(parsed) {
+    const hotel = parsed.mappedHotel || parsed.hotel || "";
+    const record = parsed.mappedHotel ? HOTEL_DATA[parsed.mappedHotel] : null;
+    const warnings = [...(parsed.warnings || [])];
+    const adults = Number(parsed.adults || 0);
+    const children = Number(parsed.children || 0);
+    const rows = [];
+
+    roomsWithQuotationRates(parsed.rooms || [], parsed.roomQuotation).forEach((room) => {
+      if (!room.item && !room.from && !room.to) return;
+      rows.push({
+        type: "ROOM",
+        item: room.item || "",
+        from: room.from || parsed.checkin || "",
+        to: room.to || parsed.checkout || "",
+        qty: 1,
+        rateFormula: room.rateFormula || "",
+        followGlobal: false,
+      });
+    });
+
+    if (parsed.mealPlan) {
+      const adultMeal = adults > 0 ? findMealValue(record, parsed.mealPlan, "adult") : "";
+      const childMeal = children > 0 ? findMealValue(record, parsed.mealPlan, "child") : "";
+      if (adults > 0 && adultMeal) rows.push({ type: "MEAL", item: adultMeal, from: parsed.checkin, to: parsed.checkout, qty: adults, followGlobal: true });
+      if (children > 0 && childMeal) rows.push({ type: "MEAL", item: childMeal, from: parsed.checkin, to: parsed.checkout, qty: children, followGlobal: true });
+      if ((adults > 0 && !adultMeal) || (children > 0 && !childMeal)) warnings.push(`Meal plan "${parsed.mealPlan}" was not safely mapped for the selected hotel.`);
+    }
+
+    if (parsed.transfer?.mode) {
+      const adultTransfer = adults > 0 ? transferItem(parsed.transfer.mode, "adult", parsed.transfer.oneWay) : "";
+      const childTransfer = children > 0 ? transferItem(parsed.transfer.mode, "child", parsed.transfer.oneWay) : "";
+      if (adultTransfer) rows.push({ type: "TRANSFER", item: adultTransfer, qty: adults });
+      if (childTransfer) rows.push({ type: "TRANSFER", item: childTransfer, qty: children });
+    } else if (parsed.transfer?.status === "unresolved") {
+      warnings.push("Transfer was detected but not safely mapped.");
+    }
+
+    addSamoDinnerRows(rows, warnings, parsed.galaDinners, adults, children);
+
+    if (parsed.greenTax) {
+      rows.push({
+        type: "GREEN_TAX",
+        item: "Green Tax",
+        from: parsed.checkin,
+        to: parsed.checkout,
+        qty: adults + children,
+        rate: 12,
+        followGlobal: true,
+      });
+    }
+
+    return {
+      payload: {
+        hotel,
+        checkin: parsed.checkin || "",
+        checkout: parsed.checkout || "",
+        guests: {
+          adults: String(adults),
+          children: String(children),
+          infants: String(Number(parsed.infants || 0)),
+          ages: (parsed.childAges || []).join("/"),
+        },
+        spo: parsed.spo || "",
+        rows,
+      },
+      warnings,
+    };
+  }
+
+  function statusPill(status) {
+    const normalized = status || "Detected";
+    const span = el("span", { className: `samo-status ${normalized.toLowerCase()}`, textContent: normalized });
+    return span;
+  }
+
+  function previewLine(label, value, status = "Detected") {
+    const row = el("div", { className: "samo-preview-line" });
+    row.appendChild(el("span", { className: "samo-preview-label", textContent: label }));
+    row.appendChild(el("strong", { textContent: value || "--" }));
+    row.appendChild(statusPill(status));
+    return row;
+  }
+
+  function renderSamoPreview(parsed) {
+    const box = $("samoImportPreview");
+    const apply = $("applySamoImport");
+    box.innerHTML = "";
+    if (!parsed) {
+      apply.disabled = true;
+      box.appendChild(el("div", { className: "samo-import-empty", textContent: "Paste request text and parse it first." }));
+      return;
+    }
+    apply.disabled = false;
+    const mapped = buildSamoPayload(parsed);
+    const hotelStatus = parsed.hotelStatus === "mapped" ? "Mapped" : parsed.hotelStatus === "unresolved" ? "Unresolved" : "Detected";
+    const transferText = parsed.transfer?.mode ? `${parsed.transfer.mode}${parsed.transfer.oneWay ? " OW" : ""}` : parsed.transfer?.raw || "";
+    const galaDinnerText = samoGalaDinnerText(parsed.galaDinners);
+
+    box.appendChild(el("h3", { textContent: "Detected" }));
+    box.appendChild(previewLine("Hotel", parsed.mappedHotel || parsed.hotel, hotelStatus));
+    box.appendChild(previewLine("Stay", parsed.checkin && parsed.checkout ? `${parsed.checkin} - ${parsed.checkout}` : "", parsed.checkin && parsed.checkout ? "Detected" : "Unresolved"));
+    box.appendChild(previewLine("Nights", parsed.nights ? String(parsed.nights) : "", parsed.nights ? "Detected" : "Unresolved"));
+    box.appendChild(previewLine("Guests", `${parsed.adults || 0} ADL, ${parsed.children || 0} CHD, ${parsed.infants || 0} INF`, "Detected"));
+    if (parsed.childAges?.length) box.appendChild(previewLine("Child ages", parsed.childAges.join("/"), "Detected"));
+    box.appendChild(previewLine("Meal", parsed.mealPlan, parsed.mealPlan ? "Detected" : "Unresolved"));
+    box.appendChild(previewLine("Transfer", transferText, parsed.transfer?.mode ? "Mapped" : parsed.transfer?.raw ? "Unresolved" : "Detected"));
+    if (galaDinnerText) box.appendChild(previewLine("Gala Dinner", galaDinnerText, "Mapped"));
+    box.appendChild(previewLine("Green Tax", parsed.greenTax ? "Yes" : "No", "Detected"));
+    if (parsed.spo) box.appendChild(previewLine("SPO", parsed.spo, "Detected"));
+    if (parsed.roomQuotation?.raw) box.appendChild(previewLine("Room quotation", parsed.roomQuotation.raw, "Detected"));
+
+    const roomList = el("div", { className: "samo-preview-rooms" });
+    roomList.appendChild(el("h3", { textContent: "Rooms" }));
+    if (parsed.rooms?.length) {
+      parsed.rooms.forEach((room, index) => {
+        roomList.appendChild(el("div", {
+          className: "samo-preview-room",
+          textContent: `${index + 1}. ${room.item || "--"} · ${room.from || "--"} - ${room.to || "--"}`,
+        }));
+      });
+    } else {
+      roomList.appendChild(el("div", { className: "samo-import-empty", textContent: "No room rows detected." }));
+    }
+    box.appendChild(roomList);
+
+    if (mapped.warnings.length) {
+      const warnings = el("div", { className: "samo-preview-warnings" });
+      mapped.warnings.forEach((warning) => warnings.appendChild(el("div", { textContent: warning })));
+      box.appendChild(warnings);
+    }
+  }
+
+  function openSamoImport() {
+    if (!samoParser) {
+      toast("SAMO importer is not available");
+      return;
+    }
+    samoImportData = null;
+    $("samoImportText").value = "";
+    renderSamoPreview(null);
+    $("samoImportModal").showModal();
+    $("samoImportText").focus();
+  }
+
+  function closeSamoImport() {
+    samoImportData = null;
+    $("samoImportText").value = "";
+    renderSamoPreview(null);
+    $("samoImportModal").close();
+  }
+
+  function parseSamoImport() {
+    const text = $("samoImportText").value;
+    if (!text.trim()) {
+      toast("Paste SAMO request text first");
+      return;
+    }
+    samoImportData = samoParser.parseSamoRequest(text, { hotelNames: HOTEL_NAMES });
+    renderSamoPreview(samoImportData);
+  }
+
+  function applySamoImport() {
+    if (!samoImportData) return;
+    if (hasMeaningfulCalculation() && !window.confirm("Replace current calculation with imported SAMO request?")) return;
+    const { payload } = buildSamoPayload(samoImportData);
+    flushUndoSnapshot();
+    applyPayload(payload);
+    clearSaveStatus();
+    pushUndoSnapshot();
+    closeSamoImport();
+    toast("SAMO request imported");
+  }
+
   function restoreUndoPayload(payload) {
     restoringUndoState = true;
     applyPayload(payload);
@@ -2025,6 +2290,15 @@
     $("redoChange").addEventListener("click", redoChange);
     $("saveCalculation").addEventListener("click", saveCalculation);
     $("showHistory").addEventListener("click", showHistoryModal);
+    $("showSamoImport").addEventListener("click", openSamoImport);
+    $("parseSamoImport").addEventListener("click", parseSamoImport);
+    $("applySamoImport").addEventListener("click", applySamoImport);
+    $("closeSamoImport").addEventListener("click", closeSamoImport);
+    $("cancelSamoImport").addEventListener("click", closeSamoImport);
+    $("samoImportModal").addEventListener("close", () => {
+      samoImportData = null;
+      $("samoImportText").value = "";
+    });
     $("showSettings").addEventListener("click", showSettingsModal);
     $("showShare").addEventListener("click", showShare);
     $("copyShare").addEventListener("click", copyShare);
@@ -2105,5 +2379,5 @@
   if (!restoreDraft()) createDefaultRows();
   recalc();
   initUndoHistory();
-  window.HotelCalculatorApp = { addRow, applyRememberedRates, recalc, shareText, saveCalculation, undoChange, redoChange };
+  window.HotelCalculatorApp = { addRow, applyRememberedRates, recalc, shareText, saveCalculation, undoChange, redoChange, parseSamoImport: samoParser?.parseSamoRequest };
 })();
