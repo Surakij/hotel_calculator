@@ -163,6 +163,22 @@ test("invalid manual discounts cannot be saved or shared as a negative total", a
   assert.deepEqual(result, { count: 0, total: "Check inputs", share: "" });
 });
 
+test("SAMO resolves room wording and fills empty rates from memory", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    HotelCalculatorStorage.setRateAutofillEnabled(true);
+    for (const [type, item, rate] of [["ROOM", "Deluxe Beach Pool Villa", 1230], ["MEAL", "AI - Adult", 50], ["TRANSFER", "Seaplane - Adult", 400]]) {
+      HotelCalculatorStorage.saveRateMemory({ hotel: "Kuredhivaru Resort and Spa", type, item, rate, rateFormula: String(rate), spo: "MDBP40", discounts: [40], from: type === "TRANSFER" ? "" : "29.09.2026", to: type === "TRANSFER" ? "" : "06.10.2026" });
+    }
+    $("showSamoImport").click();
+    $("samoImportText").value = "Hotel: Kuredhivaru Resort & Spa\nNumber of guest: 2 Adult\nArrival date: 29.09.2026\nDeparture date: 06.10.2026\nVilla category: Deluxe Beach Villa With Pool\nMeal Plan: AI\nTransfer: Seaplane\nSPO code: MDBP40";
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    return [...document.querySelectorAll("#rows tr")].map((row) => [row.querySelector(".item").value, row.querySelector(".rate").value, row.querySelector(".discount").value]);
+  });
+  assert.deepEqual(result, [["Deluxe Beach Pool Villa", "1230", "40"], ["AI - Adult", "50", "40"], ["Seaplane - Adult", "400", "40"]]);
+});
+
 test("editing SAMO text invalidates the old preview", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.2";
+  const APP_VERSION = "1.6.3";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1663,11 +1663,20 @@
     const children = Number(parsed.children || 0);
     const rows = [];
 
+    function mappedRoomName(item) {
+      const names = record?.rooms || [];
+      const tokens = (name) => String(name || "").toLowerCase().split(/\s+/).filter((word) => word && word !== "with").sort().join(" ");
+      const exact = names.find((name) => name.toLowerCase() === String(item || "").toLowerCase());
+      if (exact) return exact;
+      const matches = names.filter((name) => tokens(name) === tokens(item));
+      return matches.length === 1 ? matches[0] : item;
+    }
+
     roomsWithQuotationRates(parsed.rooms || [], parsed.roomQuotation).forEach((room) => {
       if (!room.item && !room.from && !room.to) return;
       rows.push({
         type: "ROOM",
-        item: room.item || "",
+        item: mappedRoomName(room.item) || "",
         from: room.from || parsed.checkin || "",
         to: room.to || parsed.checkout || "",
         qty: 1,
@@ -1824,6 +1833,7 @@
     flushUndoSnapshot();
     applyPayload(payload);
     clearSaveStatus();
+    if (applyRememberedRates()) recalc();
     pushUndoSnapshot();
     closeSamoImport();
     toast("SAMO request imported");
