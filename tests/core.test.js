@@ -31,6 +31,36 @@ test("renamed Intercontinental retains legacy remembered prices and discounts", 
   }
 });
 
+test("split RIU hotels retain only identifiable legacy room rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    const hotel = "Riu Atoll and Riu Palace Maldivas";
+    const item = "RIU Palace Maldivas - Jr. Suite";
+    localStorage.setItem(key, JSON.stringify([{ hotel, type: "ROOM", item, rateFormula: "500" }, { hotel, type: "MEAL", item: "AI 24 Hours - Adult", rateFormula: "50" }]));
+    assert.equal(storage.findRateMemory({ hotel: "Riu Palace Maldives", type: "ROOM", item }).rateFormula, "500");
+    assert.equal(storage.findRateMemory({ hotel: "Riu Atoll", type: "ROOM", item }), null);
+    assert.equal(storage.findRateMemory({ hotel: "Riu Palace Maldives", type: "MEAL", item: "AI 24 Hours - Adult" }), null);
+    assert.equal(storage.canonicalHotelName(hotel, "RIU Atoll - Double Standard"), "Riu Atoll");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
+test("corrected Fihalhohi name and room suffix retain legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Fihaalhohi Maldives", type: "ROOM", item: "Deluxe Superior", from: "11.09.2026", to: "21.09.2026", rateFormula: "257.28" }]));
+    const saved = storage.findRateMemory({ hotel: "Fihalhohi Maldives", type: "ROOM", item: "Deluxe Superior Room", from: "11.09.2026", to: "21.09.2026" });
+    assert.equal(saved.rateFormula, "257.28");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("reports a failed history write instead of returning a saved entry", () => {
   const setItem = localStorage.setItem;
   localStorage.setItem = () => { throw new Error("Quota exceeded"); };

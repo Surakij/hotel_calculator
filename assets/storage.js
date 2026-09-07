@@ -84,17 +84,29 @@
     return Array.isArray(rows) ? rows : [];
   }
 
-  function canonicalHotelName(name) {
+  function canonicalHotelName(name, item = "") {
     const value = String(name || "").trim();
+    if (/^fihaalhohi maldives$/i.test(value)) return "Fihalhohi Maldives";
+    if (value === "Riu Atoll and Riu Palace Maldivas") {
+      if (/^RIU Atoll - /i.test(item)) return "Riu Atoll";
+      if (/^RIU Palace Maldivas - /i.test(item)) return "Riu Palace Maldives";
+    }
     return /^inter continental maldives maamunagau$/i.test(value)
       ? "Intercontinental Maldives Maamunagau Resort" : value;
   }
 
+  function canonicalItemName(hotel, item) {
+    const value = String(item || "").trim();
+    if (/^fiha{1,2}lhohi maldives$/i.test(String(hotel || "").trim())
+      && /^(?:Deluxe Beach|Deluxe Sky|Deluxe Superior|Premium Beach)$/i.test(value)) return `${value} Room`;
+    return value;
+  }
+
   function rateKey(entry) {
     return [
-      canonicalHotelName(entry.hotel),
+      canonicalHotelName(entry.hotel, entry.item),
       entry.type,
-      entry.item,
+      canonicalItemName(entry.hotel, entry.item),
       entry.from || "",
       entry.to || "",
       entry.spo || "",
@@ -112,9 +124,9 @@
     if (!entry || !entry.hotel || !entry.type || !entry.item || !entry.rateFormula || Number(entry.rate || 0) <= 0) return null;
     const spo = String(entry.spo || "").trim();
     const nextEntry = {
-      hotel: canonicalHotelName(entry.hotel),
+      hotel: canonicalHotelName(entry.hotel, entry.item),
       type: String(entry.type).trim(),
-      item: String(entry.item).trim(),
+      item: canonicalItemName(entry.hotel, entry.item),
       from: String(entry.from || "").trim(),
       to: String(entry.to || "").trim(),
       spo,
@@ -133,17 +145,17 @@
   function findRateMemory(query) {
     if (!query || !query.hotel || !query.type || !query.item) return null;
     const normalized = {
-      hotel: canonicalHotelName(query.hotel).toLowerCase(),
+      hotel: canonicalHotelName(query.hotel, query.item).toLowerCase(),
       type: String(query.type).trim().toLowerCase(),
-      item: String(query.item).trim().toLowerCase(),
+      item: canonicalItemName(query.hotel, query.item).toLowerCase(),
       from: String(query.from || "").trim(),
       to: String(query.to || "").trim(),
       spo: String(query.spo || "").trim().toLowerCase(),
     };
     const matchesBase = (entry) => (
-      canonicalHotelName(entry.hotel).toLowerCase() === normalized.hotel
+      canonicalHotelName(entry.hotel, entry.item).toLowerCase() === normalized.hotel
       && String(entry.type || "").trim().toLowerCase() === normalized.type
-      && String(entry.item || "").trim().toLowerCase() === normalized.item
+      && canonicalItemName(entry.hotel, entry.item).toLowerCase() === normalized.item
       && String(entry.from || "").trim() === normalized.from
       && String(entry.to || "").trim() === normalized.to
       && entry.rateFormula
@@ -209,6 +221,7 @@
 
   return {
     canonicalHotelName,
+    canonicalItemName,
     appearanceSettings,
     clearDraft,
     createId,

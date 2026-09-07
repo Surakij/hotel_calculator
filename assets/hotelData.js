@@ -1036,12 +1036,12 @@
       "AI (AI) - Child"
     ]
   },
-  "Fihaalhohi Maldives": {
+  "Fihalhohi Maldives": {
     "rooms": [
-      "Deluxe Beach",
-      "Deluxe Sky",
-      "Deluxe Superior",
-      "Premium Beach",
+      "Deluxe Beach Room",
+      "Deluxe Sky Room",
+      "Deluxe Superior Room",
+      "Premium Beach Room",
       "Water Villa"
     ],
     "meals": [
@@ -2555,12 +2555,20 @@
       "Full Dine Around AI - Child"
     ]
   },
-  "Riu Atoll and Riu Palace Maldivas": {
+  "Riu Atoll": {
     "rooms": [
       "RIU Atoll - Double room with direct beach access",
       "RIU Atoll - Double Standard",
       "RIU Atoll - Junior Suite - overwater",
-      "RIU Atoll - Superior Junior Suite - overwater",
+      "RIU Atoll - Superior Junior Suite - overwater"
+    ],
+    "meals": [
+      "AI 24 Hours - Adult",
+      "AI 24 Hours - Child"
+    ]
+  },
+  "Riu Palace Maldives": {
+    "rooms": [
       "RIU Palace Maldivas - Jr. Suite",
       "RIU Palace Maldivas - Junior Suite with beach access",
       "RIU Palace Maldivas - Suite - overwater",

@@ -2,6 +2,37 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("detects Fuel Surcharge separately from Green Tax", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Pullman Maldives Maamutaa 5*
+    Number of guest: 2 Adult, 1 Child
+    Arrival date: 11.12.2026
+    Departure date: 18.12.2026
+    Villa category: Beach Villa With Pool 2 Adl
+    Handling: Fuel Surcharge (11.12.2026 - 18.12.2026)
+    Handling fee: Maldives Green Tax (11.12.2026 - 18.12.2026)
+    Transfer: DOMESTIC FLIGHT + SPEEDBOAT Airport - Hotel - Airport
+  `, { hotelNames: ["Pullman Maldives Maamutaa Resort"] });
+  assert.equal(result.fuelSurcharge, true);
+  assert.equal(result.greenTax, true);
+});
+
+test("maps the corrected Fihalhohi hotel name", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Fihalhohi Maldives 3*
+    Number of guest: 2 Adult, 0 Child
+    Arrival date: 11.09.2026
+    Departure date: 21.09.2026
+    Villa category: Deluxe Superior Room 2 Adl
+    Meal Plan: AI
+    Transfer: SPEEDBOAT
+    Room quotation: 10*257.28[8677/Std/3336W5KF]
+  `, { hotelNames: ["Fihalhohi Maldives"] });
+  assert.equal(result.mappedHotel, "Fihalhohi Maldives");
+  assert.equal(result.rooms[0].item, "Deluxe Superior Room");
+  assert.equal(result.spo, "3336W5KF");
+});
+
 test("matches Intercontinental star deluxe suffix and ignores email footer after empty fields", () => {
   const base = "Hotel: Intercontinental Maldives Maamunagau Resort 5*Deluxe\nArrival date: 21.02.2027\nDeparture date: 02.03.2027\nVilla category: Family Beach Villa With Pool\nMeal Plan: HB\nSPO code:\nRoom quotation:\n";
   for (const footer of ["IMPORTANT - in case of non-availability please send alternatives", "PLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION", "With Best Regards,"]) {

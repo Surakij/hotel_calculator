@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.5";
+  const APP_VERSION = "1.6.6";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -23,7 +23,7 @@
     MEAL: ["BB - Adult", "BB - Child", "HB - Adult", "HB - Child", "FB - Adult", "FB - Child", "AI - Adult", "AI - Child", "AI Luxury - Adult", "AI Luxury - Child", "Cristal AI - Adult", "Cristal AI - Child"],
     TRANSFER: ["Seaplane - Adult", "Seaplane - Child", "Seaplane OW - Adult", "Seaplane OW - Child", "Domestic - Adult", "Domestic - Child", "Domestic OW - Adult", "Domestic OW - Child", "Speedboat - Adult", "Speedboat - Child", "Speedboat OW - Adult", "Speedboat OW - Child"],
     DINNER: ["Christmas Gala Dinner - Adult", "Christmas Gala Dinner - Child", "New Year Gala Dinner - Adult", "New Year Gala Dinner - Child"],
-    EXTRA: ["Extra Adult", "Extra Child"],
+    EXTRA: ["Extra Adult", "Extra Child", "Fuel Surcharge"],
     GREEN_TAX: ["Green Tax"],
   };
   const COLORS = {
@@ -1036,6 +1036,9 @@
 
   function rowTypeRank(tr) {
     const type = tr.querySelector(".type").value;
+    if (type === "EXTRA" && /^fuel surcharge$/i.test(tr.querySelector(".item")?.value || "")) {
+      return ROW_TYPE_ORDER.indexOf("TRANSFER") + 0.5;
+    }
     const rank = ROW_TYPE_ORDER.indexOf(type);
     return rank === -1 ? ROW_TYPE_ORDER.length : rank;
   }
@@ -1532,6 +1535,11 @@
     closeItemPicker({ restore: false });
     suppressDraft = true;
     $("hotel").value = storage.canonicalHotelName(payload.hotel);
+    if (payload.hotel === "Riu Atoll and Riu Palace Maldivas") {
+      const hotels = [...new Set((payload.rows || []).filter((row) => row.type === "ROOM")
+        .map((row) => storage.canonicalHotelName(payload.hotel, row.item)))];
+      if (hotels.length === 1) $("hotel").value = hotels[0];
+    }
     $("checkin").value = core.formatDate(payload.checkin || "");
     $("checkout").value = core.formatDate(payload.checkout || "");
     $("adults").value = payload.guests?.adults ?? "0";
@@ -1702,6 +1710,10 @@
       warnings.push("Transfer was detected but not safely mapped.");
     }
 
+    if (parsed.fuelSurcharge) {
+      rows.push({ type: "EXTRA", item: "Fuel Surcharge", qty: adults + children });
+    }
+
     addSamoDinnerRows(rows, warnings, parsed.galaDinners, adults, children);
 
     if (parsed.greenTax) {
@@ -1771,6 +1783,7 @@
     if (parsed.childAges?.length) box.appendChild(previewLine("Child ages", parsed.childAges.join("/"), "Detected"));
     box.appendChild(previewLine("Meal", parsed.mealPlan, parsed.mealPlan ? "Detected" : "Unresolved"));
     box.appendChild(previewLine("Transfer", transferText, parsed.transfer?.mode ? "Mapped" : "Unresolved"));
+    if (parsed.fuelSurcharge) box.appendChild(previewLine("Fuel surcharge", "One time · all guests", "Mapped"));
     if (galaDinnerText) box.appendChild(previewLine("Gala Dinner", galaDinnerText, "Mapped"));
     box.appendChild(previewLine("Green Tax", parsed.greenTax ? "Yes" : parsed.freeText ? "" : "No", parsed.freeText && !parsed.greenTax ? "Unresolved" : "Detected"));
     if (parsed.spo) box.appendChild(previewLine("SPO", parsed.spo, "Detected"));

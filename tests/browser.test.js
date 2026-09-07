@@ -197,6 +197,34 @@ test("imports a short Russian request with ages, meals, transfer and remembered 
   assert.deepEqual(result, { hotel: "Finolhu", nights: "6", ages: ["6", "10"], rows: [["Beach Villa", "1", "800"], ["AI - Adult", "2", ""], ["AI - Child", "2", ""], ["Seaplane - Adult", "2", ""], ["Seaplane - Child", "2", ""]] });
 });
 
+test("imports Fuel Surcharge once for adults and children after transfers", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Pullman Maldives Maamutaa 5*
+Number of guest: 2 Adult, 1 Child
+Arrival date: 11.12.2026
+Departure date: 18.12.2026
+Villa category: Beach Villa With Pool 2 Adl
+Handling: Fuel Surcharge (11.12.2026 - 18.12.2026)
+Handling fee: Maldives Green Tax (11.12.2026 - 18.12.2026)
+Transfer: SPEEDBOAT Airport - Hotel - Airport`;
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    return [...document.querySelectorAll("#rows tr")].map((row) => ({
+      type: row.querySelector(".type").value,
+      item: row.querySelector(".item").value,
+      qty: row.querySelector(".qty").value,
+      from: row.querySelector(".from")?.value || "",
+      to: row.querySelector(".to")?.value || "",
+    }));
+  });
+  const fuelIndex = result.findIndex((row) => row.item === "Fuel Surcharge");
+  const lastTransferIndex = result.reduce((index, row, current) => row.type === "TRANSFER" ? current : index, -1);
+  assert.equal(fuelIndex, lastTransferIndex + 1);
+  assert.deepEqual(result[fuelIndex], { type: "EXTRA", item: "Fuel Surcharge", qty: "3", from: "", to: "" });
+});
+
 test("editing SAMO text invalidates the old preview", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

@@ -68,6 +68,7 @@
       "Villa",
       "Meal Plan",
       "Meal",
+      "Handling",
       "Handling fee",
       "Service text",
       "Transfer",
@@ -339,7 +340,8 @@
     const nights = nightsBetween(checkin, checkout) || parseLength(firstLabel(lines, ["Length of stay", "Stay length"]));
     const childAges = parseChildAges(lines, checkin);
     const mealPlan = firstLabel(lines, ["Meal Plan", "Meal"]);
-    const handlingFee = firstLabel(lines, ["Handling fee", "Service text"]);
+    const handlingFees = allLabels(lines, ["Handling", "Handling fee", "Service text"]);
+    const handlingFee = handlingFees.join("\n");
     const transfer = parseTransfer(firstLabel(lines, ["Transfer"]));
     const galaDinners = [...new Map(allLabels(lines, ["Gala Dinner"]).map(parseGalaDinner).filter(Boolean)
       .map((gala) => [JSON.stringify([gala.itemBase || gala.raw, gala.from, gala.to]), gala])).values()];
@@ -347,6 +349,7 @@
     const explicitSpo = firstLabel(lines, ["SPO code", "SPO"]);
     const spo = explicitSpo || spoFromRoomQuotation(roomQuotation);
     const greenTax = /maldives\s+green\s+tax/i.test(`${handlingFee}\n${lines.join("\n")}`);
+    const fuelSurcharge = handlingFees.some((fee) => /\bfuel\s+surcharge\b/i.test(fee));
 
     if (!rawHotel) warnings.push("Hotel was not detected.");
     if (!checkin || !checkout) warnings.push("Stay dates were not fully detected.");
@@ -368,6 +371,7 @@
       transfer,
       galaDinners,
       greenTax,
+      fuelSurcharge,
       spo,
       roomQuotation,
       warnings,
