@@ -179,6 +179,24 @@ test("SAMO resolves room wording and fills empty rates from memory", async () =>
   assert.deepEqual(result, [["Deluxe Beach Pool Villa", "1230", "40"], ["AI - Adult", "50", "40"], ["Seaplane - Adult", "400", "40"]]);
 });
 
+test("imports a short Russian request with ages, meals, transfer and remembered price", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    HotelCalculatorStorage.setRateAutofillEnabled(true);
+    HotelCalculatorStorage.saveRateMemory({ hotel: "Finolhu", type: "ROOM", item: "Beach Villa", from: "22.11.2026", to: "28.11.2026", rate: 800, rateFormula: "800" });
+    $("showSamoImport").click();
+    $("samoImportText").value = "22-28.11.2026\nFinolhu\nBeach Villa\n2взр+ 2 детей (6,10 лет), All, гидросамолёт";
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    return {
+      hotel: $("hotel").value, nights: $("nights").value,
+      ages: [...document.querySelectorAll(".child-age-input")].map((input) => input.value),
+      rows: [...document.querySelectorAll("#rows tr")].map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value, row.querySelector(".rate").value]),
+    };
+  });
+  assert.deepEqual(result, { hotel: "Finolhu", nights: "6", ages: ["6", "10"], rows: [["Beach Villa", "1", "800"], ["AI - Adult", "2", ""], ["AI - Child", "2", ""], ["Seaplane - Adult", "2", ""], ["Seaplane - Child", "2", ""]] });
+});
+
 test("editing SAMO text invalidates the old preview", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

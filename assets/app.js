@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.3";
+  const APP_VERSION = "1.6.4";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1759,7 +1759,7 @@
     }
     apply.disabled = false;
     const mapped = buildSamoPayload(parsed);
-    const hotelStatus = parsed.hotelStatus === "mapped" ? "Mapped" : parsed.hotelStatus === "unresolved" ? "Unresolved" : "Detected";
+    const hotelStatus = parsed.hotelStatus === "mapped" ? "Mapped" : "Unresolved";
     const transferText = parsed.transfer?.mode ? `${parsed.transfer.mode}${parsed.transfer.oneWay ? " OW" : ""}` : parsed.transfer?.raw || "";
     const galaDinnerText = samoGalaDinnerText(parsed.galaDinners);
 
@@ -1767,12 +1767,12 @@
     box.appendChild(previewLine("Hotel", parsed.mappedHotel || parsed.hotel, hotelStatus));
     box.appendChild(previewLine("Stay", parsed.checkin && parsed.checkout ? `${parsed.checkin} - ${parsed.checkout}` : "", parsed.checkin && parsed.checkout ? "Detected" : "Unresolved"));
     box.appendChild(previewLine("Nights", parsed.nights ? String(parsed.nights) : "", parsed.nights ? "Detected" : "Unresolved"));
-    box.appendChild(previewLine("Guests", `${parsed.adults || 0} ADL, ${parsed.children || 0} CHD, ${parsed.infants || 0} INF`, "Detected"));
+    box.appendChild(previewLine("Guests", `${parsed.adults || 0} ADL, ${parsed.children || 0} CHD, ${parsed.infants || 0} INF`, parsed.adults ? "Detected" : "Unresolved"));
     if (parsed.childAges?.length) box.appendChild(previewLine("Child ages", parsed.childAges.join("/"), "Detected"));
     box.appendChild(previewLine("Meal", parsed.mealPlan, parsed.mealPlan ? "Detected" : "Unresolved"));
-    box.appendChild(previewLine("Transfer", transferText, parsed.transfer?.mode ? "Mapped" : parsed.transfer?.raw ? "Unresolved" : "Detected"));
+    box.appendChild(previewLine("Transfer", transferText, parsed.transfer?.mode ? "Mapped" : "Unresolved"));
     if (galaDinnerText) box.appendChild(previewLine("Gala Dinner", galaDinnerText, "Mapped"));
-    box.appendChild(previewLine("Green Tax", parsed.greenTax ? "Yes" : "No", "Detected"));
+    box.appendChild(previewLine("Green Tax", parsed.greenTax ? "Yes" : parsed.freeText ? "" : "No", parsed.freeText && !parsed.greenTax ? "Unresolved" : "Detected"));
     if (parsed.spo) box.appendChild(previewLine("SPO", parsed.spo, "Detected"));
     if (parsed.roomQuotation?.raw) box.appendChild(previewLine("Room quotation", parsed.roomQuotation.raw, "Detected"));
 
@@ -1819,7 +1819,7 @@
   function parseSamoImport() {
     const text = $("samoImportText").value;
     if (!text.trim()) {
-      toast("Paste SAMO request text first");
+      toast("Paste request text first");
       return;
     }
     samoImportData = samoParser.parseSamoRequest(text, { hotelNames: HOTEL_NAMES });
@@ -1828,7 +1828,7 @@
 
   function applySamoImport() {
     if (!samoImportData) return;
-    if (hasMeaningfulCalculation() && !window.confirm("Replace current calculation with imported SAMO request?")) return;
+    if (hasMeaningfulCalculation() && !window.confirm("Replace current calculation with imported request?")) return;
     const { payload } = buildSamoPayload(samoImportData);
     flushUndoSnapshot();
     applyPayload(payload);
@@ -1836,7 +1836,7 @@
     if (applyRememberedRates()) recalc();
     pushUndoSnapshot();
     closeSamoImport();
-    toast("SAMO request imported");
+    toast("Request imported");
   }
 
   function restoreUndoPayload(payload) {

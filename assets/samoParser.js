@@ -316,7 +316,7 @@
     };
   }
 
-  function parseSamoRequest(text, options = {}) {
+  function parseStructuredRequest(text, options = {}) {
     const lines = normalizeLines(text);
     const warnings = [];
     const rawHotel = firstLabel(lines, ["Hotel"]);
@@ -371,6 +371,76 @@
       roomQuotation,
       warnings,
     };
+  }
+
+  function parseSamoRequest(text, options = {}) {
+    const lines = normalizeLines(text);
+    if (lines.some((line) => labelMatch(line, ["Arrival date", "Departure date", "Guest name", "Number of guest", "Number of guests", "Villa category", "Room quotation"]))) {
+      return parseStructuredRequest(text, options);
+    }
+    const warnings = [];
+    const joined = lines.join("\n");
+    const hotels = [...new Set(lines.map((line) => matchHotel(line.replace(/^(?:hotel|отель)\s*:\s*/i, ""), options.hotelNames || []).mappedHotel).filter(Boolean))];
+    const hotel = hotels.length === 1 ? hotels[0] : "";
+    if (hotels.length > 1) warnings.push("Multiple hotels found. Select one hotel before applying.");
+
+    // A short date range inherits only the month/year explicitly present at its end.
+    const ranges = [...joined.matchAll(/(?<![\d./])(\d{1,2})(?:[./](\d{1,2})(?:[./](\d{4}))?)?\s*[-–—]\s*(\d{1,2})[./](\d{1,2})[./](\d{4})(?!\d)/g)];
+    let from = "";
+    let to = "";
+    if (ranges.length === 1) {
+      const range = ranges[0];
+      from = formatDate(`${range[1]}.${range[2] || range[5]}.${range[3] || range[6]}`);
+      to = formatDate(`${range[4]}.${range[5]}.${range[6]}`);
+      if (!from || !to || nightsBetween(from, to) <= 0) {
+        from = to = "";
+        warnings.push("Invalid or reversed stay dates. Check the full dates and year.");
+      }
+    } else if (ranges.length > 1) warnings.push("Multiple date ranges found. Split the request into separate stays before applying.");
+
+    const count = (pattern) => {
+      const values = [...joined.matchAll(pattern)].map((match) => Number(match[1]));
+      if (values.length > 1) warnings.push("Multiple guest counts found. Check the guest composition.");
+      return values.length === 1 ? values[0] : 0;
+    };
+    const adults = count(/(\d+)\s*(?:adults?\b|adl\b|взр(?:осл(?:ых|ые|ый|ая))?\.?)/gi);
+    const children = count(/(\d+)\s*(?:children\b|child\b|chd\b|детей|дети|реб[её]нок|реб[её]нка)/gi);
+    const infants = count(/(\d+)\s*(?:infants?\b|inf\b|инфант(?:а|ов)?|младен(?:ец|ца|цев))/gi);
+    const ageGroups = [...joined.matchAll(/(?:children\b|child\b|chd\b|детей|дети|реб[её]нок|реб[её]нка)\s*\(([^)]+)\)/gi)];
+    let ages = [];
+    if (ageGroups.length === 1) {
+      const ageText = ageGroups[0][1].replace(/\b(?:years?|yrs?|old)\b|лет|года?|возраст/gi, "").trim();
+      if (/^\d{1,2}(?:\s*[,;/]\s*\d{1,2})*$/.test(ageText)) ages = ageText.split(/[,;/]/).map(Number);
+      if (ages.length !== children || ages.some((age) => age > 17)) ages = [];
+    }
+    const meals = [...new Set([...joined.matchAll(/\b(all inclusive|all|ai|hb|fb|bb)(\+)?\b/gi)].map((match) => /^(all|all inclusive)$/i.test(match[1]) ? "AI" : match[1].toUpperCase() + (match[2] || "")))];
+    const transfers = [];
+    if (/\bseaplane\b|гидросамол[её]т/i.test(joined)) transfers.push("Seaplane");
+    if (/\bspeed\s*boat\b|катер|скоростн\S*\s+лодк/i.test(joined)) transfers.push("Speedboat");
+    if (/\bdomestic\b|внутренн\S*\s+рейс/i.test(joined)) transfers.push("Domestic");
+    if (meals.length > 1) warnings.push("Multiple meal plans found. Check the meal plan.");
+    if (transfers.length > 1) warnings.push("Multiple transfer modes found. Check the transfer.");
+    const roomLines = lines.filter((line) => !hotels.some((name) => matchHotel(line, [name]).mappedHotel)
+      && /\b(villa|suite|bungalow|pavilion|room)\b/i.test(line)
+      && !/\d{1,2}[./]\d{1,2}|\b(adults?|adl|children|chd)\b|взр|детей/i.test(line));
+    if (roomLines.length > 1) warnings.push("Multiple room categories found. Check the room category.");
+    const result = parseStructuredRequest([
+      `Hotel: ${hotel}`, `Number of guest: ${adults} Adult, ${children} Child, ${infants} Infant`,
+      `Arrival date: ${from}`, `Departure date: ${to}`,
+      `Villa category: ${roomLines.length === 1 ? roomLines[0].replace(/^(?:room|номер)\s*:\s*/i, "") : ""}`,
+      `Meal Plan: ${meals.length === 1 ? meals[0] : ""}`,
+      `Transfer: ${transfers.length === 1 ? transfers[0] : ""}${/\b(?:ow|one way)\b|в одну сторону/i.test(joined) ? " OW" : ""}`,
+      `SPO code: ${firstLabel(lines, ["SPO code", "SPO"])}`,
+      `Handling fee: ${/green tax|грин такс/i.test(joined) ? "Maldives Green Tax" : ""}`,
+    ].join("\n"), options);
+    result.childAges = ages;
+    result.warnings = result.warnings.filter((warning) => !warning.startsWith("Some child ages"));
+    if (children > 0 && ages.length !== children) warnings.push("Some child ages could not be detected safely.");
+    if (!adults) warnings.push("Adult count was not detected. Check the guests.");
+    if (!roomLines.length) warnings.push("Room category was not detected.");
+    result.warnings.push(...warnings);
+    result.freeText = true;
+    return result;
   }
 
   return {

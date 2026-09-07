@@ -2,6 +2,39 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("parses a short Russian request with shared month and year", () => {
+  const result = parser.parseSamoRequest("22-28.11.2026\nFinolhu\nBeach Villa\n2взр+ 2 детей (6,10 лет), All, гидросамолёт", { hotelNames: ["Finolhu", "Club Med Finolhu Villas"] });
+  assert.equal(result.mappedHotel, "Finolhu");
+  assert.deepEqual([result.checkin, result.checkout, result.nights], ["22.11.2026", "28.11.2026", 6]);
+  assert.deepEqual([result.adults, result.children, result.infants], [2, 2, 0]);
+  assert.deepEqual(result.childAges, [6, 10]);
+  assert.equal(result.rooms[0].item, "Beach Villa");
+  assert.equal(result.mealPlan, "AI");
+  assert.equal(result.transfer.mode, "SEAPLANE");
+  assert.deepEqual(result.warnings, []);
+});
+
+test("parses English requests across years and does not guess missing years", () => {
+  const result = parser.parseSamoRequest("28.12.2026 - 04.01.2027\nFinolhu\nBeach Villa\n2 adults + 1 child (8 years), AI, speedboat", { hotelNames: ["Finolhu"] });
+  assert.equal(result.nights, 7);
+  assert.deepEqual(result.childAges, [8]);
+  assert.equal(result.transfer.mode, "SPEEDBOAT");
+  for (const date of ["22-28.11", "31-30.11.2026", "22-28.11.2026\n01-08.12.2026"]) {
+    const incomplete = parser.parseSamoRequest(`${date}\nFinolhu\nBeach Villa\n2 adults`, { hotelNames: ["Finolhu"] });
+    assert.equal(incomplete.checkin, "");
+    assert.equal(incomplete.checkout, "");
+    assert.ok(incomplete.warnings.length);
+  }
+});
+
+test("leaves ambiguous hotels, meals and ages unresolved", () => {
+  const result = parser.parseSamoRequest("22-28.11.2026\nFinolhu\nRobinson Noonu\nBeach Villa\n2 adults + 2 children (6-10), AI or HB", { hotelNames: ["Finolhu", "Robinson Noonu"] });
+  assert.equal(result.mappedHotel, "");
+  assert.equal(result.mealPlan, "");
+  assert.deepEqual(result.childAges, []);
+  assert.ok(result.warnings.length);
+});
+
 test("parses Kuredhivaru with former name and multiline SAMO fields", () => {
   const result = parser.parseSamoRequest(`Dear Reservation Team,
 Greetings from Maldiviana!
