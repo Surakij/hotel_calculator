@@ -102,7 +102,7 @@
     const inlineValue = cleanLabelValue(match[1] || "");
     if (inlineValue) return inlineValue;
     for (let next = index + 1; next < lines.length; next += 1) {
-      if (isKnownLabel(lines[next])) return "";
+      if (isKnownLabel(lines[next]) || /^(?:IMPORTANT\b|PLEASE SHARE AN INVOICE\b|In order to avoid discrepancies\b|With Best Regards\b)/i.test(lines[next])) return "";
       return cleanLabelValue(lines[next]);
     }
     return "";
@@ -129,7 +129,8 @@
   function normalizeHotelName(value) {
     return String(value || "")
       .replace(/[★☆]/g, "*")
-      .replace(/\b[1-7]\s*\*+$/i, "")
+      .replace(/\b[1-7]\s*\*+\s*(?:deluxe)?\s*$/i, "")
+      .replace(/\binter\s+continental\b/gi, "Intercontinental")
       .replace(/&/g, " and ")
       .replace(/\(\s*ex\.?\s+[^)]*\)/gi, " ")
       .replace(/[()]/g, " ")

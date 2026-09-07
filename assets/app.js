@@ -1531,7 +1531,7 @@
     closePicker();
     closeItemPicker({ restore: false });
     suppressDraft = true;
-    $("hotel").value = payload.hotel || "";
+    $("hotel").value = storage.canonicalHotelName(payload.hotel);
     $("checkin").value = core.formatDate(payload.checkin || "");
     $("checkout").value = core.formatDate(payload.checkout || "");
     $("adults").value = payload.guests?.adults ?? "0";

@@ -1432,7 +1432,7 @@
       "Signature Platinum Plan - Child"
     ]
   },
-  "Inter Continental Maldives Maamunagau": {
+  "Intercontinental Maldives Maamunagau Resort": {
     "rooms": [
       "Beach Pool Villa",
       "Family Beach Pool Villa",

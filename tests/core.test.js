@@ -16,6 +16,21 @@ global.localStorage = {
   },
 };
 
+test("renamed Intercontinental retains legacy remembered prices and discounts", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Inter Continental Maldives Maamunagau", type: "ROOM", item: "Beach Villa", from: "21.02.2027", to: "02.03.2027", spo: "TEST", rateFormula: "800", discounts: [20] }]));
+    const query = { hotel: "Intercontinental Maldives Maamunagau Resort", type: "ROOM", item: "Beach Villa", from: "21.02.2027", to: "02.03.2027", spo: "TEST" };
+    assert.equal(storage.findRateMemory(query).rateFormula, "800");
+    assert.deepEqual(storage.findRateMemory(query).discounts, [20]);
+    assert.equal(storage.canonicalHotelName("Inter Continental Maldives Maamunagau"), query.hotel);
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("reports a failed history write instead of returning a saved entry", () => {
   const setItem = localStorage.setItem;
   localStorage.setItem = () => { throw new Error("Quota exceeded"); };

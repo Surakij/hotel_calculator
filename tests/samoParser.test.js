@@ -2,6 +2,18 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("matches Intercontinental star deluxe suffix and ignores email footer after empty fields", () => {
+  const base = "Hotel: Intercontinental Maldives Maamunagau Resort 5*Deluxe\nArrival date: 21.02.2027\nDeparture date: 02.03.2027\nVilla category: Family Beach Villa With Pool\nMeal Plan: HB\nSPO code:\nRoom quotation:\n";
+  for (const footer of ["IMPORTANT - in case of non-availability please send alternatives", "PLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION", "With Best Regards,"]) {
+    const result = parser.parseSamoRequest(base + footer, { hotelNames: ["Inter Continental Maldives Maamunagau"] });
+    assert.equal(result.mappedHotel, "Inter Continental Maldives Maamunagau");
+    assert.equal(result.roomQuotation.raw, "");
+    assert.deepEqual(result.roomQuotation.components, []);
+    assert.equal(result.spo, "");
+    assert.equal(result.nights, 9);
+  }
+});
+
 test("parses a short Russian request with shared month and year", () => {
   const result = parser.parseSamoRequest("22-28.11.2026\nFinolhu\nBeach Villa\n2взр+ 2 детей (6,10 лет), All, гидросамолёт", { hotelNames: ["Finolhu", "Club Med Finolhu Villas"] });
   assert.equal(result.mappedHotel, "Finolhu");
