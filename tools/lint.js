@@ -17,6 +17,8 @@ const filesToCheck = [
   "tools/lint.js",
   "tests/core.test.js",
   "tests/samoParser.test.js",
+  "tests/googleDrive.test.js",
+  "tests/browser.test.js",
 ];
 
 let failed = false;

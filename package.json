@@ -1,11 +1,12 @@
 {
   "name": "hotel-calculator",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "private": true,
   "description": "Browser-based Maldives resort quotation and reservation pricing calculator.",
   "scripts": {
     "lint": "node tools/lint.js",
-    "test": "node tests/core.test.js && node tests/samoParser.test.js"
+    "test": "node tests/core.test.js && node tests/samoParser.test.js && node tests/googleDrive.test.js",
+    "test:browser": "node --test tests/browser.test.js"
   },
   "devDependencies": {}
 }

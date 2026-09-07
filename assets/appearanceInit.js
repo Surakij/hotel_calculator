@@ -1,5 +1,5 @@
 (function () {
-  const KEY = "hotelCalculator.appearance.v1";
+  const KEY = (document.documentElement.dataset.storageNamespace || "") + "hotelCalculator.appearance.v1";
   const DEFAULT_COLORS = {
     navy: "#082758",
     blue: "#2563eb",

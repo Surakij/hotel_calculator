@@ -246,7 +246,8 @@
   }
 
   function parseChildAges(lines, checkin) {
-    return lines
+    const uniqueLines = [...new Set(lines.map((line) => line.replace(/\bPN\b.*$/i, "").trim().toUpperCase()))];
+    return uniqueLines
       .filter((line) => /\bchd\b|\bchild\b/i.test(line))
       .map((line) => {
         const match = /\bDOB\b\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})/i.exec(line);
@@ -336,7 +337,8 @@
     const mealPlan = firstLabel(lines, ["Meal Plan", "Meal"]);
     const handlingFee = firstLabel(lines, ["Handling fee", "Service text"]);
     const transfer = parseTransfer(firstLabel(lines, ["Transfer"]));
-    const galaDinners = allLabels(lines, ["Gala Dinner"]).map(parseGalaDinner).filter(Boolean);
+    const galaDinners = [...new Map(allLabels(lines, ["Gala Dinner"]).map(parseGalaDinner).filter(Boolean)
+      .map((gala) => [JSON.stringify([gala.itemBase || gala.raw, gala.from, gala.to]), gala])).values()];
     const roomQuotation = parseRoomQuotation(allLabels(lines, ["Room quotation", "Room quote", "Quotation"]));
     const explicitSpo = firstLabel(lines, ["SPO code", "SPO"]);
     const spo = explicitSpo || spoFromRoomQuotation(roomQuotation);

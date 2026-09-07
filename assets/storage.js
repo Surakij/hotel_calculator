@@ -2,6 +2,7 @@
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.HotelCalculatorStorage = factory();
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  const namespace = typeof document === "undefined" ? "" : document.documentElement.dataset.storageNamespace || "";
   const HISTORY_KEY = "hotelCalculator.history.v1";
   const DRAFT_KEY = "hotelCalculator.draft.v1";
   const RATE_MEMORY_KEY = "hotelCalculator.rateMemory.v1";
@@ -18,7 +19,7 @@
 
   function readJson(key, fallback) {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(namespace + key);
       return raw ? JSON.parse(raw) : fallback;
     } catch {
       return fallback;
@@ -27,9 +28,10 @@
 
   function writeJson(key, value) {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(namespace + key, JSON.stringify(value));
+      return true;
     } catch {
-      // Storage can be unavailable in strict privacy modes; keep the app usable.
+      return false;
     }
   }
 
@@ -42,8 +44,7 @@
     const rows = history();
     const existing = rows.findIndex((item) => item.id === entry.id);
     const next = existing >= 0 ? rows.map((item, index) => (index === existing ? entry : item)) : [entry, ...rows];
-    writeJson(HISTORY_KEY, next.slice(0, 500));
-    return entry;
+    return writeJson(HISTORY_KEY, next.slice(0, 500)) ? entry : null;
   }
 
   function deleteHistory(id) {
@@ -75,7 +76,7 @@
   }
 
   function clearDraft() {
-    localStorage.removeItem(DRAFT_KEY);
+    try { localStorage.removeItem(namespace + DRAFT_KEY); } catch { /* Storage may be unavailable. */ }
   }
 
   function rateMemory() {

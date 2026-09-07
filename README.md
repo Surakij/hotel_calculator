@@ -88,6 +88,16 @@ npm run lint
 npm test
 ```
 
+Browser regression checks use Playwright from the development environment (not a runtime dependency):
+
+```powershell
+npm run test:browser
+```
+
+Set `NODE_PATH` to an existing Playwright installation when it is not installed locally.
+The tests launch isolated, headless Edge contexts and block external requests.
+Set `PLAYWRIGHT_CHANNEL` to use another installed Chromium channel.
+
 ## Copyright
 
 © 2026 Sergei Kazhaev. All rights reserved.

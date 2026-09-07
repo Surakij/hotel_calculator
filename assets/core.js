@@ -167,6 +167,8 @@
     const nights = nightsBetween(row.from, row.to);
     const qty = Number(row.qty || 0);
     const rate = parseRateExpression(row.rateFormula || row.rate);
+    const valid = Number.isFinite(qty) && qty >= 0 && Number.isInteger(qty)
+      && (!isDiscountable(row) || (row.discounts || []).every((discount) => Number.isFinite(Number(discount)) && Number(discount) >= 0 && Number(discount) <= 100));
     let base = qty * rate;
 
     if (isStayBased(row)) base *= nights;
@@ -180,13 +182,14 @@
       rateFormula: normalizeRateFormula(row.rateFormula || row.rate),
       discounts,
       nights,
-      net: applyDiscounts(base, discounts),
+      valid,
+      net: valid ? applyDiscounts(base, discounts) : null,
     };
   }
 
   function calculateRows(rows) {
     const calculatedRows = rows.map(calculateRow);
-    const total = calculatedRows.reduce((sum, row) => sum + row.net, 0);
+    const total = calculatedRows.every((row) => row.valid) ? calculatedRows.reduce((sum, row) => sum + row.net, 0) : null;
     return { rows: calculatedRows, total };
   }
 
@@ -276,8 +279,8 @@
     return formula;
   }
 
-  function buildStaySummaries(inputRows) {
-    const rows = calculateRows(inputRows || []).rows
+  function buildStaySummaries(inputRows, { calculated = false } = {}) {
+    const rows = (calculated ? inputRows : calculateRows(inputRows || []).rows)
       .map((row, index) => ({ ...row, sourceIndex: index }))
       .filter((row) => row.type || row.item || row.rate);
     const rooms = rows.filter((row) => row.type === "ROOM");
@@ -344,6 +347,7 @@
 
   function buildShareText(input) {
     const calculated = calculateRows(input.rows || []);
+    if (calculated.total === null) return "";
     const rows = calculated.rows.filter((row) => (row.type || row.item || row.rate) && row.rate > 0);
     const hotel = String(input.hotel || "Hotel").toUpperCase();
     const guests = input.guests || {};

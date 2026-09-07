@@ -10,7 +10,7 @@
   const summaryRowHeight = 44;
 
   try {
-    const draft = JSON.parse(localStorage.getItem("hotelCalculator.draft.v1") || "null");
+    const draft = JSON.parse(localStorage.getItem((root.dataset.storageNamespace || "") + "hotelCalculator.draft.v1") || "null");
     const rows = Array.isArray(draft?.payload?.rows) ? draft.payload.rows : [];
     const rowCount = Math.max(fallbackRows, rows.length || fallbackRows);
     const maxDiscounts = Math.max(1, ...rows.map((row) => {

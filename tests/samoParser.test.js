@@ -2,6 +2,14 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("deduplicates repeated dinner events and child identities, not equal ages", () => {
+  const guestLines = "CHD FIRST CHILD DOB 01.01.2020 PN TEST\nCHD SECOND CHILD DOB 01.01.2020 PN TEST";
+  const result = parser.parseSamoRequest(`Hotel: Test\nArrival date: 20.12.2026\nDeparture date: 28.12.2026\nVilla category: Beach\n${guestLines}\nGala Dinner: Christmas Dinner (24.12.2026 - 24.12.2026)\n${guestLines}\nGala Dinner: Christmas Dinner (24.12.2026 - 24.12.2026)\nGala Dinner: New Year Dinner (31.12.2026 - 31.12.2026)`);
+  assert.equal(result.children, 2);
+  assert.deepEqual(result.childAges, [6, 6]);
+  assert.equal(result.galaDinners.length, 2);
+});
+
 test("parses single SAMO stay", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Niva Velassaru Maldives 5*

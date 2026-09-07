@@ -16,6 +16,31 @@ global.localStorage = {
   },
 };
 
+test("reports a failed history write instead of returning a saved entry", () => {
+  const setItem = localStorage.setItem;
+  localStorage.setItem = () => { throw new Error("Quota exceeded"); };
+  try {
+    assert.equal(storage.saveHistory({ id: "failed-save" }), null);
+    assert.equal(storage.history().some((entry) => entry.id === "failed-save"), false);
+  } finally {
+    localStorage.setItem = setItem;
+  }
+});
+
+test("rejects invalid quantities and discounts in calculated totals", () => {
+  const row = { type: "TRANSFER", qty: 1, rate: 100 };
+  for (const change of [{ qty: -1 }, { qty: 1.5 }, { discounts: [150] }, { discounts: [-5] }]) {
+    assert.equal(core.calculateRows([{ ...row, ...change }]).total, null);
+    assert.equal(core.buildShareText({ rows: [{ ...row, ...change }] }), "");
+  }
+  assert.equal(core.calculateRows([{ ...row, discounts: [100] }]).total, 0);
+});
+
+test("precalculated summaries match the normal calculation path", () => {
+  const rows = [{ type: "ROOM", item: "Beach", from: "01.12.2026", to: "05.12.2026", qty: 1, rate: 100, discounts: [20, 5] }];
+  assert.deepEqual(core.buildStaySummaries(core.calculateRows(rows).rows, { calculated: true }), core.buildStaySummaries(rows));
+});
+
 test("parses and formats supported date formats", () => {
   assert.equal(core.formatDate("2026-08-17"), "17.08.2026");
   assert.equal(core.formatDate("17.08.2026"), "17.08.2026");

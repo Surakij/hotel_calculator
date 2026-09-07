@@ -6,7 +6,7 @@
   const API = "https://www.googleapis.com";
   const FILE_NAME = "hotel_calculator_history.json";
   let accessToken = "";
-  let tokenClient = null;
+  let tokenRequest = null;
   let fileId = "";
 
   function configured() {
@@ -28,23 +28,25 @@
 
   function token(prompt = "") {
     ensureConfigured();
-    return new Promise((resolve, reject) => {
-      if (!tokenClient) {
-        tokenClient = root.google.accounts.oauth2.initTokenClient({
-          client_id: CONFIG.clientId,
-          scope: SCOPE,
-          callback: (response) => {
-            if (response.error) reject(new Error(response.error));
-            else {
-              accessToken = response.access_token;
-              resolve(accessToken);
-            }
-          },
-          error_callback: () => reject(new Error("Google sign-in was closed or blocked.")),
-        });
-      }
+    if (tokenRequest) return tokenRequest;
+    tokenRequest = new Promise((resolve, reject) => {
+      const tokenClient = root.google.accounts.oauth2.initTokenClient({
+        client_id: CONFIG.clientId,
+        scope: SCOPE,
+        callback: (response) => {
+          if (response.error) reject(new Error(response.error));
+          else {
+            accessToken = response.access_token;
+            resolve(accessToken);
+          }
+        },
+        error_callback: () => reject(new Error("Google sign-in was closed or blocked.")),
+      });
       tokenClient.requestAccessToken({ prompt });
+    }).finally(() => {
+      tokenRequest = null;
     });
+    return tokenRequest;
   }
 
   async function connect() {
