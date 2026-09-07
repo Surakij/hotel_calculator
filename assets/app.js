@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.1";
+  const APP_VERSION = "1.6.2";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1607,6 +1607,20 @@
 
   function roomsWithQuotationRates(rooms, quotation) {
     const components = quotation?.components || [];
+    if (rooms?.length === 1 && components.length > 1) {
+      const room = rooms[0];
+      const nights = core.nightsBetween(room.from, room.to);
+      if (nights > 0 && components.every((part) => Number.isInteger(part.nights) && part.nights > 0)
+        && components.reduce((sum, part) => sum + part.nights, 0) === nights) {
+        let from = room.from;
+        return components.map((part) => {
+          const to = core.addDays(from, part.nights);
+          const segment = { ...room, from, to, nights: part.nights, rateFormula: String(part.rate) };
+          from = to;
+          return segment;
+        });
+      }
+    }
     if (!Array.isArray(rooms) || !rooms.length || components.length !== rooms.length) return rooms;
     const exact = rooms.every((room, index) => Number(room.nights || core.nightsBetween(room.from, room.to)) === Number(components[index]?.nights || 0));
     if (!exact) return rooms;

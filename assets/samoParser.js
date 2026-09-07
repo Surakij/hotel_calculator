@@ -130,6 +130,8 @@
     return String(value || "")
       .replace(/[★☆]/g, "*")
       .replace(/\b[1-7]\s*\*+$/i, "")
+      .replace(/&/g, " and ")
+      .replace(/\(\s*ex\.?\s+[^)]*\)/gi, " ")
       .replace(/[()]/g, " ")
       .replace(/\bresort\b/gi, "")
       .replace(/\s+/g, " ")
@@ -173,10 +175,11 @@
   function parseGuestRoleCounts(lines) {
     const seen = new Set();
     return lines.reduce((counts, line) => {
-      const role = /^(MR|MRS|MS|CHD|INF)\b/i.exec(line)?.[1]?.toUpperCase();
+      const guestLine = line.replace(/^guest\s+name\s*:\s*/i, "");
+      const role = /^(MR|MRS|MS|CHD|INF)\b/i.exec(guestLine)?.[1]?.toUpperCase();
       if (!role) return counts;
-      const dob = /\bDOB\b\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})/i.exec(line)?.[1] || "";
-      const key = `${role}|${dob}|${line.replace(/\bPN\b.*$/i, "").trim().toLowerCase()}`;
+      const dob = /\bDOB\b\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})/i.exec(guestLine)?.[1] || "";
+      const key = `${role}|${dob}|${guestLine.replace(/\bPN\b.*$/i, "").trim().toLowerCase()}`;
       if (seen.has(key)) return counts;
       seen.add(key);
       if (["MR", "MRS", "MS"].includes(role)) counts.adults += 1;

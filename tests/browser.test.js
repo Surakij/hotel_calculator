@@ -176,6 +176,48 @@ test("editing SAMO text invalidates the old preview", async () => {
   assert.equal(result, true);
 });
 
+test("SAMO imports inline guest names and meals after matching an ampersand hotel name", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `
+      Hotel: Kuredhivaru Resort & Spa (ex. Movenpick Resort Kuredhivaru) 5*
+      Guest name: MRS GUEST ONE DOB 03.01.2001 PN XX
+      MR GUEST TWO DOB 22.03.1996 PN XX
+      CHD GUEST CHILD DOB 23.04.2022 PN XX
+      Number of guest: 2 Adult, 1 Child
+      Arrival date: 29.09.2026
+      Departure date: 06.10.2026
+      Villa category: Deluxe Beach Villa With Pool 2 Adl + 1 Chd(2-5,99)
+      Meal Plan: AI
+      SPO code:
+      Room quotation: 2*1270.00[7169/Std/MDBP40]+5*1318.00[7169/Std/MDBP40]
+    `;
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    return {
+      hotel: $("hotel").value,
+      adults: $("adults").value,
+      children: $("children").value,
+      spo: $("spo").value,
+      rooms: [...document.querySelectorAll("#rows tr")]
+        .filter((row) => row.querySelector(".type")?.value === "ROOM")
+        .map((row) => [row.querySelector(".from").value, row.querySelector(".to").value, row.querySelector(".rate").value]),
+      meals: [...document.querySelectorAll("#rows tr")]
+        .filter((row) => row.querySelector(".type")?.value === "MEAL")
+        .map((row) => ({ item: row.querySelector(".item").value, qty: row.querySelector(".qty").value })),
+    };
+  });
+  assert.deepEqual(result, {
+    hotel: "Kuredhivaru Resort and Spa",
+    adults: "2",
+    children: "1",
+    spo: "MDBP40",
+    rooms: [["29.09.2026", "01.10.2026", "1270"], ["01.10.2026", "06.10.2026", "1318"]],
+    meals: [{ item: "AI - Adult", qty: "2" }, { item: "AI - Child", qty: "1" }],
+  });
+});
+
 test("restoring a batch calculates once and keeps an empty service list", async () => {
   const result = await page.evaluate(() => {
     const payload = { hotel: "Test", guests: {}, rows: Array.from({ length: 40 }, () => ({ type: "ROOM", qty: 1 })) };

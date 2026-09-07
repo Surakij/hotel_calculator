@@ -2,6 +2,55 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("parses Kuredhivaru with former name and multiline SAMO fields", () => {
+  const result = parser.parseSamoRequest(`Dear Reservation Team,
+Greetings from Maldiviana!
+Please accept and confirm our new reservation:
+Hotel:
+Kuredhivaru Resort & Spa (ex. Movenpick Resort Kuredhivaru) 5\\*
+Guest name:
+MRS TEST ONE DOB 03.01.2001 PN XX
+MR TEST TWO DOB 22.03.1996 PN XX
+CHD TEST THREE DOB 01.02.2022 PN XX
+Number of guest:
+2 Adult, 1 Child
+Arrival date:
+29.09.2026
+Flight details:
+TBA
+Departure date:
+06.10.2026
+Flight details:
+TBA
+Length of stay:
+7 Nights
+Villa category:
+Deluxe Beach Villa With Pool 2 Adl + 1 Chd(2-5,99)
+Meal Plan:
+AI
+Handling fee:
+Maldives Green Tax (29.09.2026 - 06.10.2026)
+Transfer:
+Seaplane Airport - Hotel - Airport (29.09.2026 - 06.10.2026)
+Remarks
+Test remark
+SPO code:
+ 
+Room quotation:
+2*1270.00[7169/Std/MDBP40]+5*1318.00[7169/Std/MDBP40]
+IMPORTANT - in case of non-availability send alternatives`, { hotelNames: ["Kuredhivaru Resort and Spa"] });
+  assert.equal(result.mappedHotel, "Kuredhivaru Resort and Spa");
+  assert.deepEqual([result.adults, result.children, result.infants], [2, 1, 0]);
+  assert.deepEqual(result.childAges, [4]);
+  assert.equal(result.mealPlan, "AI");
+  assert.equal(result.spo, "MDBP40");
+  assert.equal(result.nights, 7);
+  assert.equal(result.transfer.mode, "SEAPLANE");
+  assert.equal(result.greenTax, true);
+  assert.equal(result.rooms[0].item, "Deluxe Beach Villa With Pool");
+  assert.deepEqual(result.roomQuotation.components.map((part) => [part.nights, part.rate]), [[2, 1270], [5, 1318]]);
+});
+
 test("deduplicates repeated dinner events and child identities, not equal ages", () => {
   const guestLines = "CHD FIRST CHILD DOB 01.01.2020 PN TEST\nCHD SECOND CHILD DOB 01.01.2020 PN TEST";
   const result = parser.parseSamoRequest(`Hotel: Test\nArrival date: 20.12.2026\nDeparture date: 28.12.2026\nVilla category: Beach\n${guestLines}\nGala Dinner: Christmas Dinner (24.12.2026 - 24.12.2026)\n${guestLines}\nGala Dinner: Christmas Dinner (24.12.2026 - 24.12.2026)\nGala Dinner: New Year Dinner (31.12.2026 - 31.12.2026)`);
@@ -89,6 +138,23 @@ test("marks unknown hotel as unresolved", () => {
   assert.equal(result.hotelStatus, "unresolved");
   assert.equal(result.mappedHotel, "");
   assert.match(result.warnings.join(" "), /not safely matched/);
+});
+
+test("maps ampersand hotel names to the database spelling", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Kuredhivaru Resort & Spa 5*
+    Guest name: MRS GUEST ONE DOB 03.01.2001 PN XX
+    MR GUEST TWO DOB 22.03.1996 PN XX
+    CHD GUEST CHILD DOB 23.04.2022 PN XX
+    Number of guest: 2 Adult, 1 Child
+    Arrival date: 29.09.2026
+    Departure date: 06.10.2026
+  `, { hotelNames: ["Kuredhivaru Resort and Spa"] });
+
+  assert.equal(result.mappedHotel, "Kuredhivaru Resort and Spa");
+  assert.equal(result.hotelStatus, "mapped");
+  assert.equal(result.adults, 2);
+  assert.equal(result.children, 1);
 });
 
 test("does not fail when optional SAMO fields are missing", () => {
