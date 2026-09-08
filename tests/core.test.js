@@ -115,6 +115,19 @@ test("renamed Heritance Aarah retains legacy remembered rates", () => {
   }
 });
 
+test("renamed Ritz-Carlton retains legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "The Ritz Carlton Maldives Fari Islands", type: "ROOM", item: "Beach Pool Villa", from: "26.10.2026", to: "01.11.2026", rateFormula: "1000" }]));
+    const saved = storage.findRateMemory({ hotel: "The Ritz-Carlton Maldives, Fari Islands", type: "ROOM", item: "Beach Pool Villa", from: "26.10.2026", to: "01.11.2026" });
+    assert.equal(saved.rateFormula, "1000");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("single-date dinners find legacy rates saved with the same end date", () => {
   const key = "hotelCalculator.rateMemory.v1";
   const before = localStorage.getItem(key);
@@ -280,8 +293,8 @@ test("builds share text with display-format dates", () => {
 
   assert.match(text, /OZEN/);
   assert.match(text, /01\.09\.2026-04\.09\.2026 · 3N · 2ADL\+1CHD\(6\)/);
-  assert.match(text, /Beach Pool Villa : \(50\*2\)\*3 = 300/);
-  assert.match(text, /Green Tax : 12\*3\*3 = 108/);
+  assert.match(text, /Beach Pool Villa : \(50 \* 2\) \* 3 = 300/);
+  assert.match(text, /Green Tax : 12 \* 3 \* 3 = 108/);
   assert.match(text, /TOTAL: 408 USD/);
 });
 
@@ -297,8 +310,8 @@ test("short share removes only zero decimal parts", () => {
     ],
   });
 
-  assert.match(text, /Villa : 2410\*1\*1-25% = 1,807\.50/);
-  assert.match(text, /Seaplane : 365\.50\*1 = 365\.50/);
+  assert.match(text, /Villa : 2410 \* 1 \* 1 - 25% = 1,807\.50/);
+  assert.match(text, /Seaplane : 365\.50 \* 1 = 365\.50/);
   assert.match(text, /TOTAL: 2,173 USD/);
   assert.doesNotMatch(text, /\.00/);
 });

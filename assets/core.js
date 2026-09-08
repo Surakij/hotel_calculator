@@ -84,7 +84,11 @@
   }
 
   function shareRateFormula(value) {
-    return normalizeRateFormula(value).replace(/(\d+)\.00(?!\d)/g, "$1");
+    return normalizeRateFormula(value)
+      .replace(/(\d+)\.00(?!\d)/g, "$1")
+      .replace(/([+\-*/])/g, " $1 ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function parseRateExpression(value) {
@@ -250,11 +254,11 @@
 
   function expression(row) {
     let formula = hasRateFormula(row)
-      ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
-      : `${row.rate ? shareMoney(row.rate).replaceAll(",", "") : "0"}*${row.qty}`;
-    if ((isStayBased(row) || row.type === "EXTRA") && row.nights > 0) formula += `*${row.nights}`;
+      ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : ` * ${row.qty}`}`
+      : `${row.rate ? shareMoney(row.rate).replaceAll(",", "") : "0"} * ${row.qty}`;
+    if ((isStayBased(row) || row.type === "EXTRA") && row.nights > 0) formula += ` * ${row.nights}`;
     row.discounts.forEach((discount) => {
-      formula += `-${discount}%`;
+      formula += ` - ${discount}%`;
     });
     return formula;
   }
@@ -276,14 +280,14 @@
   function groupExpression(group) {
     const parts = group.rows.map((row) => (
       hasRateFormula(row)
-        ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
-        : `${shareMoney(row.rate).replaceAll(",", "")}*${row.qty}`
+        ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : ` * ${row.qty}`}`
+        : `${shareMoney(row.rate).replaceAll(",", "")} * ${row.qty}`
     ));
-    let formula = parts.length > 1 ? `(${parts.join("+")})` : parts[0];
+    let formula = parts.length > 1 ? `(${parts.join(" + ")})` : parts[0];
     const first = group.rows[0];
-    if ((isStayBased(first) || first.type === "EXTRA") && first.nights > 0) formula += `*${first.nights}`;
+    if ((isStayBased(first) || first.type === "EXTRA") && first.nights > 0) formula += ` * ${first.nights}`;
     first.discounts.forEach((discount) => {
-      formula += `-${discount}%`;
+      formula += ` - ${discount}%`;
     });
     return formula;
   }

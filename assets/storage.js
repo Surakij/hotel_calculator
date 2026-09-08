@@ -89,6 +89,7 @@
     if (/^angsana resort & spa maldives - velavaru$/i.test(value)) return "Angsana Velavaru";
     if (/^coco palm dhunikolhu$/i.test(value)) return "Coco Palm Dhuni Kolhu";
     if (/^heritance aarah$/i.test(value)) return "Heritance Aarah Maldives";
+    if (/^the ritz carlton maldives fari islands$/i.test(value)) return "The Ritz-Carlton Maldives, Fari Islands";
     if (value === "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives") {
       if (/^(?:Panoramic|Mirage|Beachfront|Overwater|Four Bedroom)/i.test(item)) return "Centara Mirage Lagoon Maldives";
     }

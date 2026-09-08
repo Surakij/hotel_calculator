@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.10";
+  const APP_VERSION = "1.6.11";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1195,7 +1195,8 @@
     const hasType = Boolean(data.type);
     const hideItem = core.isGreenTax(data);
     const hideNights = data.type === "TRANSFER" || data.type === "DINNER";
-    const lockDates = data.type === "DINNER" || (data.type === "TRANSFER" && !isOneWayTransfer(data));
+    const hideTransferDates = data.type === "TRANSFER" && !isOneWayTransfer(data);
+    const lockDates = data.type === "DINNER" || hideTransferDates;
     const allowDiscounts = hasType && core.isDiscountable(data);
     const isDinner = data.type === "DINNER";
 
@@ -1205,7 +1206,8 @@
     item.disabled = !hasType || hideItem;
     from.disabled = !hasType || lockDates;
     to.disabled = !hasType || lockDates;
-    to.hidden = isDinner;
+    from.hidden = hideTransferDates;
+    to.hidden = isDinner || hideTransferDates;
     nights.disabled = !hasType || hideNights;
     qty.disabled = !hasType;
     rate.disabled = !hasType;
@@ -1223,7 +1225,8 @@
     item.closest("td").classList.toggle("muted-cell", hideItem);
     nights.closest("td").classList.toggle("muted-cell", hideNights);
     tr.querySelector(".discounts").classList.toggle("muted-cell", !allowDiscounts);
-    to.closest("td").classList.toggle("muted-cell", isDinner);
+    from.closest("td").classList.toggle("muted-cell", hideTransferDates);
+    to.closest("td").classList.toggle("muted-cell", isDinner || hideTransferDates);
   }
 
   function recalc() {

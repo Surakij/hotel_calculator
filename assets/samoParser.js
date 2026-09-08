@@ -134,7 +134,7 @@
       .replace(/\binter\s+continental\b/gi, "Intercontinental")
       .replace(/&/g, " and ")
       .replace(/\(\s*ex\.?\s+[^)]*\)/gi, " ")
-      .replace(/[()]/g, " ")
+      .replace(/[(),.'’\-]/g, " ")
       .replace(/\bresort\b/gi, "")
       .replace(/\s+/g, " ")
       .trim()

@@ -79,6 +79,20 @@ test("maps Heritance Aarah Maldives Resort to the database hotel", () => {
   assert.equal(result.mealPlan, "AI - Premium");
 });
 
+test("maps the punctuated Ritz-Carlton SAMO name", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: The Ritz-Carlton Maldives, Fari Islands 5*Deluxe
+    Number of guest: 2 Adult, 2 Child
+    Arrival date: 26.10.2026
+    Departure date: 01.11.2026
+    Villa category: Beach Pool Villa 2 Adl + 2 Chd
+    Meal Plan: HB
+    Transfer: Speedboat
+  `, { hotelNames: ["The Ritz-Carlton Maldives, Fari Islands"] });
+  assert.equal(result.mappedHotel, "The Ritz-Carlton Maldives, Fari Islands");
+  assert.equal(result.mealPlan, "HB");
+});
+
 test("matches Intercontinental star deluxe suffix and ignores email footer after empty fields", () => {
   const base = "Hotel: Intercontinental Maldives Maamunagau Resort 5*Deluxe\nArrival date: 21.02.2027\nDeparture date: 02.03.2027\nVilla category: Family Beach Villa With Pool\nMeal Plan: HB\nSPO code:\nRoom quotation:\n";
   for (const footer of ["IMPORTANT - in case of non-availability please send alternatives", "PLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION", "With Best Regards,"]) {

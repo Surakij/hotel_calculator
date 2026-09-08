@@ -376,6 +376,34 @@ Transfer: Seaplane`;
   assert.match(result.previewHotel, /Heritance Aarah MaldivesMapped/);
 });
 
+test("SAMO maps Ritz-Carlton and creates its HB meal rows", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: The Ritz-Carlton Maldives, Fari Islands 5*Deluxe
+Number of guest: 2 Adult, 2 Child
+Arrival date: 26.10.2026
+Departure date: 01.11.2026
+Villa category: Ocean Pool Villa 2 Adl + 2 Chd
+Meal Plan: HB
+Transfer: Speedboat`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const meals = [...document.querySelectorAll("#rows tr")]
+      .filter((row) => row.querySelector(".type")?.value === "MEAL")
+      .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]);
+    const room = [...document.querySelectorAll("#rows tr")]
+      .find((row) => row.querySelector(".type")?.value === "ROOM")
+      ?.querySelector(".item").value || "";
+    return { hotel: $("hotel").value, meals, preview, room };
+  });
+  assert.equal(result.hotel, "The Ritz-Carlton Maldives, Fari Islands");
+  assert.equal(result.room, "Ocean Pool Villa");
+  assert.deepEqual(result.meals, [["HB - Adult", "2"], ["HB - Child", "2"]]);
+  assert.match(result.preview, /The Ritz-Carlton Maldives, Fari IslandsMapped/);
+});
+
 test("restoring a batch calculates once and keeps an empty service list", async () => {
   const result = await page.evaluate(() => {
     const payload = { hotel: "Test", guests: {}, rows: Array.from({ length: 40 }, () => ({ type: "ROOM", qty: 1 })) };
@@ -404,6 +432,29 @@ test("transfer choices fit a narrow viewport", async () => {
     return { client: picker.clientWidth, scroll: picker.scrollWidth };
   });
   assert.ok(result.scroll <= result.client, JSON.stringify(result));
+});
+
+test("round-trip transfers hide dates while one-way transfers keep them", async () => {
+  const result = await page.evaluate(() => {
+    const roundTrip = HotelCalculatorApp.addRow({ type: "TRANSFER", item: "Seaplane - Adult" });
+    const oneWay = HotelCalculatorApp.addRow({ type: "TRANSFER", item: "Seaplane OW - Adult" });
+    return {
+      roundTrip: {
+        fromHidden: roundTrip.querySelector(".from").hidden,
+        toHidden: roundTrip.querySelector(".to").hidden,
+      },
+      oneWay: {
+        fromHidden: oneWay.querySelector(".from").hidden,
+        toHidden: oneWay.querySelector(".to").hidden,
+        fromDisabled: oneWay.querySelector(".from").disabled,
+        toDisabled: oneWay.querySelector(".to").disabled,
+      },
+    };
+  });
+  assert.deepEqual(result, {
+    roundTrip: { fromHidden: true, toHidden: true },
+    oneWay: { fromHidden: false, toHidden: false, fromDisabled: false, toDisabled: false },
+  });
 });
 
 test("short share preview uses Arial 10pt", async () => {

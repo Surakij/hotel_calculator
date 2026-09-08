@@ -3183,10 +3183,19 @@
       "FB - Child"
     ]
   },
-  "The Ritz Carlton Maldives Fari Islands": {
+  "The Ritz-Carlton Maldives, Fari Islands": {
     "rooms": [
       "Beach Pool Villa",
+      "Lagoon Pool Villa",
+      "Ocean Pool Villa",
+      "Ocean Pool Villa - Sunrise",
+      "One-Bedroom Lagoon Pool Villa",
+      "One-Bedroom Ocean Pool Villa",
       "Overwater Pool Villa",
+      "Sunset Beach Pool Villa",
+      "Two Bedroom Beach Pool Villa",
+      "Two Bedroom Sunset Beach Villa",
+      "Two Bedroom Water Pool Villa",
       "The Ritz-Carlton Estate"
     ],
     "meals": [
