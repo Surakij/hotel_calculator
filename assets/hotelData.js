@@ -1337,7 +1337,7 @@
       "Premium AI - Child"
     ]
   },
-  "Heritance Aarah": {
+  "Heritance Aarah Maldives": {
     "rooms": [
       "Beach Villa",
       "Family Beach Villa",

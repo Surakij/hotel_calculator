@@ -354,6 +354,28 @@ test("SAMO imports inline guest names and meals after matching an ampersand hote
   });
 });
 
+test("SAMO maps Heritance Aarah and its Premium AI meal", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Heritance Aarah Maldives Resort 5*
+Number of guest: 2 Adult, 0 Child
+Arrival date: 14.01.2027
+Departure date: 22.01.2027
+Villa category: Beach Villa 2 Adl
+Meal Plan: AI - Premium
+Transfer: Seaplane`;
+    $("parseSamoImport").click();
+    const previewHotel = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const meal = [...document.querySelectorAll("#rows tr")].find((row) => row.querySelector(".type")?.value === "MEAL");
+    return { hotel: $("hotel").value, meal: meal?.querySelector(".item").value || "", previewHotel };
+  });
+  assert.equal(result.hotel, "Heritance Aarah Maldives");
+  assert.equal(result.meal, "Premium AI - Adult");
+  assert.match(result.previewHotel, /Heritance Aarah MaldivesMapped/);
+});
+
 test("restoring a batch calculates once and keeps an empty service list", async () => {
   const result = await page.evaluate(() => {
     const payload = { hotel: "Test", guests: {}, rows: Array.from({ length: 40 }, () => ({ type: "ROOM", qty: 1 })) };
@@ -382,4 +404,14 @@ test("transfer choices fit a narrow viewport", async () => {
     return { client: picker.clientWidth, scroll: picker.scrollWidth };
   });
   assert.ok(result.scroll <= result.client, JSON.stringify(result));
+});
+
+test("short share preview uses Arial 10pt", async () => {
+  const result = await page.evaluate(() => {
+    const preview = document.getElementById("shareText");
+    const style = getComputedStyle(preview);
+    return { family: style.fontFamily, size: style.fontSize };
+  });
+  assert.match(result.family, /^Arial/i);
+  assert.ok(Math.abs(Number.parseFloat(result.size) - (10 * 4 / 3)) < 0.1);
 });

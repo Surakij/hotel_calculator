@@ -1906,7 +1906,7 @@ input[aria-invalid="true"] {
   border-radius: 8px;
   padding: 16px;
   background: #f8fafc;
-  font: 14px/1.45 Consolas, monospace;
+  font: 10pt/1.45 Arial, sans-serif;
 }
 
 .share-preview strong {

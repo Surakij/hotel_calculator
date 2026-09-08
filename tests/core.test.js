@@ -102,6 +102,19 @@ test("renamed Angsana Velavaru retains legacy remembered rates", () => {
   }
 });
 
+test("renamed Heritance Aarah retains legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Heritance Aarah", type: "ROOM", item: "Beach Villa", from: "14.01.2027", to: "22.01.2027", rateFormula: "900" }]));
+    const saved = storage.findRateMemory({ hotel: "Heritance Aarah Maldives", type: "ROOM", item: "Beach Villa", from: "14.01.2027", to: "22.01.2027" });
+    assert.equal(saved.rateFormula, "900");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("single-date dinners find legacy rates saved with the same end date", () => {
   const key = "hotelCalculator.rateMemory.v1";
   const before = localStorage.getItem(key);

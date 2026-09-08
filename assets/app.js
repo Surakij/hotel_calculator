@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.8";
+  const APP_VERSION = "1.6.9";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1963,7 +1963,7 @@
   async function copyShare() {
     const text = shareText();
     if (!text) return;
-    const html = `<pre style="font:14px/1.45 Consolas, monospace; white-space:pre-wrap;">${shareHtml(text)}</pre>`;
+    const html = `<pre style="font:10pt/1.45 Arial, sans-serif; white-space:pre-wrap;">${shareHtml(text)}</pre>`;
     try {
       if (window.ClipboardItem && navigator.clipboard.write) {
         await navigator.clipboard.write([

@@ -65,6 +65,20 @@ test("maps Angsana Velavaru from SAMO", () => {
   assert.equal(result.mealPlan, "AI - Dine");
 });
 
+test("maps Heritance Aarah Maldives Resort to the database hotel", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Heritance Aarah Maldives Resort 5*
+    Number of guest: 2 Adult, 0 Child
+    Arrival date: 14.01.2027
+    Departure date: 22.01.2027
+    Villa category: Beach Villa 2 Adl
+    Meal Plan: AI - Premium
+    Transfer: Seaplane
+  `, { hotelNames: ["Heritance Aarah Maldives"] });
+  assert.equal(result.mappedHotel, "Heritance Aarah Maldives");
+  assert.equal(result.mealPlan, "AI - Premium");
+});
+
 test("matches Intercontinental star deluxe suffix and ignores email footer after empty fields", () => {
   const base = "Hotel: Intercontinental Maldives Maamunagau Resort 5*Deluxe\nArrival date: 21.02.2027\nDeparture date: 02.03.2027\nVilla category: Family Beach Villa With Pool\nMeal Plan: HB\nSPO code:\nRoom quotation:\n";
   for (const footer of ["IMPORTANT - in case of non-availability please send alternatives", "PLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION", "With Best Regards,"]) {
