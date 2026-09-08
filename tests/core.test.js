@@ -280,9 +280,27 @@ test("builds share text with display-format dates", () => {
 
   assert.match(text, /OZEN/);
   assert.match(text, /01\.09\.2026-04\.09\.2026 · 3N · 2ADL\+1CHD\(6\)/);
-  assert.match(text, /Beach Pool Villa : \(50\*2\)\*3 = 300\.00/);
-  assert.match(text, /Green Tax : 12\.00\*3\*3 = 108\.00/);
-  assert.match(text, /TOTAL: 408\.00 USD/);
+  assert.match(text, /Beach Pool Villa : \(50\*2\)\*3 = 300/);
+  assert.match(text, /Green Tax : 12\*3\*3 = 108/);
+  assert.match(text, /TOTAL: 408 USD/);
+});
+
+test("short share removes only zero decimal parts", () => {
+  const text = core.buildShareText({
+    hotel: "Test",
+    checkin: "01.09.2026",
+    checkout: "02.09.2026",
+    guests: { adults: 1 },
+    rows: [
+      { type: "ROOM", item: "Villa", from: "01.09.2026", to: "02.09.2026", qty: 1, rateFormula: "2410.00", discounts: [25] },
+      { type: "TRANSFER", item: "Seaplane - Adult", qty: 1, rateFormula: "365.50" },
+    ],
+  });
+
+  assert.match(text, /Villa : 2410\*1\*1-25% = 1,807\.50/);
+  assert.match(text, /Seaplane : 365\.50\*1 = 365\.50/);
+  assert.match(text, /TOTAL: 2,173 USD/);
+  assert.doesNotMatch(text, /\.00/);
 });
 
 test("adds Days Before to the short share header", () => {

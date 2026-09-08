@@ -70,12 +70,21 @@
     });
   }
 
-  function normalizeMoney(value) {
-    return money(value).replaceAll(",", "");
-  }
-
   function normalizeRateFormula(value) {
     return String(value || "").trim().replaceAll(",", ".").replace(/\s+/g, "");
+  }
+
+  function shareMoney(value) {
+    const rounded = Math.round(Number(value || 0) * 100) / 100;
+    const digits = Number.isInteger(rounded) ? 0 : 2;
+    return rounded.toLocaleString("en-US", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  function shareRateFormula(value) {
+    return normalizeRateFormula(value).replace(/(\d+)\.00(?!\d)/g, "$1");
   }
 
   function parseRateExpression(value) {
@@ -241,8 +250,8 @@
 
   function expression(row) {
     let formula = hasRateFormula(row)
-      ? `(${normalizeRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
-      : `${row.rate ? normalizeMoney(row.rate) : "0"}*${row.qty}`;
+      ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
+      : `${row.rate ? shareMoney(row.rate).replaceAll(",", "") : "0"}*${row.qty}`;
     if ((isStayBased(row) || row.type === "EXTRA") && row.nights > 0) formula += `*${row.nights}`;
     row.discounts.forEach((discount) => {
       formula += `-${discount}%`;
@@ -267,8 +276,8 @@
   function groupExpression(group) {
     const parts = group.rows.map((row) => (
       hasRateFormula(row)
-        ? `(${normalizeRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
-        : `${normalizeMoney(row.rate)}*${row.qty}`
+        ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : `*${row.qty}`}`
+        : `${shareMoney(row.rate).replaceAll(",", "")}*${row.qty}`
     ));
     let formula = parts.length > 1 ? `(${parts.join("+")})` : parts[0];
     const first = group.rows[0];
@@ -392,35 +401,35 @@
     }
 
     rooms.forEach((room) => {
-      addEntry(room, 0, `${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${money(room.net)}`);
+      addEntry(room, 0, `${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${shareMoney(room.net)}`);
       extras
         .filter((row) => row.from === room.from && row.to === room.to && !usedExtras.has(row))
         .sort((a, b) => Number(/child/i.test(a.item)) - Number(/child/i.test(b.item)))
         .forEach((row) => {
-          addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`);
+          addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
           usedExtras.add(row);
         });
       mealGroups
         .filter((group) => group.rows[0].from === room.from && group.rows[0].to === room.to && !usedMealGroups.has(group))
         .forEach((group) => {
           const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-          addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`);
+          addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
           usedMealGroups.add(group);
         });
     });
 
     extras.filter((row) => !usedExtras.has(row)).sort(compareDateRows).forEach((row) => {
-      addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${money(row.net)}`, 1);
+      addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`, 1);
     });
 
     mealGroups.filter((group) => !usedMealGroups.has(group)).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${money(total)}`, 2);
+      addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`, 2);
     });
 
     groupedRows(rows, "DINNER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      addEntry(group.rows[0], 3, `${group.label} : ${groupExpression(group)} = ${money(total)}`);
+      addEntry(group.rows[0], 3, `${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 
     groupedRows(rows, "TRANSFER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
@@ -428,16 +437,16 @@
       const prefix = /\bOW\b/i.test(group.label)
         ? `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : `
         : "";
-      addEntry(group.rows[0], 4, `${prefix}${group.label} : ${groupExpression(group)} = ${money(total)}`);
+      addEntry(group.rows[0], 4, `${prefix}${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 
     shareEntries.sort(compareShareEntries).forEach((entry) => out.push(entry.text));
 
     greenTax.forEach((row) => {
-      out.push(`Green Tax : ${expression(row)} = ${money(row.net)}`);
+      out.push(`Green Tax : ${expression(row)} = ${shareMoney(row.net)}`);
     });
 
-    out.push("", `TOTAL: ${money(calculated.total)} USD`);
+    out.push("", `TOTAL: ${shareMoney(calculated.total)} USD`);
     return out.join("\n");
   }
 
