@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.6";
+  const APP_VERSION = "1.6.7";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1538,6 +1538,11 @@
     if (payload.hotel === "Riu Atoll and Riu Palace Maldivas") {
       const hotels = [...new Set((payload.rows || []).filter((row) => row.type === "ROOM")
         .map((row) => storage.canonicalHotelName(payload.hotel, row.item)))];
+      if (hotels.length === 1) $("hotel").value = hotels[0];
+    }
+    if (payload.hotel === "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives") {
+      const hotels = [...new Set((payload.rows || []).filter((row) => row.type === "ROOM")
+        .map((row) => storage.canonicalHotelName(payload.hotel, row.item)))].filter((name) => name !== payload.hotel);
       if (hotels.length === 1) $("hotel").value = hotels[0];
     }
     $("checkin").value = core.formatDate(payload.checkin || "");

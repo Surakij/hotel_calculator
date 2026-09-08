@@ -86,6 +86,11 @@
 
   function canonicalHotelName(name, item = "") {
     const value = String(name || "").trim();
+    if (/^angsana resort & spa maldives - velavaru$/i.test(value)) return "Angsana Velavaru";
+    if (/^coco palm dhunikolhu$/i.test(value)) return "Coco Palm Dhuni Kolhu";
+    if (value === "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives") {
+      if (/^(?:Panoramic|Mirage|Beachfront|Overwater|Four Bedroom)/i.test(item)) return "Centara Mirage Lagoon Maldives";
+    }
     if (/^fihaalhohi maldives$/i.test(value)) return "Fihalhohi Maldives";
     if (value === "Riu Atoll and Riu Palace Maldivas") {
       if (/^RIU Atoll - /i.test(item)) return "Riu Atoll";

@@ -33,6 +33,38 @@ test("maps the corrected Fihalhohi hotel name", () => {
   assert.equal(result.spo, "3336W5KF");
 });
 
+test("maps Coco Palm Dhuni Kolhu spelling from SAMO", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Coco Palm Dhuni Kolhu 4*
+    Number of guest: 2 Adult, 0 Child
+    Arrival date: 28.09.2026
+    Departure date: 04.10.2026
+    Villa category: Beach Villa 2 Adl
+    Meal Plan: AI
+    Transfer: Seaplane
+    SPO code:
+    Room quotation: 3*282.00[9028/Std/Sun Fun Offer 2026/2027]+3*324.00[9028/Std/Sun Fun Offer 2026/2027]
+  `, { hotelNames: ["Coco Palm Dhuni Kolhu"] });
+  assert.equal(result.mappedHotel, "Coco Palm Dhuni Kolhu");
+  assert.equal(result.rooms[0].item, "Beach Villa");
+  assert.equal(result.mealPlan, "AI");
+  assert.equal(result.spo, "Sun Fun Offer 2026");
+});
+
+test("maps Angsana Velavaru from SAMO", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Angsana Velavaru 5*
+    Number of guest: 3 Adult, 1 Child
+    Arrival date: 30.12.2026
+    Departure date: 07.01.2027
+    Villa category: Beachfront Family Villa With Pool 3 Adl + 1 Chd
+    Meal Plan: AI - Dine
+  `, { hotelNames: ["Angsana Velavaru"] });
+  assert.equal(result.mappedHotel, "Angsana Velavaru");
+  assert.equal(result.rooms[0].item, "Beachfront Family Villa With Pool");
+  assert.equal(result.mealPlan, "AI - Dine");
+});
+
 test("matches Intercontinental star deluxe suffix and ignores email footer after empty fields", () => {
   const base = "Hotel: Intercontinental Maldives Maamunagau Resort 5*Deluxe\nArrival date: 21.02.2027\nDeparture date: 02.03.2027\nVilla category: Family Beach Villa With Pool\nMeal Plan: HB\nSPO code:\nRoom quotation:\n";
   for (const footer of ["IMPORTANT - in case of non-availability please send alternatives", "PLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION", "With Best Regards,"]) {

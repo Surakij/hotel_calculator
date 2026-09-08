@@ -61,6 +61,47 @@ test("corrected Fihalhohi name and room suffix retain legacy remembered rates", 
   }
 });
 
+test("corrected Coco Palm name retains legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Coco Palm Dhunikolhu", type: "ROOM", item: "Beach Villa", from: "28.09.2026", to: "04.10.2026", spo: "Sun Fun Offer 2026", rateFormula: "282" }]));
+    const saved = storage.findRateMemory({ hotel: "Coco Palm Dhuni Kolhu", type: "ROOM", item: "Beach Villa", from: "28.09.2026", to: "04.10.2026", spo: "Sun Fun Offer 2026" });
+    assert.equal(saved.rateFormula, "282");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
+test("split Centara Mirage retains identifiable legacy room rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    const oldHotel = "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives";
+    localStorage.setItem(key, JSON.stringify([{ hotel: oldHotel, type: "ROOM", item: "Mirage Beachfront Room", rateFormula: "600" }, { hotel: oldHotel, type: "MEAL", item: "AI - Adult", rateFormula: "80" }]));
+    assert.equal(storage.findRateMemory({ hotel: "Centara Mirage Lagoon Maldives", type: "ROOM", item: "Mirage Beachfront Room" }).rateFormula, "600");
+    assert.equal(storage.findRateMemory({ hotel: "Centara Grand Lagoon Maldives", type: "ROOM", item: "Mirage Beachfront Room" }), null);
+    assert.equal(storage.findRateMemory({ hotel: "Centara Mirage Lagoon Maldives", type: "MEAL", item: "AI - Adult" }), null);
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
+test("renamed Angsana Velavaru retains legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Angsana Resort & Spa Maldives - Velavaru", type: "ROOM", item: "Beachfront Family Pool Villa", from: "30.12.2026", to: "07.01.2027", spo: "EBO90 + ANSPTA2607", rateFormula: "1807.50" }]));
+    const saved = storage.findRateMemory({ hotel: "Angsana Velavaru", type: "ROOM", item: "Beachfront Family Pool Villa", from: "30.12.2026", to: "07.01.2027", spo: "EBO90 + ANSPTA2607" });
+    assert.equal(saved.rateFormula, "1807.50");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("reports a failed history write instead of returning a saved entry", () => {
   const setItem = localStorage.setItem;
   localStorage.setItem = () => { throw new Error("Quota exceeded"); };

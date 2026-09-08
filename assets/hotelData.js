@@ -206,7 +206,7 @@
       "AI - Child"
     ]
   },
-  "Angsana Resort & Spa Maldives - Velavaru": {
+  "Angsana Velavaru": {
     "rooms": [
       "Angsana Three-Bedroom Pool Villa",
       "Beachfront Family Pool Villa",
@@ -440,7 +440,7 @@
       "AI - Child"
     ]
   },
-  "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives": {
+  "Centara Mirage Lagoon Maldives": {
     "rooms": [
       "Panoramic Room with Open-Air Bath",
       "Mirage Beachfront Room",
@@ -453,7 +453,40 @@
       "Mirage Overwater Sunset Villa with Jacuzzi",
       "Mirage Overwater Sunset Pool Villa",
       "Mirage Overwater Sunrise Pool Villa",
-      "Four Bedroom Beach House"
+      "Four Bedroom Beach House",
+      "Four Bedroom Mirage Beach House"
+    ],
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB+ - Adult",
+      "HB+ - Child",
+      "FB Plus - Adult",
+      "FB Plus - Child",
+      "AI - Adult",
+      "AI - Child",
+      "The Atollia Destination HB+ - Adult",
+      "The Atollia Destination HB+ - Child",
+      "The Atollia Destination FB Plus - Adult",
+      "The Atollia Destination FB Plus - Child",
+      "The Atollia Destination AI - Adult",
+      "The Atollia Destination AI - Child"
+    ]
+  },
+  "Centara Grand Lagoon Maldives": {
+    "rooms": [
+      "One-Bedroom Overwater Villa with Jacuzzi",
+      "One-Bedroom Overwater Pool Villa",
+      "One-Bedroom Sunset Overwater Pool Villa",
+      "One-Bedroom Sunset Beach Pool Villa",
+      "One-Bedroom Sunrise Beach Pool Villa",
+      "Two-Bedroom Family Overwater Villa with Jacuzzi",
+      "Two-Bedroom Family Overwater Pool Villa",
+      "Two-Bedroom Family Sunset Beach Pool Villa",
+      "Grand Two Bedroom Overwater Pool Villa",
+      "Grand Two Bedroom Beach Pool Villa",
+      "Three-Bedroom Sunset Overwater Pool Residence",
+      "Three-Bedroom Sunset Beach Pool Residence"
     ],
     "meals": [
       "BB - Adult",
@@ -620,7 +653,7 @@
       "AI - Child"
     ]
   },
-  "Coco Palm Dhunikolhu": {
+  "Coco Palm Dhuni Kolhu": {
     "rooms": [
       "Beach Villa",
       "Deluxe Pool Villa",
