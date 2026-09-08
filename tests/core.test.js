@@ -102,6 +102,19 @@ test("renamed Angsana Velavaru retains legacy remembered rates", () => {
   }
 });
 
+test("single-date dinners find legacy rates saved with the same end date", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Test", type: "DINNER", item: "New Year Gala Dinner - Adult", from: "31.12.2026", to: "31.12.2026", spo: "NY", rateFormula: "280" }]));
+    const saved = storage.findRateMemory({ hotel: "Test", type: "DINNER", item: "New Year Gala Dinner - Adult", from: "31.12.2026", to: "", spo: "NY" });
+    assert.equal(saved.rateFormula, "280");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("reports a failed history write instead of returning a saved entry", () => {
   const setItem = localStorage.setItem;
   localStorage.setItem = () => { throw new Error("Quota exceeded"); };
@@ -257,6 +270,20 @@ test("builds share text with display-format dates", () => {
   assert.match(text, /Beach Pool Villa : \(50\*2\)\*3 = 300\.00/);
   assert.match(text, /Green Tax : 12\.00\*3\*3 = 108\.00/);
   assert.match(text, /TOTAL: 408\.00 USD/);
+});
+
+test("adds Days Before to the short share header", () => {
+  const text = core.buildShareText({
+    hotel: "Angsana Velavaru",
+    checkin: "30.12.2026",
+    checkout: "07.01.2027",
+    eboDays: "91",
+    guests: { adults: 3, children: 1, ages: "11" },
+    spo: "EBO90 + ANSPTA2607",
+    rows: [{ type: "ROOM", item: "Beachfront Family Pool Villa", from: "30.12.2026", to: "07.01.2027", qty: 1, rate: 2410 }],
+  });
+
+  assert.match(text, /Cancellation: 91 days before arrival\nSPO: EBO90 \+ ANSPTA2607\n/);
 });
 
 test("omits unpriced services from share text", () => {

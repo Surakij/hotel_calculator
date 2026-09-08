@@ -157,12 +157,21 @@
       to: String(query.to || "").trim(),
       spo: String(query.spo || "").trim().toLowerCase(),
     };
+    const sameDates = (entry) => {
+      const entryFrom = String(entry.from || "").trim();
+      const entryTo = String(entry.to || "").trim();
+      if (normalized.type === "dinner") {
+        return entryFrom === normalized.from
+          && (!entryTo || entryTo === entryFrom)
+          && (!normalized.to || normalized.to === normalized.from);
+      }
+      return entryFrom === normalized.from && entryTo === normalized.to;
+    };
     const matchesBase = (entry) => (
       canonicalHotelName(entry.hotel, entry.item).toLowerCase() === normalized.hotel
       && String(entry.type || "").trim().toLowerCase() === normalized.type
       && canonicalItemName(entry.hotel, entry.item).toLowerCase() === normalized.item
-      && String(entry.from || "").trim() === normalized.from
-      && String(entry.to || "").trim() === normalized.to
+      && sameDates(entry)
       && entry.rateFormula
     );
     const rows = rateMemory();

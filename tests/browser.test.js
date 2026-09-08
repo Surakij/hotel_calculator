@@ -225,6 +225,80 @@ Transfer: SPEEDBOAT Airport - Hotel - Airport`;
   assert.deepEqual(result[fuelIndex], { type: "EXTRA", item: "Fuel Surcharge", qty: "3", from: "", to: "" });
 });
 
+test("dinner rows display and store only one date", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("checkin").value = "26.12.2026";
+    document.getElementById("checkout").value = "07.01.2027";
+    const christmas = HotelCalculatorApp.addRow({ type: "DINNER", item: "Christmas Gala Dinner - Adult", qty: 2 });
+    const newYear = HotelCalculatorApp.addRow({ type: "DINNER", item: "New Year Gala Dinner - Adult", from: "31.12.2026", to: "31.12.2026", qty: 2 });
+    HotelCalculatorApp.recalc();
+    return {
+      christmas: christmas.querySelector(".from").value,
+      newYear: newYear.querySelector(".from").value,
+      to: christmas.querySelector(".to").value,
+      toHidden: christmas.querySelector(".to").hidden,
+    };
+  });
+  assert.deepEqual(result, { christmas: "24.12.2026", newYear: "31.12.2026", to: "", toHidden: true });
+});
+
+test("SPO import restores saved prices, discounts and Days Before", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    HotelCalculatorStorage.setRateAutofillEnabled(true);
+    HotelCalculatorStorage.saveRateMemory({
+      hotel: "Angsana Velavaru", type: "ROOM", item: "Beachfront Family Pool Villa",
+      from: "30.12.2026", to: "07.01.2027", spo: "EBO90", rate: 2410,
+      rateFormula: "2410", discounts: [25],
+    });
+    HotelCalculatorStorage.saveHistory({
+      id: "saved-spo", savedAt: new Date().toISOString(),
+      payload: { hotel: "Angsana Velavaru", spo: "EBO90", eboDays: "90", rows: [] },
+    });
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Angsana Velavaru 5*
+Number of guest: 2 Adult
+Arrival date: 30.12.2026
+Departure date: 07.01.2027
+Villa category: Beachfront Family Villa With Pool 2 Adl
+Meal Plan: AI - Dine
+SPO code: EBO90
+Room quotation: 8*1807.50[5926/Std/EBO90]`;
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    const room = [...document.querySelectorAll("#rows tr")].find((row) => row.querySelector(".type").value === "ROOM");
+    return { days: $("eboDays").value, rate: room.querySelector(".rate").value, discounts: [...room.querySelectorAll(".discount")].map((input) => input.value) };
+  });
+  assert.deepEqual(result, { days: "90", rate: "2410", discounts: ["25"] });
+});
+
+test("SAMO quotation splits room periods without importing its prices", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Angsana Velavaru 5*
+Number of guest: 2 Adult
+Arrival date: 30.12.2026
+Departure date: 07.01.2027
+Villa category: Beachfront Family Villa With Pool 2 Adl
+Meal Plan: AI - Dine
+Room quotation: 6*1807.50[5926/Std/EBO90]+2*1446.00[8920/Std/ANSPTA2607]`;
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    return [...document.querySelectorAll("#rows tr")]
+      .filter((row) => row.querySelector(".type").value === "ROOM")
+      .map((row) => ({
+        from: row.querySelector(".from").value,
+        to: row.querySelector(".to").value,
+        rate: row.querySelector(".rate").value,
+      }));
+  });
+  assert.deepEqual(result, [
+    { from: "30.12.2026", to: "05.01.2027", rate: "" },
+    { from: "05.01.2027", to: "07.01.2027", rate: "" },
+  ]);
+});
+
 test("editing SAMO text invalidates the old preview", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);
@@ -275,7 +349,7 @@ test("SAMO imports inline guest names and meals after matching an ampersand hote
     adults: "2",
     children: "1",
     spo: "MDBP40",
-    rooms: [["29.09.2026", "01.10.2026", "1270"], ["01.10.2026", "06.10.2026", "1318"]],
+    rooms: [["29.09.2026", "01.10.2026", ""], ["01.10.2026", "06.10.2026", ""]],
     meals: [{ item: "AI - Adult", qty: "2" }, { item: "AI - Child", qty: "1" }],
   });
 });

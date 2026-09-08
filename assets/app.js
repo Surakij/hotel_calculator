@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.7";
+  const APP_VERSION = "1.6.8";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -939,7 +939,7 @@
     setupDiscounts(container, { discounts: values });
   }
 
-  function applyRememberedRate(tr, { force = false } = {}) {
+  function applyRememberedRate(tr, { force = false, replaceExisting = false } = {}) {
     const rate = tr.querySelector(".rate");
     if (!rate) return false;
     const query = rateMemoryQuery(tr);
@@ -954,10 +954,10 @@
       autoRates.delete(tr);
     }
     if (!force && !storage.rateAutofillEnabled()) return false;
-    if (rate.value.trim()) return false;
     if (!query || !query.hotel) return false;
     const remembered = storage.findRateMemory(query);
     if (!remembered) return false;
+    if (rate.value.trim() && !replaceExisting) return false;
     rate.value = remembered.rateFormula;
     rate.title = "Filled from local rate memory";
     if (query.spo && Array.isArray(remembered.discounts)) setDiscountValues(tr, remembered.discounts);
@@ -965,10 +965,10 @@
     return true;
   }
 
-  function applyRememberedRates({ force = false } = {}) {
+  function applyRememberedRates({ force = false, replaceExisting = false } = {}) {
     let filled = 0;
     rowsEl.querySelectorAll("tr").forEach((tr) => {
-      if (applyRememberedRate(tr, { force })) filled += 1;
+      if (applyRememberedRate(tr, { force, replaceExisting })) filled += 1;
     });
     return filled;
   }
@@ -1009,12 +1009,8 @@
 
     if (data.type === "DINNER") {
       const fixedDate = dinnerDate(data);
-      const fixed = core.parseDate(fixedDate);
-      const min = core.parseDate(checkin);
-      const max = core.parseDate(checkout);
-      const insideStay = fixed && (!min || fixed >= min) && (!max || fixed <= max);
-      from.value = insideStay ? fixedDate : "";
-      to.value = insideStay ? fixedDate : "";
+      from.value = fixedDate;
+      to.value = "";
       return;
     }
 
@@ -1154,7 +1150,7 @@
     if (data.type === "DINNER") {
       const fixedDate = dinnerDate(data);
       tr.querySelector(".from").value = fixedDate;
-      tr.querySelector(".to").value = fixedDate;
+      tr.querySelector(".to").value = "";
     }
   }
 
@@ -1201,6 +1197,7 @@
     const hideNights = data.type === "TRANSFER" || data.type === "DINNER";
     const lockDates = data.type === "DINNER" || (data.type === "TRANSFER" && !isOneWayTransfer(data));
     const allowDiscounts = hasType && core.isDiscountable(data);
+    const isDinner = data.type === "DINNER";
 
     tr.classList.toggle("inactive-row", !hasType);
     tr.querySelectorAll("td").forEach((cell) => cell.classList.remove("muted-cell"));
@@ -1208,6 +1205,7 @@
     item.disabled = !hasType || hideItem;
     from.disabled = !hasType || lockDates;
     to.disabled = !hasType || lockDates;
+    to.hidden = isDinner;
     nights.disabled = !hasType || hideNights;
     qty.disabled = !hasType;
     rate.disabled = !hasType;
@@ -1225,6 +1223,7 @@
     item.closest("td").classList.toggle("muted-cell", hideItem);
     nights.closest("td").classList.toggle("muted-cell", hideNights);
     tr.querySelector(".discounts").classList.toggle("muted-cell", !allowDiscounts);
+    to.closest("td").classList.toggle("muted-cell", isDinner);
   }
 
   function recalc() {
@@ -1618,7 +1617,7 @@
     return oneWay ? `${base} OW - ${suffix}` : `${base} - ${suffix}`;
   }
 
-  function roomsWithQuotationRates(rooms, quotation) {
+  function roomsWithQuotationPeriods(rooms, quotation) {
     const components = quotation?.components || [];
     if (rooms?.length === 1 && components.length > 1) {
       const room = rooms[0];
@@ -1628,7 +1627,7 @@
         let from = room.from;
         return components.map((part) => {
           const to = core.addDays(from, part.nights);
-          const segment = { ...room, from, to, nights: part.nights, rateFormula: String(part.rate) };
+          const segment = { ...room, from, to, nights: part.nights };
           from = to;
           return segment;
         });
@@ -1637,7 +1636,7 @@
     if (!Array.isArray(rooms) || !rooms.length || components.length !== rooms.length) return rooms;
     const exact = rooms.every((room, index) => Number(room.nights || core.nightsBetween(room.from, room.to)) === Number(components[index]?.nights || 0));
     if (!exact) return rooms;
-    return rooms.map((room, index) => ({ ...room, rateFormula: String(components[index].rate) }));
+    return rooms;
   }
 
   function samoGalaDinnerText(galaDinners = []) {
@@ -1660,10 +1659,10 @@
       const adultItem = `${gala.itemBase} - Adult`;
       const childItem = `${gala.itemBase} - Child`;
       if (adults > 0 && LISTS.DINNER.includes(adultItem)) {
-        rows.push({ type: "DINNER", item: adultItem, from: gala.from, to: gala.to, qty: adults });
+        rows.push({ type: "DINNER", item: adultItem, from: gala.from, to: "", qty: adults });
       }
       if (children > 0 && LISTS.DINNER.includes(childItem)) {
-        rows.push({ type: "DINNER", item: childItem, from: gala.from, to: gala.to, qty: children });
+        rows.push({ type: "DINNER", item: childItem, from: gala.from, to: "", qty: children });
       }
     });
   }
@@ -1685,7 +1684,7 @@
       return matches.length === 1 ? matches[0] : item;
     }
 
-    roomsWithQuotationRates(parsed.rooms || [], parsed.roomQuotation).forEach((room) => {
+    roomsWithQuotationPeriods(parsed.rooms || [], parsed.roomQuotation).forEach((room) => {
       if (!room.item && !room.from && !room.to) return;
       rows.push({
         type: "ROOM",
@@ -1693,7 +1692,7 @@
         from: room.from || parsed.checkin || "",
         to: room.to || parsed.checkout || "",
         qty: 1,
-        rateFormula: room.rateFormula || "",
+        rateFormula: "",
         followGlobal: false,
       });
     });
@@ -1848,10 +1847,19 @@
     if (!samoImportData) return;
     if (hasMeaningfulCalculation() && !window.confirm("Replace current calculation with imported request?")) return;
     const { payload } = buildSamoPayload(samoImportData);
+    const savedSpoPayload = payload.hotel && payload.spo
+      ? storage.history().find((entry) => {
+        const saved = entry?.payload;
+        return saved
+          && storage.canonicalHotelName(saved.hotel) === storage.canonicalHotelName(payload.hotel)
+          && String(saved.spo || "").trim().toLowerCase() === String(payload.spo).trim().toLowerCase();
+      })?.payload
+      : null;
+    if (savedSpoPayload?.eboDays !== undefined) payload.eboDays = savedSpoPayload.eboDays;
     flushUndoSnapshot();
     applyPayload(payload);
     clearSaveStatus();
-    if (applyRememberedRates()) recalc();
+    if (applyRememberedRates({ replaceExisting: true })) recalc();
     pushUndoSnapshot();
     closeSamoImport();
     toast("Request imported");

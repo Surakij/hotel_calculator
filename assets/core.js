@@ -363,6 +363,10 @@
       `${formatDate(input.checkin)}-${formatDate(input.checkout)} · ${nightsBetween(input.checkin, input.checkout)}N · ${pax}`,
     ];
 
+    const cancellationDays = Number(input.eboDays || 0);
+    if (Number.isFinite(cancellationDays) && cancellationDays > 0) {
+      out.push(`Cancellation: ${cancellationDays} ${cancellationDays === 1 ? "day" : "days"} before arrival`);
+    }
     if (spo) out.push(`SPO: ${spo}`);
     out.push("");
 
