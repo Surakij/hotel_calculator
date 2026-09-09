@@ -93,6 +93,14 @@ test("maps the punctuated Ritz-Carlton SAMO name", () => {
   assert.equal(result.mealPlan, "HB");
 });
 
+test("maps the full Lily Beach Resort & Spa name", () => {
+  const parsed = parser.parseSamoRequest("Hotel: Lily Beach Resort & Spa 5*", {
+    hotelNames: ["Lily Beach Resort & Spa"],
+  });
+  assert.equal(parsed.mappedHotel, "Lily Beach Resort & Spa");
+  assert.equal(parsed.hotelStatus, "mapped");
+});
+
 test("matches Intercontinental star deluxe suffix and ignores email footer after empty fields", () => {
   const base = "Hotel: Intercontinental Maldives Maamunagau Resort 5*Deluxe\nArrival date: 21.02.2027\nDeparture date: 02.03.2027\nVilla category: Family Beach Villa With Pool\nMeal Plan: HB\nSPO code:\nRoom quotation:\n";
   for (const footer of ["IMPORTANT - in case of non-availability please send alternatives", "PLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION", "With Best Regards,"]) {

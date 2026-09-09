@@ -404,6 +404,33 @@ Transfer: Speedboat`;
   assert.match(result.preview, /The Ritz-Carlton Maldives, Fari IslandsMapped/);
 });
 
+test("SAMO maps Lily Beach, an official room and its Platinum Plan meals", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Lily Beach Resort & Spa 5*
+Number of guest: 2 Adult, 1 Child
+Arrival date: 14.10.2026
+Departure date: 21.10.2026
+Villa category: Beach Suite with Pool 2 Adl + 1 Chd
+Meal Plan: AI - Platinum
+Transfer: Seaplane`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const room = rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "";
+    const meals = rows
+      .filter((row) => row.querySelector(".type")?.value === "MEAL")
+      .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]);
+    return { hotel: $("hotel").value, meals, preview, room };
+  });
+  assert.equal(result.hotel, "Lily Beach Resort & Spa");
+  assert.equal(result.room, "Beach Suite with Pool");
+  assert.deepEqual(result.meals, [["Platinum Plan - Adult", "2"], ["Platinum Plan - Child", "1"]]);
+  assert.match(result.preview, /Lily Beach Resort & SpaMapped/);
+});
+
 test("restoring a batch calculates once and keeps an empty service list", async () => {
   const result = await page.evaluate(() => {
     const payload = { hotel: "Test", guests: {}, rows: Array.from({ length: 40 }, () => ({ type: "ROOM", qty: 1 })) };

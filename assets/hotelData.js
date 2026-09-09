@@ -1873,12 +1873,17 @@
       "Premium AI - Child"
     ]
   },
-  "Lily Beach Resort": {
+  "Lily Beach Resort & Spa": {
     "rooms": [
       "Beach Villa",
-      "Deluxe Water Villa with Private Pool",
+      "Beach Suite",
+      "Beach Suite with Jacuzzi",
+      "Beach Suite with Pool",
+      "Beach Family Villa",
+      "Beach Residence with Pool",
       "Lagoon Villa",
-      "Sunset Water Suite with Private Pool"
+      "Deluxe Water Villa",
+      "Sunset Water Suite"
     ],
     "meals": [
       "Platinum Plan - Adult",

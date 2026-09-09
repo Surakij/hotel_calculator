@@ -128,6 +128,19 @@ test("renamed Ritz-Carlton retains legacy remembered rates", () => {
   }
 });
 
+test("updated Lily Beach names retain legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Lily Beach Resort", type: "ROOM", item: "Deluxe Water Villa with Private Pool", from: "14.10.2026", to: "21.10.2026", spo: "RUSCISAUT26", rateFormula: "854.75" }]));
+    const saved = storage.findRateMemory({ hotel: "Lily Beach Resort & Spa", type: "ROOM", item: "Deluxe Water Villa", from: "14.10.2026", to: "21.10.2026", spo: "RUSCISAUT26" });
+    assert.equal(saved.rateFormula, "854.75");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("single-date dinners find legacy rates saved with the same end date", () => {
   const key = "hotelCalculator.rateMemory.v1";
   const before = localStorage.getItem(key);

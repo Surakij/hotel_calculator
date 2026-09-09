@@ -89,6 +89,7 @@
     if (/^angsana resort & spa maldives - velavaru$/i.test(value)) return "Angsana Velavaru";
     if (/^coco palm dhunikolhu$/i.test(value)) return "Coco Palm Dhuni Kolhu";
     if (/^heritance aarah$/i.test(value)) return "Heritance Aarah Maldives";
+    if (/^lily beach resort$/i.test(value)) return "Lily Beach Resort & Spa";
     if (/^the ritz carlton maldives fari islands$/i.test(value)) return "The Ritz-Carlton Maldives, Fari Islands";
     if (value === "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives") {
       if (/^(?:Panoramic|Mirage|Beachfront|Overwater|Four Bedroom)/i.test(item)) return "Centara Mirage Lagoon Maldives";
@@ -106,6 +107,10 @@
     const value = String(item || "").trim();
     if (/^fiha{1,2}lhohi maldives$/i.test(String(hotel || "").trim())
       && /^(?:Deluxe Beach|Deluxe Sky|Deluxe Superior|Premium Beach)$/i.test(value)) return `${value} Room`;
+    if (/^lily beach resort(?: & spa)?$/i.test(String(hotel || "").trim())) {
+      if (/^deluxe water villa with private pool$/i.test(value)) return "Deluxe Water Villa";
+      if (/^sunset water suite with private pool$/i.test(value)) return "Sunset Water Suite";
+    }
     return value;
   }
 

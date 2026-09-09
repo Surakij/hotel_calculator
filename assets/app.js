@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.11";
+  const APP_VERSION = "1.6.12";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1605,6 +1605,10 @@
     if (exact) return exact;
     const tokenMatch = matchingGuestMeals.filter((meal) => mealPlanTokens(stripGuestSuffix(meal)) === wantedTokens);
     if (tokenMatch.length === 1) return tokenMatch[0];
+    if (/\bplatinum\b/.test(wanted)) {
+      const platinumMatches = matchingGuestMeals.filter((meal) => /\bplatinum\b/.test(normalizedMealPlan(stripGuestSuffix(meal))));
+      if (platinumMatches.length === 1) return platinumMatches[0];
+    }
     if (/^[a-z]{2,4}$/i.test(wanted)) {
       const codeMatches = matchingGuestMeals.filter((meal) => new RegExp(`\\b${wanted}\\b`, "i").test(stripGuestSuffix(meal)));
       if (codeMatches.length === 1) return codeMatches[0];
