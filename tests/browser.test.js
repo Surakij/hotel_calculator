@@ -242,7 +242,7 @@ test("dinner rows display and store only one date", async () => {
   assert.deepEqual(result, { christmas: "24.12.2026", newYear: "31.12.2026", to: "", toHidden: true });
 });
 
-test("SPO import restores saved prices, discounts and Days Before", async () => {
+test("import restores SPO prices and date-level Days Before independently", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);
     HotelCalculatorStorage.setRateAutofillEnabled(true);
@@ -253,7 +253,15 @@ test("SPO import restores saved prices, discounts and Days Before", async () => 
     });
     HotelCalculatorStorage.saveHistory({
       id: "saved-spo", savedAt: new Date().toISOString(),
-      payload: { hotel: "Angsana Velavaru", spo: "EBO90", eboDays: "90", rows: [] },
+      payload: { hotel: "Another Hotel", checkin: "30.12.2026", spo: "OLD-SPO", eboDays: "90", rows: [] },
+    });
+    HotelCalculatorStorage.saveHistory({
+      id: "newer-other-date", savedAt: new Date().toISOString(),
+      payload: { hotel: "Angsana Velavaru", checkin: "31.12.2026", spo: "EBO90", eboDays: "60", rows: [] },
+    });
+    HotelCalculatorStorage.saveHistory({
+      id: "newer-empty-days", savedAt: new Date().toISOString(),
+      payload: { hotel: "Angsana Velavaru", checkin: "30.12.2026", spo: "NEWER-SPO", eboDays: "", rows: [] },
     });
     $("showSamoImport").click();
     $("samoImportText").value = `Hotel: Angsana Velavaru 5*
@@ -431,6 +439,38 @@ Transfer: Seaplane`;
   assert.match(result.preview, /Lily Beach Resort & SpaMapped/);
 });
 
+test("SAMO maps Avani Fares, numeric room wording and AI meals", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Avani Fares Maldives 5*
+Number of guest: 2 Adult, 1 Child
+Arrival date: 31.10.2026
+Departure date: 07.11.2026
+Villa category: 2 Bedroom Beach Villa 2 Adl + 1 Chd
+Meal Plan: AI
+Transfer: DOMESTIC FLIGHT + SPEEDBOAT Airport - Hotel - Airport
+SPO code: VFAR_EBO_VR`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const room = rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "";
+    const meals = rows
+      .filter((row) => row.querySelector(".type")?.value === "MEAL")
+      .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]);
+    const transfers = rows
+      .filter((row) => row.querySelector(".type")?.value === "TRANSFER")
+      .map((row) => row.querySelector(".item").value);
+    return { hotel: $("hotel").value, meals, preview, room, transfers };
+  });
+  assert.equal(result.hotel, "Avani+ Fares Maldives Resort");
+  assert.equal(result.room, "Two-Bedroom Beach Villa");
+  assert.deepEqual(result.meals, [["AI - Adult", "2"], ["AI - Child", "1"]]);
+  assert.deepEqual(result.transfers, ["Domestic - Adult", "Domestic - Child"]);
+  assert.match(result.preview, /Avani\+ Fares Maldives ResortMapped/);
+});
+
 test("restoring a batch calculates once and keeps an empty service list", async () => {
   const result = await page.evaluate(() => {
     const payload = { hotel: "Test", guests: {}, rows: Array.from({ length: 40 }, () => ({ type: "ROOM", qty: 1 })) };
@@ -492,4 +532,65 @@ test("short share preview uses Arial 10pt", async () => {
   });
   assert.match(result.family, /^Arial/i);
   assert.ok(Math.abs(Number.parseFloat(result.size) - (10 * 4 / 3)) < 0.1);
+});
+
+test("room check splits shared meals and extras across simultaneous rooms", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("checkin").value = "28.10.2026";
+    document.getElementById("checkout").value = "04.11.2026";
+    document.getElementById("rows").innerHTML = "";
+    [
+      { type: "ROOM", item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] },
+      { type: "ROOM", item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] },
+      { type: "EXTRA", item: "Extra Adult", from: "28.10.2026", to: "04.11.2026", qty: 2, rate: 300, discounts: [30] },
+      { type: "MEAL", item: "AI - Adult", from: "28.10.2026", to: "04.11.2026", qty: 6, rate: 205 },
+    ].forEach((row) => HotelCalculatorApp.addRow(row, { preserveValues: true, deferRender: true }));
+    HotelCalculatorApp.recalc();
+    return [...document.querySelectorAll("#staySummary tbody tr")]
+      .map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent.trim()));
+  });
+
+  assert.deepEqual(result, [
+    ["28.10 - 04.11", "1 Bedroom Sunset Beach Villa With Pool", "0 ADL", "11,662.00", "4,305.00", "1,470.00", "17,437.00"],
+    ["28.10 - 04.11", "Beach Pool Villa", "0 ADL", "8,183.00", "4,305.00", "1,470.00", "13,958.00"],
+  ]);
+});
+
+test("room guest allocation is visible, calculated and saved", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("checkin").value = "28.10.2026";
+    document.getElementById("checkout").value = "04.11.2026";
+    document.getElementById("adults").value = "6";
+    document.getElementById("rows").innerHTML = "";
+    const first = HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "sunset", roomAdults: 4, roomChildren: 0, item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] }, { preserveValues: true, deferRender: true });
+    const second = HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "beach", roomAdults: 2, roomChildren: 0, item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] }, { preserveValues: true, deferRender: true });
+    const extra = HotelCalculatorApp.addRow({ type: "EXTRA", assignedRoomKey: "sunset", item: "Extra Adult", from: "28.10.2026", to: "04.11.2026", qty: 2, rate: 300, discounts: [30] }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "MEAL", item: "AI - Adult", from: "28.10.2026", to: "04.11.2026", qty: 6, rate: 205 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.recalc();
+    HotelCalculatorApp.saveCalculation();
+    const payload = HotelCalculatorStorage.history()[0].payload;
+    first.querySelector(".room-adults").value = "0";
+    first.querySelector(".room-adults").dispatchEvent(new Event("input", { bubbles: true }));
+    document.getElementById("showHistory").click();
+    document.querySelector(".history-open").click();
+    const restoredRows = [...document.querySelectorAll("#rows tr")];
+    return {
+      controls: [restoredRows[0].querySelector(".room-adults").value, restoredRows[1].querySelector(".room-adults").value, restoredRows[2].querySelector(".assigned-room").value],
+      summary: [...document.querySelectorAll("#staySummary tbody tr")].map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent.trim())),
+      saved: payload.rows.slice(0, 3).map((row) => (row.type === "ROOM"
+        ? { roomKey: row.roomKey, roomAdults: row.roomAdults }
+        : { assignedRoomKey: row.assignedRoomKey })),
+    };
+  });
+
+  assert.deepEqual(result.controls, ["4", "2", "sunset"]);
+  assert.deepEqual(result.summary, [
+    ["28.10 - 04.11", "1 Bedroom Sunset Beach Villa With Pool", "4 ADL", "11,662.00", "5,740.00", "2,940.00", "20,342.00"],
+    ["28.10 - 04.11", "Beach Pool Villa", "2 ADL", "8,183.00", "2,870.00", "0.00", "11,053.00"],
+  ]);
+  assert.deepEqual(result.saved.slice(0, 3), [
+    { roomKey: "sunset", roomAdults: 4 },
+    { roomKey: "beach", roomAdults: 2 },
+    { assignedRoomKey: "sunset" },
+  ]);
 });

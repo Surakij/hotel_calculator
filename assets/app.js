@@ -56,7 +56,7 @@
   const DATE_RANGE_TYPES = new Set(["ROOM", "EXTRA", "MEAL", "GREEN_TAX"]);
   const UNDO_LIMIT = 80;
   const TABLE_HEADER_HEIGHT = 42;
-  const TABLE_ROW_HEIGHT = 48;
+  const TABLE_ROW_HEIGHT = 76;
   const TABLE_BOTTOM_SPACE = 20;
 
   const $ = (id) => document.getElementById(id);
@@ -877,8 +877,9 @@
   }
 
   function rowData(tr) {
-    return {
-      type: tr.querySelector(".type").value,
+    const type = tr.querySelector(".type").value;
+    const data = {
+      type,
       item: tr.querySelector(".item").value.trim(),
       from: tr.querySelector(".from").value,
       to: tr.querySelector(".to").value,
@@ -887,6 +888,14 @@
       discounts: [...tr.querySelectorAll(".discount")].map((input) => Number(input.value || 0)).filter((item) => item !== 0),
       followGlobal: tr.dataset.followGlobal === "1",
     };
+    if (type === "ROOM") {
+      data.roomKey = tr.dataset.roomKey;
+      data.roomAdults = Number(tr.querySelector(".room-adults")?.value || 0);
+      data.roomChildren = Number(tr.querySelector(".room-children")?.value || 0);
+    } else if (isPersonExtra(data)) {
+      data.assignedRoomKey = tr.querySelector(".assigned-room")?.value || "";
+    }
+    return data;
   }
 
   function canUseRateMemory(data) {
@@ -1050,6 +1059,59 @@
     return row.type === "EXTRA" && /(adult|child)/i.test(row.item || "");
   }
 
+  function refreshRoomAllocationControls() {
+    const roomGroups = [];
+    const seen = new Set();
+
+    rowsEl.querySelectorAll("tr").forEach((tr) => {
+      const type = tr.querySelector(".type")?.value;
+      const item = tr.querySelector(".item")?.value.trim();
+      const roomControls = tr.querySelector(".room-allocation");
+      const extraControls = tr.querySelector(".extra-assignment");
+      if (roomControls) roomControls.hidden = type !== "ROOM";
+      if (extraControls) extraControls.hidden = !(type === "EXTRA" && /(adult|child)/i.test(item || ""));
+      if (type !== "ROOM" || seen.has(tr.dataset.roomKey)) return;
+      seen.add(tr.dataset.roomKey);
+      roomGroups.push({ key: tr.dataset.roomKey, item: item || "Room" });
+    });
+
+    rowsEl.querySelectorAll(".assigned-room").forEach((select) => {
+      const selected = select.dataset.assignedRoomKey || select.value || "";
+      select.innerHTML = "";
+      select.appendChild(el("option", { value: "", textContent: "Split automatically" }));
+      roomGroups.forEach((room, index) => {
+        select.appendChild(el("option", {
+          value: room.key,
+          textContent: `Room ${index + 1} · ${room.item}`,
+        }));
+      });
+      select.value = roomGroups.some((room) => room.key === selected) ? selected : "";
+      select.dataset.assignedRoomKey = select.value;
+      select.title = select.options[select.selectedIndex]?.textContent || "Split automatically";
+    });
+  }
+
+  function syncRoomGuests(source, selector) {
+    const roomKey = source.closest("tr")?.dataset.roomKey;
+    if (!roomKey) return;
+    rowsEl.querySelectorAll("tr").forEach((tr) => {
+      if (tr.dataset.roomKey === roomKey && tr.querySelector(".type")?.value === "ROOM") {
+        tr.querySelector(selector).value = source.value;
+      }
+    });
+  }
+
+  function syncSingleRoomGuestsFromHeader() {
+    const roomRows = [...rowsEl.querySelectorAll("tr")]
+      .filter((tr) => tr.querySelector(".type")?.value === "ROOM");
+    const roomKeys = [...new Set(roomRows.map((tr) => tr.dataset.roomKey))];
+    if (roomKeys.length !== 1) return;
+    roomRows.forEach((tr) => {
+      tr.querySelector(".room-adults").value = value("adults") || 0;
+      tr.querySelector(".room-children").value = value("children") || 0;
+    });
+  }
+
   function isGlobalDateRow(tr) {
     const data = rowData(tr);
     return data.type === "ROOM" || data.type === "MEAL" || core.isGreenTax(data) || isPersonExtra(data);
@@ -1200,6 +1262,9 @@
     const allowDiscounts = hasType && core.isDiscountable(data);
     const isDinner = data.type === "DINNER";
 
+    tr.querySelector(".room-allocation").hidden = data.type !== "ROOM";
+    tr.querySelector(".extra-assignment").hidden = !isPersonExtra(data);
+
     tr.classList.toggle("inactive-row", !hasType);
     tr.querySelectorAll("td").forEach((cell) => cell.classList.remove("muted-cell"));
 
@@ -1279,6 +1344,7 @@
       <tr>
         <td>${escapeHtml(row.dates)}</td>
         <td>${escapeHtml(row.room)}</td>
+        <td>${row.roomAdults} ADL${row.roomChildren ? ` + ${row.roomChildren} CHD` : ""}</td>
         <td>${core.money(row.roomNet)}</td>
         <td>${core.money(row.mealNet)}</td>
         <td>${core.money(row.extraNet)}</td>
@@ -1294,6 +1360,7 @@
             <tr>
               <th>DATES</th>
               <th>ROOM</th>
+              <th>GUESTS</th>
               <th>ROOM NET</th>
               <th>MEAL NET</th>
               <th>EXTRA</th>
@@ -1309,16 +1376,41 @@
   function addRow(data = {}, options = {}) {
     const tr = el("tr");
     tr.dataset.followGlobal = data.followGlobal === true ? "1" : "0";
+    tr.dataset.roomKey = data.roomKey || storage.createId();
+    const hasExistingRoom = [...rowsEl.querySelectorAll("tr")]
+      .some((row) => row.querySelector(".type")?.value === "ROOM");
 
     const typeCell = el("td", { className: "type-cell" });
     typeCell.appendChild(createTypeSelect(data.type || ""));
     const addSame = el("button", { className: "add-same-service", type: "button", title: "Add similar service", "aria-label": "Add similar service", textContent: "+" });
     typeCell.appendChild(addSame);
 
-    const itemCell = el("td");
+    const itemCell = el("td", { className: "item-cell" });
     const item = el("input", { className: "item", placeholder: "Choose or type manually", autocomplete: "off" });
     item.value = data.item || "";
     itemCell.appendChild(item);
+
+    const roomAllocation = el("div", { className: "row-allocation room-allocation" });
+    roomAllocation.appendChild(el("span", { className: "allocation-title", textContent: "Room guests" }));
+    const roomAdultsLabel = el("label", { className: "allocation-field" });
+    roomAdultsLabel.appendChild(el("span", { textContent: "ADL" }));
+    const roomAdults = el("input", { className: "room-adults", type: "number", min: "0", step: "1", "aria-label": "Adults in this room" });
+    roomAdults.value = data.roomAdults ?? (data.type === "ROOM" && !hasExistingRoom ? value("adults") || 0 : 0);
+    roomAdultsLabel.appendChild(numberStepper(roomAdults, true));
+    const roomChildrenLabel = el("label", { className: "allocation-field" });
+    roomChildrenLabel.appendChild(el("span", { textContent: "CHD" }));
+    const roomChildren = el("input", { className: "room-children", type: "number", min: "0", step: "1", "aria-label": "Children in this room" });
+    roomChildren.value = data.roomChildren ?? (data.type === "ROOM" && !hasExistingRoom ? value("children") || 0 : 0);
+    roomChildrenLabel.appendChild(numberStepper(roomChildren, true));
+    roomAllocation.append(roomAdultsLabel, roomChildrenLabel);
+    itemCell.appendChild(roomAllocation);
+
+    const extraAssignment = el("label", { className: "row-allocation extra-assignment" });
+    extraAssignment.appendChild(el("span", { className: "allocation-title", textContent: "Assign to" }));
+    const assignedRoom = el("select", { className: "assigned-room", "aria-label": "Assign extra charge to room" });
+    assignedRoom.dataset.assignedRoomKey = data.assignedRoomKey || "";
+    extraAssignment.appendChild(assignedRoom);
+    itemCell.appendChild(extraAssignment);
 
     const fromCell = el("td");
     const from = el("input", { className: "from", inputmode: "numeric", placeholder: "dd.mm.yyyy", autocomplete: "off" });
@@ -1365,6 +1457,7 @@
       clampRowDates(tr);
       updateRowState(tr);
       groupRowsByType();
+      refreshRoomAllocationControls();
       recalc();
     });
 
@@ -1376,6 +1469,7 @@
       clampRowDates(tr);
       applyRememberedRate(tr);
       updateRowState(tr);
+      refreshRoomAllocationControls();
       recalc();
     });
     item.addEventListener("click", () => {
@@ -1401,6 +1495,21 @@
       applyAutoQty(tr);
       clampRowDates(tr);
       updateRowState(tr);
+      refreshRoomAllocationControls();
+      recalc();
+    });
+
+    roomAdults.addEventListener("input", () => {
+      syncRoomGuests(roomAdults, ".room-adults");
+      recalc();
+    });
+    roomChildren.addEventListener("input", () => {
+      syncRoomGuests(roomChildren, ".room-children");
+      recalc();
+    });
+    assignedRoom.addEventListener("change", () => {
+      assignedRoom.dataset.assignedRoomKey = assignedRoom.value;
+      assignedRoom.title = assignedRoom.options[assignedRoom.selectedIndex]?.textContent || "Split automatically";
       recalc();
     });
 
@@ -1461,6 +1570,7 @@
       closeTypePickers();
       closeItemPicker({ restore: false });
       tr.remove();
+      refreshRoomAllocationControls();
       recalc();
     });
 
@@ -1470,6 +1580,7 @@
     if (!options.preserveValues) applyAutoQty(tr);
     clampRowDates(tr);
     updateRowState(tr);
+    refreshRoomAllocationControls();
     if (!options.deferRender) {
       if (data.type) groupRowsByType();
       recalc();
@@ -1528,6 +1639,39 @@
     };
   }
 
+  function prepareRoomAllocationRows(inputRows, guests = {}) {
+    const rows = inputRows.map((row) => ({ ...row }));
+    const preparedRooms = [];
+    const adults = Number(guests.adults || 0);
+    const children = Number(guests.children || 0);
+
+    function overlaps(left, right) {
+      const leftFrom = core.parseDate(left.from);
+      const leftTo = core.parseDate(left.to);
+      const rightFrom = core.parseDate(right.from);
+      const rightTo = core.parseDate(right.to);
+      return leftFrom && leftTo && rightFrom && rightTo && leftFrom < rightTo && rightFrom < leftTo;
+    }
+
+    rows.forEach((row) => {
+      if (row.type !== "ROOM") return;
+      let priorPeriod = null;
+      if (!row.roomKey) {
+        priorPeriod = [...preparedRooms].reverse().find((prior) => (
+          prior.item === row.item && prior.to === row.from && !overlaps(prior, row)
+        ));
+        row.roomKey = priorPeriod?.roomKey || storage.createId();
+      }
+
+      const sameRoom = preparedRooms.find((prior) => prior.roomKey === row.roomKey);
+      const overlapsAnotherRoom = preparedRooms.some((prior) => prior.roomKey !== row.roomKey && overlaps(prior, row));
+      if (row.roomAdults === undefined) row.roomAdults = sameRoom ? sameRoom.roomAdults : (overlapsAnotherRoom ? 0 : adults);
+      if (row.roomChildren === undefined) row.roomChildren = sameRoom ? sameRoom.roomChildren : (overlapsAnotherRoom ? 0 : children);
+      preparedRooms.push(row);
+    });
+    return rows;
+  }
+
   function applyPayload(payload) {
     if (!payload) return false;
     activeStepperStop?.();
@@ -1559,7 +1703,8 @@
     updateHotelScopedLists();
     rowsEl.innerHTML = "";
     if (Array.isArray(payload.rows)) {
-      payload.rows.forEach((row) => addRow(row, { preserveValues: true, deferRender: true }));
+      prepareRoomAllocationRows(payload.rows, payload.guests)
+        .forEach((row) => addRow(row, { preserveValues: true, deferRender: true }));
       groupRowsByType();
     } else createDefaultRows();
     suppressDraft = false;
@@ -1684,7 +1829,16 @@
 
     function mappedRoomName(item) {
       const names = record?.rooms || [];
-      const tokens = (name) => String(name || "").toLowerCase().split(/\s+/).filter((word) => word && word !== "with").sort().join(" ");
+      const tokens = (name) => String(name || "")
+        .toLowerCase()
+        .replace(/-/g, " ")
+        .replace(/\btwo\b/g, "2")
+        .replace(/\bthree\b/g, "3")
+        .replace(/\bfour\b/g, "4")
+        .split(/\s+/)
+        .filter((word) => word && word !== "with")
+        .sort()
+        .join(" ");
       const exact = names.find((name) => name.toLowerCase() === String(item || "").toLowerCase());
       if (exact) return exact;
       const matches = names.filter((name) => tokens(name) === tokens(item));
@@ -1854,15 +2008,15 @@
     if (!samoImportData) return;
     if (hasMeaningfulCalculation() && !window.confirm("Replace current calculation with imported request?")) return;
     const { payload } = buildSamoPayload(samoImportData);
-    const savedSpoPayload = payload.hotel && payload.spo
+    const savedDatePayload = payload.checkin
       ? storage.history().find((entry) => {
         const saved = entry?.payload;
         return saved
-          && storage.canonicalHotelName(saved.hotel) === storage.canonicalHotelName(payload.hotel)
-          && String(saved.spo || "").trim().toLowerCase() === String(payload.spo).trim().toLowerCase();
+          && core.formatDate(saved.checkin) === core.formatDate(payload.checkin)
+          && Number(saved.eboDays || 0) > 0;
       })?.payload
       : null;
-    if (savedSpoPayload?.eboDays !== undefined) payload.eboDays = savedSpoPayload.eboDays;
+    if (savedDatePayload?.eboDays !== undefined) payload.eboDays = savedDatePayload.eboDays;
     flushUndoSnapshot();
     applyPayload(payload);
     clearSaveStatus();
@@ -2413,6 +2567,7 @@
       $(id).addEventListener("input", () => {
         if (id === "children") renderChildAgeFields();
         rowsEl.querySelectorAll("tr").forEach(applyAutoQty);
+        if (id !== "infants") syncSingleRoomGuestsFromHeader();
         recalc();
       });
     });

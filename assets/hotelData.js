@@ -248,7 +248,7 @@
       "The Kanifushi Plan - Child"
     ]
   },
-  "Avani + Fares Maldives": {
+  "Avani+ Fares Maldives Resort": {
     "rooms": [
       "Premium Beachfront Room",
       "Premium Ocean View Room",

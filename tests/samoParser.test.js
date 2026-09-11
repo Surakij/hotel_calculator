@@ -15,6 +15,7 @@ test("detects Fuel Surcharge separately from Green Tax", () => {
   `, { hotelNames: ["Pullman Maldives Maamutaa Resort"] });
   assert.equal(result.fuelSurcharge, true);
   assert.equal(result.greenTax, true);
+  assert.equal(result.transfer.mode, "DOMESTIC");
 });
 
 test("maps the corrected Fihalhohi hotel name", () => {
@@ -98,6 +99,14 @@ test("maps the full Lily Beach Resort & Spa name", () => {
     hotelNames: ["Lily Beach Resort & Spa"],
   });
   assert.equal(parsed.mappedHotel, "Lily Beach Resort & Spa");
+  assert.equal(parsed.hotelStatus, "mapped");
+});
+
+test("maps Avani Fares without the brand plus sign", () => {
+  const parsed = parser.parseSamoRequest("Hotel: Avani Fares Maldives 5*", {
+    hotelNames: ["Avani+ Fares Maldives Resort"],
+  });
+  assert.equal(parsed.mappedHotel, "Avani+ Fares Maldives Resort");
   assert.equal(parsed.hotelStatus, "mapped");
 });
 

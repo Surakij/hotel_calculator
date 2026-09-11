@@ -133,6 +133,7 @@
       .replace(/\b[1-7]\s*\*+\s*(?:deluxe)?\s*$/i, "")
       .replace(/\binter\s+continental\b/gi, "Intercontinental")
       .replace(/&/g, " and ")
+      .replace(/\+/g, " ")
       .replace(/\(\s*ex\.?\s+[^)]*\)/gi, " ")
       .replace(/[(),.'’\-]/g, " ")
       .replace(/\bresort\b/gi, "")
@@ -263,12 +264,12 @@
 
   function parseTransfer(value) {
     const text = String(value || "").toUpperCase();
-    const mode = /\bSPEED\s*BOAT\b|\bSPEEDBOAT\b/.test(text)
-      ? "SPEEDBOAT"
-      : /\bSEA\s*PLANE\b|\bSEAPLANE\b/.test(text)
-        ? "SEAPLANE"
-        : /\bDOMESTIC\b/.test(text)
-          ? "DOMESTIC"
+    const mode = /\bDOMESTIC\b/.test(text)
+      ? "DOMESTIC"
+      : /\bSPEED\s*BOAT\b|\bSPEEDBOAT\b/.test(text)
+        ? "SPEEDBOAT"
+        : /\bSEA\s*PLANE\b|\bSEAPLANE\b/.test(text)
+          ? "SEAPLANE"
           : "";
     if (!mode) return { raw: value || "", mode: "", oneWay: false, status: value ? "unresolved" : "missing" };
     const oneWay = /\bOW\b|\bONE\s*-?\s*WAY\b|\b1\s*-?\s*WAY\b/.test(text);
@@ -420,9 +421,11 @@
     }
     const meals = [...new Set([...joined.matchAll(/\b(all inclusive|all|ai|hb|fb|bb)(\+)?\b/gi)].map((match) => /^(all|all inclusive)$/i.test(match[1]) ? "AI" : match[1].toUpperCase() + (match[2] || "")))];
     const transfers = [];
-    if (/\bseaplane\b|гидросамол[её]т/i.test(joined)) transfers.push("Seaplane");
-    if (/\bspeed\s*boat\b|катер|скоростн\S*\s+лодк/i.test(joined)) transfers.push("Speedboat");
     if (/\bdomestic\b|внутренн\S*\s+рейс/i.test(joined)) transfers.push("Domestic");
+    else {
+      if (/\bseaplane\b|гидросамол[её]т/i.test(joined)) transfers.push("Seaplane");
+      if (/\bspeed\s*boat\b|катер|скоростн\S*\s+лодк/i.test(joined)) transfers.push("Speedboat");
+    }
     if (meals.length > 1) warnings.push("Multiple meal plans found. Check the meal plan.");
     if (transfers.length > 1) warnings.push("Multiple transfer modes found. Check the transfer.");
     const roomLines = lines.filter((line) => !hotels.some((name) => matchHotel(line, [name]).mappedHotel)

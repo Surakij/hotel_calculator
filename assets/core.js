@@ -294,7 +294,6 @@
 
   function buildStaySummaries(inputRows, { calculated = false } = {}) {
     const rows = (calculated ? inputRows : calculateRows(inputRows || []).rows)
-      .map((row, index) => ({ ...row, sourceIndex: index }))
       .filter((row) => row.type || row.item || row.rate);
     const rooms = rows.filter((row) => row.type === "ROOM");
     const roomCounts = rooms.reduce((counts, row) => {
@@ -306,17 +305,21 @@
 
     rooms.forEach((room) => {
       const roomLabel = room.item || "Room";
-      const key = roomCounts[roomLabel] > 1 ? `room:${roomLabel}` : `stay:${room.from}:${room.to}:${roomLabel}`;
+      const key = room.roomKey
+        ? `room:${room.roomKey}`
+        : (roomCounts[roomLabel] > 1 ? `room:${roomLabel}` : `stay:${room.from}:${room.to}:${roomLabel}`);
       let group = groups.find((item) => item.key === key);
       if (!group) {
         group = {
           key,
+          roomKey: room.roomKey || "",
           from: room.from,
           to: room.to,
           dates: new Set(),
           rooms: [],
-          includedRows: new Set(),
           room: roomLabel,
+          roomAdults: 0,
+          roomChildren: 0,
           roomNet: 0,
           mealNet: 0,
           extraNet: 0,
@@ -327,20 +330,46 @@
 
       group.dates.add(dateRangeLabel(room.from, room.to));
       group.rooms.push(room);
+      group.roomAdults = Math.max(group.roomAdults, Number(room.roomAdults || 0));
+      group.roomChildren = Math.max(group.roomChildren, Number(room.roomChildren || 0));
       group.roomNet += room.net;
     });
 
     const extrasAndMeals = rows.filter((row) => row.type === "MEAL" || (row.type === "EXTRA" && /(adult|child)/i.test(row.item || "")));
-    groups.forEach((group) => {
-      extrasAndMeals.forEach((row) => {
-        const overlap = group.rooms.reduce((sum, room) => sum + overlapNights(room.from, room.to, row.from, row.to), 0);
-        if (overlap <= 0 || row.nights <= 0) return;
-        if (group.includedRows.has(row.sourceIndex)) return;
+    extrasAndMeals.forEach((row) => {
+      if (row.nights <= 0) return;
+      let allocations = groups.map((group) => ({
+        group,
+        guestWeight: group.rooms.reduce((sum, room) => (
+          sum + overlapNights(room.from, room.to, row.from, row.to)
+        ), 0),
+        roomWeight: group.rooms.reduce((sum, room) => (
+          sum + overlapNights(room.from, room.to, row.from, row.to) * Number(room.qty || 0)
+        ), 0),
+      })).filter((allocation) => allocation.roomWeight > 0);
 
-        const amount = row.net * Math.min(1, overlap / row.nights);
+      if (row.type === "EXTRA" && row.assignedRoomKey) {
+        allocations = allocations.filter(({ group }) => group.roomKey === row.assignedRoomKey);
+        allocations.forEach(({ group }) => { group.extraNet += row.net; });
+        return;
+      }
+
+      const childCharge = /child/i.test(row.item || "");
+      const hasGuestAllocation = allocations.some(({ group }) => (
+        childCharge ? group.roomChildren > 0 : group.roomAdults > 0
+      ));
+      allocations.forEach((allocation) => {
+        const guests = childCharge ? allocation.group.roomChildren : allocation.group.roomAdults;
+        allocation.weight = hasGuestAllocation ? allocation.guestWeight * guests : allocation.roomWeight;
+      });
+      allocations = allocations.filter((allocation) => allocation.weight > 0);
+      const coveredWeight = allocations.reduce((sum, allocation) => sum + allocation.weight, 0);
+      const allocationBase = hasGuestAllocation ? coveredWeight : Math.max(row.nights, coveredWeight);
+
+      allocations.forEach(({ group, weight }) => {
+        const amount = row.net * weight / allocationBase;
         if (row.type === "MEAL") group.mealNet += amount;
         else group.extraNet += amount;
-        group.includedRows.add(row.sourceIndex);
       });
     });
 
@@ -350,6 +379,8 @@
       return {
         dates,
         room: group.room,
+        roomAdults: group.roomAdults,
+        roomChildren: group.roomChildren,
         roomNet: group.roomNet,
         mealNet: group.mealNet,
         extraNet: group.extraNet,

@@ -737,6 +737,69 @@ td select {
   font: inherit;
 }
 
+.item-cell {
+  vertical-align: middle;
+}
+
+.row-allocation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  margin-top: 5px;
+}
+
+.row-allocation[hidden] {
+  display: none;
+}
+
+.allocation-title,
+.allocation-field > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.allocation-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.row-allocation .number-stepper.compact {
+  width: 82px;
+  height: 26px;
+  grid-template-columns: 24px 34px 24px;
+  border-radius: 6px;
+}
+
+.row-allocation .number-stepper.compact input {
+  height: 100%;
+  padding: 0 2px;
+  font-size: 11px;
+}
+
+.row-allocation .number-stepper.compact .step-button {
+  min-width: 24px;
+  padding: 0;
+}
+
+.row-allocation .number-stepper.compact .step-symbol {
+  width: 12px;
+  height: 12px;
+}
+
+.extra-assignment .assigned-room {
+  height: 28px;
+  min-width: 0;
+  padding: 3px 26px 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 td select.type {
   font-weight: 800;
   text-transform: uppercase;
@@ -1164,6 +1227,14 @@ td:last-child {
 .summary-table td:first-child,
 .summary-table td:nth-child(2) {
   text-align: left;
+}
+
+.summary-table td:nth-child(3) {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .summary-table td:last-child {
