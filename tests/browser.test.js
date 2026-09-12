@@ -293,18 +293,76 @@ Meal Plan: AI - Dine
 Room quotation: 6*1807.50[5926/Std/EBO90]+2*1446.00[8920/Std/ANSPTA2607]`;
     $("parseSamoImport").click();
     $("applySamoImport").click();
-    return [...document.querySelectorAll("#rows tr")]
-      .filter((row) => row.querySelector(".type").value === "ROOM")
-      .map((row) => ({
+    const roomRows = [...document.querySelectorAll("#rows tr")]
+      .filter((row) => row.querySelector(".type").value === "ROOM");
+    const importedRates = roomRows.map((row) => row.querySelector(".rate").value);
+    roomRows.forEach((row) => { row.querySelector(".rate").value = "100"; });
+    const extra = HotelCalculatorApp.addRow({
+      type: "EXTRA",
+      item: "Extra Adult",
+      from: "30.12.2026",
+      to: "07.01.2027",
+      qty: 1,
+      rate: 50,
+    });
+    HotelCalculatorApp.recalc();
+    return {
+      rooms: roomRows.map((row) => ({
         from: row.querySelector(".from").value,
         to: row.querySelector(".to").value,
-        rate: row.querySelector(".rate").value,
-      }));
+        roomKey: row.dataset.roomKey,
+      })),
+      assignedRoomKey: extra.querySelector(".assigned-room").value,
+      importedRates,
+      share: HotelCalculatorApp.shareText(),
+    };
   });
-  assert.deepEqual(result, [
-    { from: "30.12.2026", to: "05.01.2027", rate: "" },
-    { from: "05.01.2027", to: "07.01.2027", rate: "" },
+  assert.deepEqual(result.rooms.map(({ from, to }) => ({ from, to })), [
+    { from: "30.12.2026", to: "05.01.2027" },
+    { from: "05.01.2027", to: "07.01.2027" },
   ]);
+  assert.equal(new Set(result.rooms.map(({ roomKey }) => roomKey)).size, 1);
+  assert.equal(result.assignedRoomKey, result.rooms[0].roomKey);
+  assert.deepEqual(result.importedRates, ["", ""]);
+  assert.ok(result.share.indexOf("05.01 - 07.01 : Beachfront Family Pool Villa") < result.share.indexOf("Extra Adult"));
+});
+
+test("SAMO keeps extras unassigned when two room categories need a choice", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = [
+      "Hotel: Adaaran Select Hudhuranfushi",
+      "Number of guest: 4 Adult, 2 Child",
+      "Arrival date: 18.03.2027",
+      "Departure date: 28.03.2027",
+      "Villa category: Beach Villas 2 Adl + 1 Chd",
+      "Arrival date: 18.03.2027",
+      "Departure date: 28.03.2027",
+      "Villa category: Lohis Villa 2 Adl + 1 Chd",
+      "Meal Plan: AI",
+    ].join("\n");
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    const roomKeys = [...document.querySelectorAll("#rows tr")]
+      .filter((row) => row.querySelector(".type").value === "ROOM")
+      .map((row) => row.dataset.roomKey);
+    const extra = HotelCalculatorApp.addRow({
+      type: "EXTRA",
+      item: "Extra Child",
+      from: "18.03.2027",
+      to: "28.03.2027",
+      qty: 1,
+      rate: 75,
+    });
+    return {
+      logicalRooms: new Set(roomKeys).size,
+      assignedRoomKey: extra.querySelector(".assigned-room").value,
+      valid: HotelCalculatorApp.recalc(),
+    };
+  });
+
+  assert.deepEqual(result, { logicalRooms: 2, assignedRoomKey: "", valid: false });
 });
 
 test("editing SAMO text invalidates the old preview", async () => {
