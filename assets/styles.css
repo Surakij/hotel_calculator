@@ -688,13 +688,13 @@ table {
 
 .calc-table .col-type { width: 130px; }
 .calc-table .col-item { width: calc(100% - (844px + var(--discount-column-width, 152px))); }
-.calc-table .col-date { width: 126px; }
+.calc-table .col-date { width: 120px; }
 .calc-table .col-nights { width: 100px; }
 .calc-table .col-qty { width: 100px; }
 .calc-table .col-rate { width: 118px; }
 .calc-table .col-discounts { width: var(--discount-column-width, 152px); }
 .calc-table .col-net { width: 104px; }
-.calc-table .col-delete { width: 40px; }
+.calc-table .col-delete { width: 52px; }
 
 th {
   height: 40px;
@@ -735,6 +735,14 @@ td select {
   background: var(--field);
   color: var(--text);
   font: inherit;
+}
+
+.calc-table .from,
+.calc-table .to {
+  padding-right: 9px;
+  padding-left: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .item-cell {
@@ -840,6 +848,10 @@ td select.type-native {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding-right: 10px;
+  padding-left: 10px;
+  line-height: 1;
+  text-align: center;
 }
 
 .type-picker-button::after {
@@ -1011,7 +1023,7 @@ td select.type-native {
 
 td .number-stepper {
   height: 36px;
-  grid-template-columns: 28px minmax(32px, 1fr) 28px;
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
 }
 
 td .number-stepper input {
@@ -1022,7 +1034,9 @@ td .number-stepper input {
 }
 
 td .number-stepper .step-button {
+  width: 28px;
   min-width: 28px;
+  max-width: 28px;
   font-size: 19px;
 }
 
@@ -1055,7 +1069,9 @@ td .number-stepper .step-button {
 }
 
 .discounts .number-stepper .step-button {
+  width: 32px;
   min-width: 32px;
+  max-width: 32px;
   font-size: 18px;
 }
 
@@ -1123,8 +1139,9 @@ td.net {
   stroke-linejoin: round;
 }
 
-td:last-child {
+.calc-table tbody td:last-child {
   padding-right: 10px;
+  padding-left: 10px;
   text-align: center;
 }
 

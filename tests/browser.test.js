@@ -611,3 +611,46 @@ test("service colors continue behind plain fields and type labels stay on one li
   assert.equal(new Set(result.map((row) => row.field)).size, 1);
   assert.ok(result.every((row) => row.oneLine));
 });
+
+test("table row controls stay centered and evenly spaced", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("rows").innerHTML = "";
+    const row = HotelCalculatorApp.addRow({
+      type: "ROOM",
+      item: "Water Villa With Pool",
+      from: "19.12.2026",
+      to: "26.12.2026",
+      qty: 1,
+      rate: 1200,
+      discounts: [25],
+    }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.recalc();
+
+    const stepperWidths = [".nights", ".qty"].map((selector) => (
+      [...row.querySelector(selector).closest(".number-stepper").querySelectorAll(".step-button")]
+        .map((button) => button.getBoundingClientRect().width)
+    ));
+    const discountWidths = [...row.querySelector(".discounts .number-stepper").querySelectorAll(".step-button")]
+      .map((button) => button.getBoundingClientRect().width);
+    const deleteCellRect = row.lastElementChild.getBoundingClientRect();
+    const deleteRect = row.querySelector(".delete").getBoundingClientRect();
+    const typeStyle = getComputedStyle(row.querySelector(".type-static-label"));
+    const dateStyle = getComputedStyle(row.querySelector(".from"));
+
+    return {
+      stepperWidths,
+      discountWidths,
+      deleteGaps: [deleteRect.left - deleteCellRect.left, deleteCellRect.right - deleteRect.right],
+      typePadding: [Number.parseFloat(typeStyle.paddingLeft), Number.parseFloat(typeStyle.paddingRight)],
+      datePadding: [Number.parseFloat(dateStyle.paddingLeft), Number.parseFloat(dateStyle.paddingRight)],
+      dateAlign: dateStyle.textAlign,
+    };
+  });
+
+  assert.deepEqual(result.stepperWidths, [[28, 28], [28, 28]]);
+  assert.deepEqual(result.discountWidths, [32, 32]);
+  assert.ok(Math.abs(result.deleteGaps[0] - result.deleteGaps[1]) <= 1, JSON.stringify(result.deleteGaps));
+  assert.deepEqual(result.typePadding, [10, 10]);
+  assert.deepEqual(result.datePadding, [9, 9]);
+  assert.equal(result.dateAlign, "center");
+});
