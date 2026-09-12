@@ -244,8 +244,34 @@ test("uses DOB age when an adult title is assigned to a child in repeated room s
   assert.deepEqual([result.adults, result.children, result.infants], [4, 2, 0]);
   assert.deepEqual(result.childAges, [5, 2]);
   assert.deepEqual(result.rooms.map((room) => room.item), ["2 Bedroom Island Villa", "1 Bedroom Island Villa"]);
+  assert.deepEqual(result.rooms.map((room) => room.occupancy), [
+    { adults: 3, children: 1, infants: 0, bedrooms: 2, standardCapacity: 4, extraAdults: 0, extraChildren: 0 },
+    { adults: 1, children: 1, infants: 0, bedrooms: 1, standardCapacity: 2, extraAdults: 0, extraChildren: 0 },
+  ]);
   assert.equal(result.mealPlan, "BB");
   assert.equal(result.transfer.mode, "SEAPLANE");
+});
+
+test("calculates room extras from two standard places per bedroom", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Cheval Blanc Randheli
+    Number of guest: 7 Adult, 2 Child
+    Arrival date: 03.11.2026
+    Departure date: 14.11.2026
+    Villa category: 1 Bedroom Island Villa 4 Adl
+    Arrival date: 03.11.2026
+    Departure date: 14.11.2026
+    Villa category: 2 Bedroom Island Villa 3 Adl + 2 Chd
+    Arrival date: 03.11.2026
+    Departure date: 14.11.2026
+    Villa category: 3 BR Residence 6 Adl
+  `, { hotelNames: ["Cheval Blanc Randheli"] });
+
+  assert.deepEqual(result.rooms.map((room) => room.occupancy), [
+    { adults: 4, children: 0, infants: 0, bedrooms: 1, standardCapacity: 2, extraAdults: 2, extraChildren: 0 },
+    { adults: 3, children: 2, infants: 0, bedrooms: 2, standardCapacity: 4, extraAdults: 0, extraChildren: 1 },
+    { adults: 6, children: 0, infants: 0, bedrooms: 3, standardCapacity: 6, extraAdults: 0, extraChildren: 0 },
+  ]);
 });
 
 test("parses single SAMO stay", () => {

@@ -204,6 +204,23 @@
       .trim();
   }
 
+  function parseRoomOccupancy(value) {
+    const text = String(value || "");
+    const count = (pattern) => Number(pattern.exec(text)?.[1] || 0);
+    const adults = count(/(\d+)\s*(?:adl|adult|adults)\b/i);
+    const children = count(/(\d+)\s*(?:chd|child|children)\b/i);
+    const infants = count(/(\d+)\s*(?:inf|infant|infants)\b/i);
+    const bedroomMatch = /\b(\d+|one|two|three|four|five|six)\s*[- ]?\s*(?:bedrooms?|br)\b/i.exec(text);
+    const bedroomWords = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+    const bedroomToken = bedroomMatch?.[1]?.toLowerCase() || "";
+    const bedrooms = Number(bedroomToken) || bedroomWords[bedroomToken] || 0;
+    const standardCapacity = bedrooms * 2;
+    const extraAdults = standardCapacity ? Math.max(0, adults - standardCapacity) : 0;
+    const remainingStandardPlaces = Math.max(0, standardCapacity - adults);
+    const extraChildren = standardCapacity ? Math.max(0, children - remainingStandardPlaces) : 0;
+    return { adults, children, infants, bedrooms, standardCapacity, extraAdults, extraChildren };
+  }
+
   function parseRooms(lines) {
     const rooms = [];
     let current = {};
@@ -215,6 +232,7 @@
         from: formatDate(current.from),
         to: formatDate(current.to),
         nights: current.nights || nightsBetween(current.from, current.to),
+        occupancy: parseRoomOccupancy(current.item),
       };
       if (room.item || room.from || room.to) rooms.push(room);
       current = {};

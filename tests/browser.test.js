@@ -460,6 +460,7 @@ Transfer: Seaplane Airport - Hotel - Airport`;
       rooms: rows.filter((row) => row.querySelector(".type")?.value === "ROOM").map((row) => row.querySelector(".item").value),
       meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL").map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
       transfers: rows.filter((row) => row.querySelector(".type")?.value === "TRANSFER").map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      extras: rows.filter((row) => row.querySelector(".type")?.value === "EXTRA").length,
       greenTaxQty: rows.find((row) => row.querySelector(".type")?.value === "GREEN_TAX")?.querySelector(".qty").value,
     };
   });
@@ -473,8 +474,42 @@ Transfer: Seaplane Airport - Hotel - Airport`;
     rooms: ["2-Bedroom Island Villa", "1-Bedroom Island Villa"],
     meals: [["BB - Adult", "4"], ["BB - Child", "2"]],
     transfers: [["Seaplane - Adult", "4"], ["Seaplane - Child", "2"]],
+    extras: 0,
     greenTaxQty: "6",
   });
+});
+
+test("SAMO assigns bedroom-capacity extras to their imported rooms", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Cheval Blanc Randheli
+Number of guest: 7 Adult, 2 Child
+Arrival date: 03.11.2026
+Departure date: 14.11.2026
+Villa category: 1 Bedroom Island Villa 4 Adl
+Arrival date: 03.11.2026
+Departure date: 14.11.2026
+Villa category: 2 Bedroom Island Villa 3 Adl + 2 Chd`;
+    $("parseSamoImport").click();
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const rooms = rows.filter((row) => row.querySelector(".type")?.value === "ROOM");
+    const extras = rows.filter((row) => row.querySelector(".type")?.value === "EXTRA");
+    return {
+      rooms: rooms.map((row) => ({ item: row.querySelector(".item").value, key: row.dataset.roomKey })),
+      extras: extras.map((row) => ({
+        item: row.querySelector(".item").value,
+        qty: row.querySelector(".qty").value,
+        assignedRoomKey: row.querySelector(".assigned-room").value,
+      })),
+    };
+  });
+
+  assert.deepEqual(result.extras, [
+    { item: "Extra Adult", qty: "2", assignedRoomKey: result.rooms[0].key },
+    { item: "Extra Child", qty: "1", assignedRoomKey: result.rooms[1].key },
+  ]);
 });
 
 test("SAMO maps Heritance Aarah and its Premium AI meal", async () => {

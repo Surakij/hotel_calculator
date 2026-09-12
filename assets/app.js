@@ -1946,10 +1946,16 @@
       return matches.length === 1 ? matches[0] : item;
     }
 
-    roomsWithQuotationPeriods(parsed.rooms || [], parsed.roomQuotation).forEach((room) => {
+    const importedRooms = (parsed.rooms || []).map((room, index) => ({
+      ...room,
+      roomKey: `imported-room-${index + 1}`,
+    }));
+
+    roomsWithQuotationPeriods(importedRooms, parsed.roomQuotation).forEach((room) => {
       if (!room.item && !room.from && !room.to) return;
       rows.push({
         type: "ROOM",
+        roomKey: room.roomKey,
         item: mappedRoomName(room.item) || "",
         from: room.from || parsed.checkin || "",
         to: room.to || parsed.checkout || "",
@@ -1957,6 +1963,32 @@
         rateFormula: "",
         followGlobal: false,
       });
+    });
+
+    importedRooms.forEach((room) => {
+      const occupancy = room.occupancy || {};
+      if (Number(occupancy.extraAdults || 0) > 0) {
+        rows.push({
+          type: "EXTRA",
+          item: "Extra Adult",
+          assignedRoomKey: room.roomKey,
+          from: room.from || parsed.checkin || "",
+          to: room.to || parsed.checkout || "",
+          qty: Number(occupancy.extraAdults),
+          followGlobal: false,
+        });
+      }
+      if (Number(occupancy.extraChildren || 0) > 0) {
+        rows.push({
+          type: "EXTRA",
+          item: "Extra Child",
+          assignedRoomKey: room.roomKey,
+          from: room.from || parsed.checkin || "",
+          to: room.to || parsed.checkout || "",
+          qty: Number(occupancy.extraChildren),
+          followGlobal: false,
+        });
+      }
     });
 
     if (parsed.mealPlan) {
