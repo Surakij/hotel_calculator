@@ -318,8 +318,6 @@
           dates: new Set(),
           rooms: [],
           room: roomLabel,
-          roomAdults: 0,
-          roomChildren: 0,
           roomNet: 0,
           mealNet: 0,
           extraNet: 0,
@@ -330,8 +328,6 @@
 
       group.dates.add(dateRangeLabel(room.from, room.to));
       group.rooms.push(room);
-      group.roomAdults = Math.max(group.roomAdults, Number(room.roomAdults || 0));
-      group.roomChildren = Math.max(group.roomChildren, Number(room.roomChildren || 0));
       group.roomNet += room.net;
     });
 
@@ -340,31 +336,27 @@
       if (row.nights <= 0) return;
       let allocations = groups.map((group) => ({
         group,
-        guestWeight: group.rooms.reduce((sum, room) => (
-          sum + overlapNights(room.from, room.to, row.from, row.to)
-        ), 0),
         roomWeight: group.rooms.reduce((sum, room) => (
           sum + overlapNights(room.from, room.to, row.from, row.to) * Number(room.qty || 0)
         ), 0),
       })).filter((allocation) => allocation.roomWeight > 0);
 
-      if (row.type === "EXTRA" && row.assignedRoomKey) {
-        allocations = allocations.filter(({ group }) => group.roomKey === row.assignedRoomKey);
-        allocations.forEach(({ group }) => { group.extraNet += row.net; });
+      if (row.type === "EXTRA") {
+        if (groups.length === 1) {
+          allocations.forEach(({ group }) => { group.extraNet += row.net; });
+        } else if (row.assignedRoomKey) {
+          allocations = allocations.filter(({ group }) => group.roomKey === row.assignedRoomKey);
+          allocations.forEach(({ group }) => { group.extraNet += row.net; });
+        }
         return;
       }
 
-      const childCharge = /child/i.test(row.item || "");
-      const hasGuestAllocation = allocations.some(({ group }) => (
-        childCharge ? group.roomChildren > 0 : group.roomAdults > 0
-      ));
       allocations.forEach((allocation) => {
-        const guests = childCharge ? allocation.group.roomChildren : allocation.group.roomAdults;
-        allocation.weight = hasGuestAllocation ? allocation.guestWeight * guests : allocation.roomWeight;
+        allocation.weight = allocation.roomWeight;
       });
       allocations = allocations.filter((allocation) => allocation.weight > 0);
       const coveredWeight = allocations.reduce((sum, allocation) => sum + allocation.weight, 0);
-      const allocationBase = hasGuestAllocation ? coveredWeight : Math.max(row.nights, coveredWeight);
+      const allocationBase = Math.max(row.nights, coveredWeight);
 
       allocations.forEach(({ group, weight }) => {
         const amount = row.net * weight / allocationBase;
@@ -379,8 +371,6 @@
       return {
         dates,
         room: group.room,
-        roomAdults: group.roomAdults,
-        roomChildren: group.roomChildren,
         roomNet: group.roomNet,
         mealNet: group.mealNet,
         extraNet: group.extraNet,

@@ -472,8 +472,6 @@ test("builds stay summaries by matching room dates", () => {
   assert.deepEqual(summaries[0], {
     dates: "01.09 - 04.09",
     room: "Beach Pool Villa",
-    roomAdults: 0,
-    roomChildren: 0,
     roomNet: 300,
     mealNet: 180,
     extraNet: 60,
@@ -516,7 +514,7 @@ test("includes full-stay meals and person extras across split same-category room
   assert.equal(summaries[0].total, 8520);
 });
 
-test("splits shared meals and extras across simultaneous room categories", () => {
+test("does not split unassigned extras across simultaneous room categories", () => {
   const summaries = core.buildStaySummaries([
     { type: "ROOM", item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] },
     { type: "ROOM", item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] },
@@ -531,30 +529,29 @@ test("splits shared meals and extras across simultaneous room categories", () =>
     extraNet: summary.extraNet,
     total: summary.total,
   })), [
-    { room: "1 Bedroom Sunset Beach Villa With Pool", mealNet: 4305, extraNet: 1470, total: 17437 },
-    { room: "Beach Pool Villa", mealNet: 4305, extraNet: 1470, total: 13958 },
+    { room: "1 Bedroom Sunset Beach Villa With Pool", mealNet: 4305, extraNet: 0, total: 15967 },
+    { room: "Beach Pool Villa", mealNet: 4305, extraNet: 0, total: 12488 },
   ]);
   assert.equal(summaries.reduce((sum, summary) => sum + summary.mealNet, 0), 8610);
-  assert.equal(summaries.reduce((sum, summary) => sum + summary.extraNet, 0), 2940);
+  assert.equal(summaries.reduce((sum, summary) => sum + summary.extraNet, 0), 0);
 });
 
-test("allocates meals by room guests and assigns person extras to one room", () => {
+test("assigns person extras to one room without automatic splitting", () => {
   const summaries = core.buildStaySummaries([
-    { type: "ROOM", roomKey: "sunset", roomAdults: 4, roomChildren: 0, item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] },
-    { type: "ROOM", roomKey: "beach", roomAdults: 2, roomChildren: 0, item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] },
+    { type: "ROOM", roomKey: "sunset", item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] },
+    { type: "ROOM", roomKey: "beach", item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] },
     { type: "EXTRA", assignedRoomKey: "sunset", item: "Extra Adult", from: "28.10.2026", to: "04.11.2026", qty: 2, rate: 300, discounts: [30] },
     { type: "MEAL", item: "AI - Adult", from: "28.10.2026", to: "04.11.2026", qty: 6, rate: 205 },
   ]);
 
   assert.deepEqual(summaries.map((summary) => ({
     room: summary.room,
-    guests: [summary.roomAdults, summary.roomChildren],
     mealNet: summary.mealNet,
     extraNet: summary.extraNet,
     total: summary.total,
   })), [
-    { room: "1 Bedroom Sunset Beach Villa With Pool", guests: [4, 0], mealNet: 5740, extraNet: 2940, total: 20342 },
-    { room: "Beach Pool Villa", guests: [2, 0], mealNet: 2870, extraNet: 0, total: 11053 },
+    { room: "1 Bedroom Sunset Beach Villa With Pool", mealNet: 4305, extraNet: 2940, total: 18907 },
+    { room: "Beach Pool Villa", mealNet: 4305, extraNet: 0, total: 12488 },
   ]);
   assert.equal(summaries.reduce((sum, summary) => sum + summary.total, 0), 31395);
 });

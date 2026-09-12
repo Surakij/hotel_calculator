@@ -534,63 +534,55 @@ test("short share preview uses Arial 10pt", async () => {
   assert.ok(Math.abs(Number.parseFloat(result.size) - (10 * 4 / 3)) < 0.1);
 });
 
-test("room check splits shared meals and extras across simultaneous rooms", async () => {
+test("multiple rooms require an explicit room for person extras", async () => {
   const result = await page.evaluate(() => {
     document.getElementById("checkin").value = "28.10.2026";
     document.getElementById("checkout").value = "04.11.2026";
     document.getElementById("rows").innerHTML = "";
-    [
-      { type: "ROOM", item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] },
-      { type: "ROOM", item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] },
-      { type: "EXTRA", item: "Extra Adult", from: "28.10.2026", to: "04.11.2026", qty: 2, rate: 300, discounts: [30] },
-      { type: "MEAL", item: "AI - Adult", from: "28.10.2026", to: "04.11.2026", qty: 6, rate: 205 },
-    ].forEach((row) => HotelCalculatorApp.addRow(row, { preserveValues: true, deferRender: true }));
-    HotelCalculatorApp.recalc();
-    return [...document.querySelectorAll("#staySummary tbody tr")]
-      .map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent.trim()));
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "sunset", item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "beach", item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670 }, { preserveValues: true, deferRender: true });
+    const extra = HotelCalculatorApp.addRow({ type: "EXTRA", item: "Extra Adult", from: "28.10.2026", to: "04.11.2026", qty: 2, rate: 300 }, { preserveValues: true, deferRender: true });
+    return {
+      valid: HotelCalculatorApp.recalc(),
+      options: [...extra.querySelector(".assigned-room").options].map((option) => option.textContent),
+      roomGuestControls: document.querySelectorAll(".room-allocation").length,
+    };
   });
 
-  assert.deepEqual(result, [
-    ["28.10 - 04.11", "1 Bedroom Sunset Beach Villa With Pool", "0 ADL", "11,662.00", "4,305.00", "1,470.00", "17,437.00"],
-    ["28.10 - 04.11", "Beach Pool Villa", "0 ADL", "8,183.00", "4,305.00", "1,470.00", "13,958.00"],
-  ]);
+  assert.equal(result.valid, false);
+  assert.deepEqual(result.options, ["Choose room", "Room 1 · 1 Bedroom Sunset Beach Villa With Pool", "Room 2 · Beach Pool Villa"]);
+  assert.equal(result.roomGuestControls, 0);
 });
 
-test("room guest allocation is visible, calculated and saved", async () => {
+test("extra room assignment is calculated, saved and restored", async () => {
   const result = await page.evaluate(() => {
     document.getElementById("checkin").value = "28.10.2026";
     document.getElementById("checkout").value = "04.11.2026";
     document.getElementById("adults").value = "6";
     document.getElementById("rows").innerHTML = "";
-    const first = HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "sunset", roomAdults: 4, roomChildren: 0, item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] }, { preserveValues: true, deferRender: true });
-    const second = HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "beach", roomAdults: 2, roomChildren: 0, item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "sunset", item: "1 Bedroom Sunset Beach Villa With Pool", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 2380, discounts: [30] }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "beach", item: "Beach Pool Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 1670, discounts: [30] }, { preserveValues: true, deferRender: true });
     const extra = HotelCalculatorApp.addRow({ type: "EXTRA", assignedRoomKey: "sunset", item: "Extra Adult", from: "28.10.2026", to: "04.11.2026", qty: 2, rate: 300, discounts: [30] }, { preserveValues: true, deferRender: true });
     HotelCalculatorApp.addRow({ type: "MEAL", item: "AI - Adult", from: "28.10.2026", to: "04.11.2026", qty: 6, rate: 205 }, { preserveValues: true, deferRender: true });
     HotelCalculatorApp.recalc();
     HotelCalculatorApp.saveCalculation();
     const payload = HotelCalculatorStorage.history()[0].payload;
-    first.querySelector(".room-adults").value = "0";
-    first.querySelector(".room-adults").dispatchEvent(new Event("input", { bubbles: true }));
+    extra.querySelector(".assigned-room").value = "beach";
+    extra.querySelector(".assigned-room").dispatchEvent(new Event("change", { bubbles: true }));
     document.getElementById("showHistory").click();
     document.querySelector(".history-open").click();
     const restoredRows = [...document.querySelectorAll("#rows tr")];
     return {
-      controls: [restoredRows[0].querySelector(".room-adults").value, restoredRows[1].querySelector(".room-adults").value, restoredRows[2].querySelector(".assigned-room").value],
+      assignment: restoredRows[2].querySelector(".assigned-room").value,
       summary: [...document.querySelectorAll("#staySummary tbody tr")].map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent.trim())),
-      saved: payload.rows.slice(0, 3).map((row) => (row.type === "ROOM"
-        ? { roomKey: row.roomKey, roomAdults: row.roomAdults }
-        : { assignedRoomKey: row.assignedRoomKey })),
+      savedAssignment: payload.rows[2].assignedRoomKey,
     };
   });
 
-  assert.deepEqual(result.controls, ["4", "2", "sunset"]);
+  assert.equal(result.assignment, "sunset");
   assert.deepEqual(result.summary, [
-    ["28.10 - 04.11", "1 Bedroom Sunset Beach Villa With Pool", "4 ADL", "11,662.00", "5,740.00", "2,940.00", "20,342.00"],
-    ["28.10 - 04.11", "Beach Pool Villa", "2 ADL", "8,183.00", "2,870.00", "0.00", "11,053.00"],
+    ["28.10 - 04.11", "1 Bedroom Sunset Beach Villa With Pool", "11,662.00", "4,305.00", "2,940.00", "18,907.00"],
+    ["28.10 - 04.11", "Beach Pool Villa", "8,183.00", "4,305.00", "0.00", "12,488.00"],
   ]);
-  assert.deepEqual(result.saved.slice(0, 3), [
-    { roomKey: "sunset", roomAdults: 4 },
-    { roomKey: "beach", roomAdults: 2 },
-    { assignedRoomKey: "sunset" },
-  ]);
+  assert.equal(result.savedAssignment, "sunset");
 });

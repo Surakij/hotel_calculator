@@ -890,8 +890,6 @@
     };
     if (type === "ROOM") {
       data.roomKey = tr.dataset.roomKey;
-      data.roomAdults = Number(tr.querySelector(".room-adults")?.value || 0);
-      data.roomChildren = Number(tr.querySelector(".room-children")?.value || 0);
     } else if (isPersonExtra(data)) {
       data.assignedRoomKey = tr.querySelector(".assigned-room")?.value || "";
     }
@@ -1066,9 +1064,7 @@
     rowsEl.querySelectorAll("tr").forEach((tr) => {
       const type = tr.querySelector(".type")?.value;
       const item = tr.querySelector(".item")?.value.trim();
-      const roomControls = tr.querySelector(".room-allocation");
       const extraControls = tr.querySelector(".extra-assignment");
-      if (roomControls) roomControls.hidden = type !== "ROOM";
       if (extraControls) extraControls.hidden = !(type === "EXTRA" && /(adult|child)/i.test(item || ""));
       if (type !== "ROOM" || seen.has(tr.dataset.roomKey)) return;
       seen.add(tr.dataset.roomKey);
@@ -1078,37 +1074,18 @@
     rowsEl.querySelectorAll(".assigned-room").forEach((select) => {
       const selected = select.dataset.assignedRoomKey || select.value || "";
       select.innerHTML = "";
-      select.appendChild(el("option", { value: "", textContent: "Split automatically" }));
+      select.appendChild(el("option", { value: "", textContent: "Choose room" }));
       roomGroups.forEach((room, index) => {
         select.appendChild(el("option", {
           value: room.key,
           textContent: `Room ${index + 1} · ${room.item}`,
         }));
       });
-      select.value = roomGroups.some((room) => room.key === selected) ? selected : "";
+      select.value = roomGroups.some((room) => room.key === selected)
+        ? selected
+        : (roomGroups.length === 1 ? roomGroups[0].key : "");
       select.dataset.assignedRoomKey = select.value;
-      select.title = select.options[select.selectedIndex]?.textContent || "Split automatically";
-    });
-  }
-
-  function syncRoomGuests(source, selector) {
-    const roomKey = source.closest("tr")?.dataset.roomKey;
-    if (!roomKey) return;
-    rowsEl.querySelectorAll("tr").forEach((tr) => {
-      if (tr.dataset.roomKey === roomKey && tr.querySelector(".type")?.value === "ROOM") {
-        tr.querySelector(selector).value = source.value;
-      }
-    });
-  }
-
-  function syncSingleRoomGuestsFromHeader() {
-    const roomRows = [...rowsEl.querySelectorAll("tr")]
-      .filter((tr) => tr.querySelector(".type")?.value === "ROOM");
-    const roomKeys = [...new Set(roomRows.map((tr) => tr.dataset.roomKey))];
-    if (roomKeys.length !== 1) return;
-    roomRows.forEach((tr) => {
-      tr.querySelector(".room-adults").value = value("adults") || 0;
-      tr.querySelector(".room-children").value = value("children") || 0;
+      select.title = select.options[select.selectedIndex]?.textContent || "Choose room";
     });
   }
 
@@ -1262,7 +1239,6 @@
     const allowDiscounts = hasType && core.isDiscountable(data);
     const isDinner = data.type === "DINNER";
 
-    tr.querySelector(".room-allocation").hidden = data.type !== "ROOM";
     tr.querySelector(".extra-assignment").hidden = !isPersonExtra(data);
 
     tr.classList.toggle("inactive-row", !hasType);
@@ -1319,8 +1295,13 @@
       updateRowState(tr);
     });
 
-    const valid = calculated.total !== null && [...document.querySelectorAll('input[type="number"]')].every((input) => input.disabled || input.validity.valid);
+    const numberInputsValid = [...document.querySelectorAll('input[type="number"]')]
+      .every((input) => input.disabled || input.validity.valid);
+    const roomAssignmentsValid = [...rowsEl.querySelectorAll(".extra-assignment:not([hidden]) .assigned-room")]
+      .every((select) => Boolean(select.value));
+    const valid = calculated.total !== null && numberInputsValid && roomAssignmentsValid;
     document.querySelectorAll('input[type="number"]').forEach((input) => input.setAttribute("aria-invalid", String(!input.disabled && !input.validity.valid)));
+    rowsEl.querySelectorAll(".assigned-room").forEach((select) => select.setAttribute("aria-invalid", String(!select.closest(".extra-assignment").hidden && !select.value)));
     $("grandTotal").textContent = valid ? `$${core.money(calculated.total)}` : "Check inputs";
     if (valid) renderStaySummary(calculated.rows);
     else $("staySummary").innerHTML = "";
@@ -1344,7 +1325,6 @@
       <tr>
         <td>${escapeHtml(row.dates)}</td>
         <td>${escapeHtml(row.room)}</td>
-        <td>${row.roomAdults} ADL${row.roomChildren ? ` + ${row.roomChildren} CHD` : ""}</td>
         <td>${core.money(row.roomNet)}</td>
         <td>${core.money(row.mealNet)}</td>
         <td>${core.money(row.extraNet)}</td>
@@ -1360,7 +1340,6 @@
             <tr>
               <th>DATES</th>
               <th>ROOM</th>
-              <th>GUESTS</th>
               <th>ROOM NET</th>
               <th>MEAL NET</th>
               <th>EXTRA</th>
@@ -1377,8 +1356,6 @@
     const tr = el("tr");
     tr.dataset.followGlobal = data.followGlobal === true ? "1" : "0";
     tr.dataset.roomKey = data.roomKey || storage.createId();
-    const hasExistingRoom = [...rowsEl.querySelectorAll("tr")]
-      .some((row) => row.querySelector(".type")?.value === "ROOM");
 
     const typeCell = el("td", { className: "type-cell" });
     typeCell.appendChild(createTypeSelect(data.type || ""));
@@ -1390,21 +1367,6 @@
     const item = el("input", { className: "item", placeholder: "Choose or type manually", autocomplete: "off" });
     item.value = data.item || "";
     itemLayout.appendChild(item);
-
-    const roomAllocation = el("div", { className: "row-allocation room-allocation" });
-    roomAllocation.appendChild(el("span", { className: "allocation-title", textContent: "Guests" }));
-    const roomAdultsLabel = el("label", { className: "allocation-field" });
-    roomAdultsLabel.appendChild(el("span", { textContent: "ADL" }));
-    const roomAdults = el("input", { className: "room-adults", type: "number", min: "0", step: "1", "aria-label": "Adults in this room" });
-    roomAdults.value = data.roomAdults ?? (data.type === "ROOM" && !hasExistingRoom ? value("adults") || 0 : 0);
-    roomAdultsLabel.appendChild(numberStepper(roomAdults, true));
-    const roomChildrenLabel = el("label", { className: "allocation-field" });
-    roomChildrenLabel.appendChild(el("span", { textContent: "CHD" }));
-    const roomChildren = el("input", { className: "room-children", type: "number", min: "0", step: "1", "aria-label": "Children in this room" });
-    roomChildren.value = data.roomChildren ?? (data.type === "ROOM" && !hasExistingRoom ? value("children") || 0 : 0);
-    roomChildrenLabel.appendChild(numberStepper(roomChildren, true));
-    roomAllocation.append(roomAdultsLabel, roomChildrenLabel);
-    itemLayout.appendChild(roomAllocation);
 
     const extraAssignment = el("label", { className: "row-allocation extra-assignment" });
     extraAssignment.appendChild(el("span", { className: "allocation-title", textContent: "Assign to" }));
@@ -1501,17 +1463,9 @@
       recalc();
     });
 
-    roomAdults.addEventListener("input", () => {
-      syncRoomGuests(roomAdults, ".room-adults");
-      recalc();
-    });
-    roomChildren.addEventListener("input", () => {
-      syncRoomGuests(roomChildren, ".room-children");
-      recalc();
-    });
     assignedRoom.addEventListener("change", () => {
       assignedRoom.dataset.assignedRoomKey = assignedRoom.value;
-      assignedRoom.title = assignedRoom.options[assignedRoom.selectedIndex]?.textContent || "Split automatically";
+      assignedRoom.title = assignedRoom.options[assignedRoom.selectedIndex]?.textContent || "Choose room";
       recalc();
     });
 
@@ -1641,11 +1595,9 @@
     };
   }
 
-  function prepareRoomAllocationRows(inputRows, guests = {}) {
+  function prepareRoomAllocationRows(inputRows) {
     const rows = inputRows.map((row) => ({ ...row }));
     const preparedRooms = [];
-    const adults = Number(guests.adults || 0);
-    const children = Number(guests.children || 0);
 
     function overlaps(left, right) {
       const leftFrom = core.parseDate(left.from);
@@ -1665,10 +1617,8 @@
         row.roomKey = priorPeriod?.roomKey || storage.createId();
       }
 
-      const sameRoom = preparedRooms.find((prior) => prior.roomKey === row.roomKey);
-      const overlapsAnotherRoom = preparedRooms.some((prior) => prior.roomKey !== row.roomKey && overlaps(prior, row));
-      if (row.roomAdults === undefined) row.roomAdults = sameRoom ? sameRoom.roomAdults : (overlapsAnotherRoom ? 0 : adults);
-      if (row.roomChildren === undefined) row.roomChildren = sameRoom ? sameRoom.roomChildren : (overlapsAnotherRoom ? 0 : children);
+      delete row.roomAdults;
+      delete row.roomChildren;
       preparedRooms.push(row);
     });
     return rows;
@@ -1705,7 +1655,7 @@
     updateHotelScopedLists();
     rowsEl.innerHTML = "";
     if (Array.isArray(payload.rows)) {
-      prepareRoomAllocationRows(payload.rows, payload.guests)
+      prepareRoomAllocationRows(payload.rows)
         .forEach((row) => addRow(row, { preserveValues: true, deferRender: true }));
       groupRowsByType();
     } else createDefaultRows();
@@ -2569,7 +2519,6 @@
       $(id).addEventListener("input", () => {
         if (id === "children") renderChildAgeFields();
         rowsEl.querySelectorAll("tr").forEach(applyAutoQty);
-        if (id !== "infants") syncSingleRoomGuestsFromHeader();
         recalc();
       });
     });

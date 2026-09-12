@@ -765,43 +765,13 @@ td select {
   display: none;
 }
 
-.allocation-title,
-.allocation-field > span {
+.allocation-title {
   color: var(--muted);
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
-}
-
-.allocation-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.row-allocation .number-stepper.compact {
-  width: 64px;
-  height: 26px;
-  grid-template-columns: 20px 24px 20px;
-  border-radius: 6px;
-}
-
-.row-allocation .number-stepper.compact input {
-  height: 100%;
-  padding: 0 2px;
-  font-size: 11px;
-}
-
-.row-allocation .number-stepper.compact .step-button {
-  min-width: 20px;
-  padding: 0;
-}
-
-.row-allocation .number-stepper.compact .step-symbol {
-  width: 12px;
-  height: 12px;
 }
 
 .extra-assignment .assigned-room {
@@ -859,9 +829,10 @@ td select.type-native {
   border-radius: 7px;
   background: var(--field);
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
+  white-space: nowrap;
   box-shadow: none;
 }
 
@@ -1240,14 +1211,6 @@ td:last-child {
 .summary-table td:first-child,
 .summary-table td:nth-child(2) {
   text-align: left;
-}
-
-.summary-table td:nth-child(3) {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-  white-space: nowrap;
 }
 
 .summary-table td:last-child {
@@ -1656,7 +1619,8 @@ td:last-child {
   }
 }
 
-input[aria-invalid="true"] {
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
   box-shadow: inset 0 0 0 1px var(--red);
 }
 
