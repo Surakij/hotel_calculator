@@ -586,3 +586,28 @@ test("extra room assignment is calculated, saved and restored", async () => {
   ]);
   assert.equal(result.savedAssignment, "sunset");
 });
+
+test("service colors continue across rows and type labels stay on one line", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("rows").innerHTML = "";
+    [
+      { type: "ROOM", item: "Beach Villa" },
+      { type: "MEAL", item: "AI - Adult" },
+      { type: "GREEN_TAX", item: "Green Tax", rate: 12 },
+    ].forEach((row) => HotelCalculatorApp.addRow(row, { preserveValues: true, deferRender: true }));
+    HotelCalculatorApp.recalc();
+    return [...document.querySelectorAll("#rows tr")].map((row) => {
+      const label = row.querySelector(".type-picker-button");
+      const item = row.querySelector(".item");
+      return {
+        cell: getComputedStyle(row.querySelector("td")).backgroundColor,
+        field: getComputedStyle(item).backgroundColor,
+        oneLine: label.scrollHeight <= label.clientHeight && getComputedStyle(label).whiteSpace === "nowrap",
+      };
+    });
+  });
+
+  assert.equal(new Set(result.map((row) => row.cell)).size, 3);
+  assert.equal(new Set(result.map((row) => row.field)).size, 3);
+  assert.ok(result.every((row) => row.oneLine));
+});

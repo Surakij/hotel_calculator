@@ -1217,6 +1217,14 @@
     target.style.background = color ? color.bg : "";
     target.style.color = color ? color.fg : "";
     target.style.borderColor = color ? color.border : "";
+    tr.dataset.rowType = select.value || "";
+    if (color) {
+      tr.style.setProperty("--row-type-bg", color.bg);
+      tr.style.setProperty("--row-type-border", color.border);
+    } else {
+      tr.style.removeProperty("--row-type-bg");
+      tr.style.removeProperty("--row-type-border");
+    }
     tr.querySelectorAll(".type-picker-choice").forEach((choice) => {
       choice.classList.toggle("selected", choice.dataset.value === select.value);
     });

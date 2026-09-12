@@ -2397,6 +2397,25 @@ select[aria-invalid="true"] {
   background: linear-gradient(180deg, #352514, #2b1f13);
 }
 
+.calc-table tbody tr[data-row-type]:not([data-row-type=""]) td {
+  background: color-mix(in srgb, var(--row-type-bg) 72%, var(--panel));
+}
+
+.calc-table tbody tr[data-row-type]:not([data-row-type=""]) td input,
+.calc-table tbody tr[data-row-type]:not([data-row-type=""]) td select,
+.calc-table tbody tr[data-row-type]:not([data-row-type=""]) td .number-stepper {
+  border-color: color-mix(in srgb, var(--row-type-border) 58%, var(--line));
+  background: color-mix(in srgb, var(--row-type-bg) 42%, var(--field));
+}
+
+.calc-table tbody tr[data-row-type]:not([data-row-type=""]) td .number-stepper .step-button {
+  background: color-mix(in srgb, var(--row-type-bg) 58%, #edf3fa);
+}
+
+:root[data-theme="dark"] .calc-table tbody tr[data-row-type]:not([data-row-type=""]) td .number-stepper .step-button {
+  background: color-mix(in srgb, var(--row-type-bg) 58%, #132b49);
+}
+
 :root[data-theme="dark"] .drive-status,
 :root[data-theme="dark"] .share-preview {
   background: #091a2d;
