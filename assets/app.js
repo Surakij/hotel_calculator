@@ -397,7 +397,8 @@
     const button = select.closest(".room-assignment-picker")?.querySelector(".assigned-room-button");
     if (!button) return;
     const label = select.options[select.selectedIndex]?.textContent || "Choose room";
-    button.textContent = label;
+    const labelNode = button.querySelector(".assigned-room-button-label");
+    if (labelNode) labelNode.textContent = label;
     button.title = label;
     button.classList.toggle("is-placeholder", !select.value);
     button.setAttribute("aria-invalid", select.getAttribute("aria-invalid") || "false");
@@ -1504,8 +1505,8 @@
       "aria-label": "Assign extra charge to room",
       "aria-haspopup": "listbox",
       "aria-expanded": "false",
-      textContent: "Choose room",
     });
+    assignedRoomButton.appendChild(el("span", { className: "assigned-room-button-label", textContent: "Choose room" }));
     assignmentPicker.append(assignedRoom, assignedRoomButton);
     extraAssignment.appendChild(assignmentPicker);
     itemLayout.appendChild(extraAssignment);

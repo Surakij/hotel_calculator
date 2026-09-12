@@ -778,12 +778,23 @@ td select {
   flex: 1 1 180px;
 }
 
+.item-layout:has(.extra-assignment:not([hidden])) > .item {
+  width: 150px;
+  min-width: 150px;
+  flex: 0 0 150px;
+}
+
 .row-allocation {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
   gap: 5px;
   min-height: 36px;
+}
+
+.item-layout:has(.extra-assignment:not([hidden])) .extra-assignment {
+  min-width: 0;
+  flex: 1 1 250px;
 }
 
 .row-allocation[hidden] {
@@ -803,6 +814,12 @@ td select {
   position: relative;
   width: 190px;
   min-width: 0;
+}
+
+.item-layout:has(.extra-assignment:not([hidden])) .room-assignment-picker {
+  width: auto;
+  min-width: 220px;
+  flex: 1 1 auto;
 }
 
 .extra-assignment .assigned-room-native {
@@ -830,6 +847,14 @@ td select {
   text-overflow: ellipsis;
   white-space: nowrap;
   box-shadow: none;
+}
+
+.assigned-room-button-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .assigned-room-button::after {

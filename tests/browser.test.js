@@ -879,3 +879,32 @@ test("extra room assignment uses the custom room picker", async () => {
   assert.equal(result.nativeHidden, "0");
   assert.equal(result.menuClosed, true);
 });
+
+test("extra assignment keeps long room names clear of its arrow", async () => {
+  await page.setViewportSize({ width: 1536, height: 900 });
+  const result = await page.evaluate(() => {
+    document.getElementById("rows").innerHTML = "";
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "private", item: "Cheval Blanc Randheli Private Island", qty: 1 }, { preserveValues: true, deferRender: true });
+    const extra = HotelCalculatorApp.addRow({ type: "EXTRA", assignedRoomKey: "private", item: "Extra Child", qty: 1 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.recalc();
+
+    const item = extra.querySelector(".item");
+    const picker = extra.querySelector(".room-assignment-picker");
+    const button = extra.querySelector(".assigned-room-button");
+    const label = extra.querySelector(".assigned-room-button-label");
+    const buttonRect = button.getBoundingClientRect();
+    const labelRect = label.getBoundingClientRect();
+    const paddingRight = Number.parseFloat(getComputedStyle(button).paddingRight);
+    return {
+      itemWidth: item.getBoundingClientRect().width,
+      pickerWidth: picker.getBoundingClientRect().width,
+      labelRight: labelRect.right,
+      textBoundary: buttonRect.right - paddingRight,
+      clipped: label.scrollWidth > label.clientWidth,
+    };
+  });
+
+  assert.ok(result.pickerWidth > result.itemWidth, JSON.stringify(result));
+  assert.ok(result.labelRight <= result.textBoundary + 1, JSON.stringify(result));
+  assert.equal(result.clipped, true);
+});
