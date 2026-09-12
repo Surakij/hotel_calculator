@@ -654,3 +654,19 @@ test("table row controls stay centered and evenly spaced", async () => {
   assert.deepEqual(result.datePadding, [9, 9]);
   assert.equal(result.dateAlign, "center");
 });
+
+test("guest counters show distinct accessible icons without replacing labels", async () => {
+  const result = await page.evaluate(() => ["adults", "children", "infants"].map((id) => {
+    const label = document.querySelector(`label[for="${id}"]`);
+    const icon = label.querySelector("svg");
+    return {
+      text: label.textContent.trim(),
+      iconHidden: icon.getAttribute("aria-hidden"),
+      iconMarkup: icon.innerHTML,
+    };
+  }));
+
+  assert.deepEqual(result.map(({ text }) => text), ["ADULTS", "CHILDREN", "INFANTS"]);
+  assert.ok(result.every(({ iconHidden }) => iconHidden === "true"));
+  assert.equal(new Set(result.map(({ iconMarkup }) => iconMarkup)).size, 3);
+});
