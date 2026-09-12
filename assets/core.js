@@ -225,18 +225,6 @@
     );
   }
 
-  function compareShareEntries(a, b) {
-    const aGroup = Number.isFinite(a.group) ? a.group : (a.order >= 3 ? a.order : 0);
-    const bGroup = Number.isFinite(b.group) ? b.group : (b.order >= 3 ? b.order : 0);
-    return (
-      aGroup - bGroup
-      || dateSortValue(a.from) - dateSortValue(b.from)
-      || a.order - b.order
-      || dateSortValue(a.to) - dateSortValue(b.to)
-      || a.index - b.index
-    );
-  }
-
   function overlapNights(aFrom, aTo, bFrom, bTo) {
     const startA = parseDate(aFrom);
     const endA = parseDate(aTo);
@@ -404,57 +392,69 @@
     if (spo) out.push(`SPO: ${spo}`);
     out.push("");
 
-    const shareEntries = [];
-    let entryIndex = 0;
     const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
     const extras = rows.filter((row) => row.type === "EXTRA" && !isGreenTax(row));
+    const personExtras = extras.filter((row) => /(adult|child)/i.test(row.item || ""));
+    const otherExtras = extras.filter((row) => !personExtras.includes(row));
     const greenTax = rows.filter(isGreenTax).sort(compareDateRows);
     const mealGroups = groupedRows(rows, "MEAL").sort((a, b) => compareDateRows(a.rows[0], b.rows[0]));
     const usedExtras = new Set();
-    const usedMealGroups = new Set();
+    const roomBlocks = [];
 
-    function addEntry(row, order, text, group) {
-      shareEntries.push({
-        from: row.from,
-        to: row.to,
-        order,
-        group,
-        index: entryIndex,
-        text,
-      });
-      entryIndex += 1;
+    rooms.forEach((room, index) => {
+      const key = room.roomKey ? `room:${room.roomKey}` : `legacy:${index}`;
+      let block = roomBlocks.find((item) => item.key === key);
+      if (!block) {
+        block = { key, roomKey: room.roomKey || "", rows: [] };
+        roomBlocks.push(block);
+      }
+      block.rows.push(room);
+    });
+
+    function matchingRoomBlocks(extra) {
+      if (extra.assignedRoomKey) {
+        return roomBlocks.filter((block) => block.roomKey === extra.assignedRoomKey);
+      }
+      if (roomBlocks.length === 1) return roomBlocks;
+      return roomBlocks.filter((block) => block.rows.some((room) => room.from === extra.from && room.to === extra.to));
     }
 
-    rooms.forEach((room) => {
-      addEntry(room, 0, `${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${shareMoney(room.net)}`);
-      extras
-        .filter((row) => row.from === room.from && row.to === room.to && !usedExtras.has(row))
+    function extraBelongsToBlock(extra, block) {
+      const matches = matchingRoomBlocks(extra);
+      return matches.length === 1 && matches[0] === block;
+    }
+
+    roomBlocks.forEach((block) => {
+      block.rows.forEach((room) => {
+        out.push(`${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${shareMoney(room.net)}`);
+      });
+      personExtras
+        .filter((row) => !usedExtras.has(row) && extraBelongsToBlock(row, block))
         .sort((a, b) => Number(/child/i.test(a.item)) - Number(/child/i.test(b.item)))
         .forEach((row) => {
-          addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
+          out.push(`${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
           usedExtras.add(row);
         });
-      mealGroups
-        .filter((group) => group.rows[0].from === room.from && group.rows[0].to === room.to && !usedMealGroups.has(group))
-        .forEach((group) => {
-          const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-          addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
-          usedMealGroups.add(group);
-        });
     });
 
-    extras.filter((row) => !usedExtras.has(row)).sort(compareDateRows).forEach((row) => {
-      addEntry(row, 1, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`, 1);
-    });
+    [...personExtras.filter((row) => !usedExtras.has(row)), ...otherExtras]
+      .sort(compareDateRows)
+      .forEach((row) => {
+        out.push(`${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
+      });
 
-    mealGroups.filter((group) => !usedMealGroups.has(group)).forEach((group) => {
+    const exactMealGroups = mealGroups.filter((group) => rooms.some((room) => (
+      group.rows[0].from === room.from && group.rows[0].to === room.to
+    )));
+    const otherMealGroups = mealGroups.filter((group) => !exactMealGroups.includes(group));
+    [...exactMealGroups, ...otherMealGroups].forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      addEntry(group.rows[0], 2, `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`, 2);
+      out.push(`${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 
     groupedRows(rows, "DINNER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      addEntry(group.rows[0], 3, `${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
+      out.push(`${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 
     groupedRows(rows, "TRANSFER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
@@ -462,10 +462,8 @@
       const prefix = /\bOW\b/i.test(group.label)
         ? `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : `
         : "";
-      addEntry(group.rows[0], 4, `${prefix}${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
+      out.push(`${prefix}${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
-
-    shareEntries.sort(compareShareEntries).forEach((entry) => out.push(entry.text));
 
     greenTax.forEach((row) => {
       out.push(`Green Tax : ${expression(row)} = ${shareMoney(row.net)}`);

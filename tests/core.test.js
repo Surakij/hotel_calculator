@@ -402,6 +402,37 @@ test("orders short share date rows chronologically", () => {
   assert.ok(thirdMeal < firstMeal);
 });
 
+test("places person extras directly after their assigned room in short share", () => {
+  const text = core.buildShareText({
+    hotel: "Adaaran Select Hudhuranfushi",
+    checkin: "18.03.2027",
+    checkout: "28.03.2027",
+    guests: { adults: 4, children: 3, ages: "3/6/6" },
+    rows: [
+      { type: "ROOM", roomKey: "beach", item: "Beach Villas", from: "18.03.2027", to: "28.03.2027", qty: 1, rate: 450, discounts: [30] },
+      { type: "ROOM", roomKey: "lohis", item: "Lohis Villa", from: "18.03.2027", to: "28.03.2027", qty: 1, rate: 500, discounts: [25] },
+      { type: "EXTRA", assignedRoomKey: "lohis", item: "Extra Adult", from: "18.03.2027", to: "28.03.2027", qty: 2, rate: 150, discounts: [20] },
+      { type: "EXTRA", assignedRoomKey: "beach", item: "Extra Child", from: "18.03.2027", to: "28.03.2027", qty: 2, rate: 75, discounts: [20] },
+      { type: "EXTRA", assignedRoomKey: "lohis", item: "Extra Child", from: "18.03.2027", to: "28.03.2027", qty: 1, rate: 75, discounts: [20] },
+      { type: "MEAL", item: "Premium AI - Adult", from: "18.03.2027", to: "28.03.2027", qty: 4, rate: 100 },
+    ],
+  });
+
+  const beach = text.indexOf("Beach Villas");
+  const beachChild = text.indexOf("Extra Child : 75 * 2 * 10 - 20% = 1,200");
+  const lohis = text.indexOf("Lohis Villa");
+  const lohisAdult = text.indexOf("Extra Adult : 150 * 2 * 10 - 20% = 2,400");
+  const lohisChild = text.indexOf("Extra Child : 75 * 1 * 10 - 20% = 600");
+  const meal = text.indexOf("Premium AI");
+
+  assert.ok(beach > -1);
+  assert.ok(beach < beachChild);
+  assert.ok(beachChild < lohis);
+  assert.ok(lohis < lohisAdult);
+  assert.ok(lohisAdult < lohisChild);
+  assert.ok(lohisChild < meal);
+});
+
 test("keeps full-stay meals after split room date blocks in short share", () => {
   const text = core.buildShareText({
     hotel: "Jawakara Islands Maldives",
