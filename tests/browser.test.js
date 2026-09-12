@@ -587,7 +587,7 @@ test("extra room assignment is calculated, saved and restored", async () => {
   assert.equal(result.savedAssignment, "sunset");
 });
 
-test("service colors continue across rows and type labels stay on one line", async () => {
+test("service colors continue behind plain fields and type labels stay on one line", async () => {
   const result = await page.evaluate(() => {
     document.getElementById("rows").innerHTML = "";
     [
@@ -608,6 +608,6 @@ test("service colors continue across rows and type labels stay on one line", asy
   });
 
   assert.equal(new Set(result.map((row) => row.cell)).size, 3);
-  assert.equal(new Set(result.map((row) => row.field)).size, 3);
+  assert.equal(new Set(result.map((row) => row.field)).size, 1);
   assert.ok(result.every((row) => row.oneLine));
 });
