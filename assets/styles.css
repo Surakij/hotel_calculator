@@ -686,15 +686,15 @@ table {
   margin-bottom: 18px;
 }
 
-.calc-table .col-type { width: 150px; }
-.calc-table .col-item { width: calc(100% - (1018px + var(--discount-column-width, 152px))); }
-.calc-table .col-date { width: 150px; }
-.calc-table .col-nights { width: 136px; }
-.calc-table .col-qty { width: 128px; }
-.calc-table .col-rate { width: 142px; }
+.calc-table .col-type { width: 130px; }
+.calc-table .col-item { width: calc(100% - (844px + var(--discount-column-width, 152px))); }
+.calc-table .col-date { width: 126px; }
+.calc-table .col-nights { width: 100px; }
+.calc-table .col-qty { width: 100px; }
+.calc-table .col-rate { width: 118px; }
 .calc-table .col-discounts { width: var(--discount-column-width, 152px); }
-.calc-table .col-net { width: 116px; }
-.calc-table .col-delete { width: 46px; }
+.calc-table .col-net { width: 104px; }
+.calc-table .col-delete { width: 40px; }
 
 th {
   height: 40px;
@@ -741,12 +741,24 @@ td select {
   vertical-align: middle;
 }
 
-.row-allocation {
+.item-layout {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 28px;
-  margin-top: 5px;
+  min-width: 0;
+}
+
+.item-layout > .item {
+  min-width: 140px;
+  flex: 1 1 180px;
+}
+
+.row-allocation {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 5px;
+  min-height: 36px;
 }
 
 .row-allocation[hidden] {
@@ -766,13 +778,13 @@ td select {
 .allocation-field {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .row-allocation .number-stepper.compact {
-  width: 82px;
+  width: 64px;
   height: 26px;
-  grid-template-columns: 24px 34px 24px;
+  grid-template-columns: 20px 24px 20px;
   border-radius: 6px;
 }
 
@@ -783,7 +795,7 @@ td select {
 }
 
 .row-allocation .number-stepper.compact .step-button {
-  min-width: 24px;
+  min-width: 20px;
   padding: 0;
 }
 
@@ -793,6 +805,7 @@ td select {
 }
 
 .extra-assignment .assigned-room {
+  width: 190px;
   height: 28px;
   min-width: 0;
   padding: 3px 26px 3px 8px;
@@ -1027,7 +1040,7 @@ td select.type-native {
 
 td .number-stepper {
   height: 36px;
-  grid-template-columns: 34px minmax(44px, 1fr) 34px;
+  grid-template-columns: 28px minmax(32px, 1fr) 28px;
 }
 
 td .number-stepper input {
@@ -1038,7 +1051,7 @@ td .number-stepper input {
 }
 
 td .number-stepper .step-button {
-  min-width: 34px;
+  min-width: 28px;
   font-size: 19px;
 }
 

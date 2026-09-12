@@ -56,7 +56,7 @@
   const DATE_RANGE_TYPES = new Set(["ROOM", "EXTRA", "MEAL", "GREEN_TAX"]);
   const UNDO_LIMIT = 80;
   const TABLE_HEADER_HEIGHT = 42;
-  const TABLE_ROW_HEIGHT = 76;
+  const TABLE_ROW_HEIGHT = 48;
   const TABLE_BOTTOM_SPACE = 20;
 
   const $ = (id) => document.getElementById(id);
@@ -1386,12 +1386,13 @@
     typeCell.appendChild(addSame);
 
     const itemCell = el("td", { className: "item-cell" });
+    const itemLayout = el("div", { className: "item-layout" });
     const item = el("input", { className: "item", placeholder: "Choose or type manually", autocomplete: "off" });
     item.value = data.item || "";
-    itemCell.appendChild(item);
+    itemLayout.appendChild(item);
 
     const roomAllocation = el("div", { className: "row-allocation room-allocation" });
-    roomAllocation.appendChild(el("span", { className: "allocation-title", textContent: "Room guests" }));
+    roomAllocation.appendChild(el("span", { className: "allocation-title", textContent: "Guests" }));
     const roomAdultsLabel = el("label", { className: "allocation-field" });
     roomAdultsLabel.appendChild(el("span", { textContent: "ADL" }));
     const roomAdults = el("input", { className: "room-adults", type: "number", min: "0", step: "1", "aria-label": "Adults in this room" });
@@ -1403,14 +1404,15 @@
     roomChildren.value = data.roomChildren ?? (data.type === "ROOM" && !hasExistingRoom ? value("children") || 0 : 0);
     roomChildrenLabel.appendChild(numberStepper(roomChildren, true));
     roomAllocation.append(roomAdultsLabel, roomChildrenLabel);
-    itemCell.appendChild(roomAllocation);
+    itemLayout.appendChild(roomAllocation);
 
     const extraAssignment = el("label", { className: "row-allocation extra-assignment" });
     extraAssignment.appendChild(el("span", { className: "allocation-title", textContent: "Assign to" }));
     const assignedRoom = el("select", { className: "assigned-room", "aria-label": "Assign extra charge to room" });
     assignedRoom.dataset.assignedRoomKey = data.assignedRoomKey || "";
     extraAssignment.appendChild(assignedRoom);
-    itemCell.appendChild(extraAssignment);
+    itemLayout.appendChild(extraAssignment);
+    itemCell.appendChild(itemLayout);
 
     const fromCell = el("td");
     const from = el("input", { className: "from", inputmode: "numeric", placeholder: "dd.mm.yyyy", autocomplete: "off" });
