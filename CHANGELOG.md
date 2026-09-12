@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.13
+
+- Added explicit room assignment for Extra Adult and Extra Child charges.
+- Grouped assigned extras with their rooms in Short Share and room summaries.
+- Improved SAMO guest classification using age at check-in and bedroom occupancy rules.
+- Refined calculation row colors, controls, calendars, guest icons, and assignment fields.
+
 ## 1.4.5
 
 - Preserved manually split row dates during Undo/Redo restoration.
