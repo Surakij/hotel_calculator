@@ -212,6 +212,42 @@ test("deduplicates repeated dinner events and child identities, not equal ages",
   assert.equal(result.galaDinners.length, 2);
 });
 
+test("uses DOB age when an adult title is assigned to a child in repeated room sections", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Cheval Blanc Randheli 5*Deluxe
+    Guest name:
+    MR GUEST ONE DOB 30.10.1975 PN XX
+    MRS GUEST TWO DOB 15.05.1990 PN XX
+    CHD GUEST THREE DOB 19.05.2021 PN XX
+    MRS GUEST FOUR DOB 20.06.1973 PN XX
+    Number of guest: 5 Adult, 1 Child
+    Arrival date: 03.11.2026
+    Departure date: 14.11.2026
+    Length of stay: 11 Nights
+    Villa category: 2 Bedroom Island Villa 3 Adl + 1 Chd(5-9,99)
+    Meal Plan: BB
+    Transfer: Seaplane Airport - Hotel - Airport
+    Hotel: Cheval Blanc Randheli 5*Deluxe
+    Guest name:
+    MRS GUEST FIVE DOB 24.03.1971 PN XX
+    MR GUEST SIX DOB 05.06.2024 PN XX
+    Number of guest: 5 Adult, 1 Child
+    Arrival date: 03.11.2026
+    Departure date: 14.11.2026
+    Length of stay: 11 Nights
+    Villa category: 1 Bedroom Island Villa 1 Adl + 1 Chd(2-10,99)
+    Meal Plan: BB
+    Transfer: Seaplane Airport - Hotel - Airport
+  `, { hotelNames: ["Cheval Blanc Randheli"] });
+
+  assert.equal(result.mappedHotel, "Cheval Blanc Randheli");
+  assert.deepEqual([result.adults, result.children, result.infants], [4, 2, 0]);
+  assert.deepEqual(result.childAges, [5, 2]);
+  assert.deepEqual(result.rooms.map((room) => room.item), ["2 Bedroom Island Villa", "1 Bedroom Island Villa"]);
+  assert.equal(result.mealPlan, "BB");
+  assert.equal(result.transfer.mode, "SEAPLANE");
+});
+
 test("parses single SAMO stay", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Niva Velassaru Maldives 5*

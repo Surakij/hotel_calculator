@@ -175,21 +175,25 @@
     return match ? Number(match[1]) : 0;
   }
 
-  function parseGuestRoleCounts(lines) {
+  function parseGuestDetails(lines, checkin) {
     const seen = new Set();
-    return lines.reduce((counts, line) => {
+    return lines.reduce((details, line) => {
       const guestLine = line.replace(/^guest\s+name\s*:\s*/i, "");
       const role = /^(MR|MRS|MS|CHD|INF)\b/i.exec(guestLine)?.[1]?.toUpperCase();
-      if (!role) return counts;
+      if (!role) return details;
       const dob = /\bDOB\b\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})/i.exec(guestLine)?.[1] || "";
-      const key = `${role}|${dob}|${guestLine.replace(/\bPN\b.*$/i, "").trim().toLowerCase()}`;
-      if (seen.has(key)) return counts;
+      const name = guestLine.replace(/^(?:MR|MRS|MS|CHD|INF)\s+/i, "").replace(/\bDOB\b.*$/i, "").trim().toLowerCase();
+      const key = `${name}|${dob}`;
+      if (seen.has(key)) return details;
       seen.add(key);
-      if (["MR", "MRS", "MS"].includes(role)) counts.adults += 1;
-      else if (role === "CHD") counts.children += 1;
-      else if (role === "INF") counts.infants += 1;
-      return counts;
-    }, { adults: 0, children: 0, infants: 0 });
+      const age = guestAgeOnDate(dob, checkin);
+      const type = age !== ""
+        ? age < 2 ? "infants" : age < 18 ? "children" : "adults"
+        : role === "INF" ? "infants" : role === "CHD" ? "children" : "adults";
+      details[type] += 1;
+      if (type === "children" && age !== "") details.childAges.push(age);
+      return details;
+    }, { adults: 0, children: 0, infants: 0, childAges: [] });
   }
 
   function cleanRoomName(value) {
@@ -240,7 +244,7 @@
     return rooms.filter((room) => room.item || room.from || room.to);
   }
 
-  function ageOnDate(dobValue, checkinValue) {
+  function guestAgeOnDate(dobValue, checkinValue) {
     const dob = parseDate(dobValue);
     const checkin = parseDate(checkinValue);
     if (!dob || !checkin || dob > checkin) return "";
@@ -248,18 +252,12 @@
     const hadBirthday = checkin.getMonth() > dob.getMonth()
       || (checkin.getMonth() === dob.getMonth() && checkin.getDate() >= dob.getDate());
     if (!hadBirthday) age -= 1;
-    return age >= 0 && age <= 17 ? age : "";
+    return age >= 0 ? age : "";
   }
 
-  function parseChildAges(lines, checkin) {
-    const uniqueLines = [...new Set(lines.map((line) => line.replace(/\bPN\b.*$/i, "").trim().toUpperCase()))];
-    return uniqueLines
-      .filter((line) => /\bchd\b|\bchild\b/i.test(line))
-      .map((line) => {
-        const match = /\bDOB\b\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})/i.exec(line);
-        return match ? ageOnDate(match[1], checkin) : "";
-      })
-      .filter((age) => age !== "");
+  function ageOnDate(dobValue, checkinValue) {
+    const age = guestAgeOnDate(dobValue, checkinValue);
+    return age !== "" && age <= 17 ? age : "";
   }
 
   function parseTransfer(value) {
@@ -326,20 +324,18 @@
     const hotelMatch = matchHotel(rawHotel, options.hotelNames || []);
     if (rawHotel && hotelMatch.status === "unresolved") warnings.push("Hotel was detected but not safely matched to the database.");
 
-    const pax = parsePax(firstLabel(lines, ["Number of guest", "Number of guests", "Guests", "Pax"]));
-    const roleCounts = parseGuestRoleCounts(lines);
-    const guests = {
-      adults: roleCounts.adults || pax.adults,
-      children: (roleCounts.children || roleCounts.infants) ? roleCounts.children : pax.children,
-      infants: roleCounts.infants || pax.infants,
-    };
     const rooms = parseRooms(lines);
     const labelCheckin = formatDate(firstLabel(lines, ["Arrival date", "Arrival"]));
     const labelCheckout = formatDate(firstLabel(lines, ["Departure date", "Departure"]));
     const checkin = rooms.find((room) => room.from)?.from || labelCheckin;
     const checkout = [...rooms].reverse().find((room) => room.to)?.to || labelCheckout;
     const nights = nightsBetween(checkin, checkout) || parseLength(firstLabel(lines, ["Length of stay", "Stay length"]));
-    const childAges = parseChildAges(lines, checkin);
+    const pax = parsePax(firstLabel(lines, ["Number of guest", "Number of guests", "Guests", "Pax"]));
+    const guestDetails = parseGuestDetails(lines, checkin);
+    const paxTotal = pax.adults + pax.children + pax.infants;
+    const detectedTotal = guestDetails.adults + guestDetails.children + guestDetails.infants;
+    const guests = detectedTotal && (!paxTotal || detectedTotal === paxTotal) ? guestDetails : pax;
+    const childAges = guestDetails.childAges;
     const mealPlan = firstLabel(lines, ["Meal Plan", "Meal"]);
     const handlingFees = allLabels(lines, ["Handling", "Handling fee", "Service text"]);
     const handlingFee = handlingFees.join("\n");

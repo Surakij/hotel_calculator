@@ -420,6 +420,63 @@ test("SAMO imports inline guest names and meals after matching an ampersand hote
   });
 });
 
+test("SAMO corrects a child with an adult title across two Cheval Blanc rooms", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Cheval Blanc Randheli 5*Deluxe
+Guest name:
+MR GUEST ONE DOB 30.10.1975 PN XX
+MRS GUEST TWO DOB 15.05.1990 PN XX
+CHD GUEST THREE DOB 19.05.2021 PN XX
+MRS GUEST FOUR DOB 20.06.1973 PN XX
+Number of guest: 5 Adult, 1 Child
+Arrival date: 03.11.2026
+Departure date: 14.11.2026
+Villa category: 2 Bedroom Island Villa 3 Adl + 1 Chd(5-9,99)
+Meal Plan: BB
+Handling fee: Maldives Green Tax (03.11.2026 - 14.11.2026)
+Transfer: Seaplane Airport - Hotel - Airport
+Hotel: Cheval Blanc Randheli 5*Deluxe
+Guest name:
+MRS GUEST FIVE DOB 24.03.1971 PN XX
+MR GUEST SIX DOB 05.06.2024 PN XX
+Number of guest: 5 Adult, 1 Child
+Arrival date: 03.11.2026
+Departure date: 14.11.2026
+Villa category: 1 Bedroom Island Villa 1 Adl + 1 Chd(2-10,99)
+Meal Plan: BB
+Handling fee: Maldives Green Tax (03.11.2026 - 14.11.2026)
+Transfer: Seaplane Airport - Hotel - Airport`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    return {
+      preview,
+      adults: $("adults").value,
+      children: $("children").value,
+      ages: [...document.querySelectorAll(".child-age-input")].map((input) => input.value),
+      rooms: rows.filter((row) => row.querySelector(".type")?.value === "ROOM").map((row) => row.querySelector(".item").value),
+      meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL").map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      transfers: rows.filter((row) => row.querySelector(".type")?.value === "TRANSFER").map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      greenTaxQty: rows.find((row) => row.querySelector(".type")?.value === "GREEN_TAX")?.querySelector(".qty").value,
+    };
+  });
+
+  const { preview, ...applied } = result;
+  assert.match(preview, /4 ADL, 2 CHD, 0 INF/);
+  assert.deepEqual(applied, {
+    adults: "4",
+    children: "2",
+    ages: ["5", "2"],
+    rooms: ["2-Bedroom Island Villa", "1-Bedroom Island Villa"],
+    meals: [["BB - Adult", "4"], ["BB - Child", "2"]],
+    transfers: [["Seaplane - Adult", "4"], ["Seaplane - Child", "2"]],
+    greenTaxQty: "6",
+  });
+});
+
 test("SAMO maps Heritance Aarah and its Premium AI meal", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);
