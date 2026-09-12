@@ -67,6 +67,9 @@
   let itemPicker = null;
   let itemPickerInput = null;
   let itemPickerRow = null;
+  let roomAssignmentMenu = null;
+  let roomAssignmentButton = null;
+  let roomAssignmentSelect = null;
   let addServiceMenuOpen = false;
   let draftTimer = null;
   let undoTimer = null;
@@ -390,10 +393,120 @@
     closeItemPicker({ restore: false, refocus: true });
   }
 
+  function syncRoomAssignmentButton(select) {
+    const button = select.closest(".room-assignment-picker")?.querySelector(".assigned-room-button");
+    if (!button) return;
+    const label = select.options[select.selectedIndex]?.textContent || "Choose room";
+    button.textContent = label;
+    button.title = label;
+    button.classList.toggle("is-placeholder", !select.value);
+    button.setAttribute("aria-invalid", select.getAttribute("aria-invalid") || "false");
+
+    if (roomAssignmentSelect === select && roomAssignmentMenu) {
+      roomAssignmentMenu.querySelectorAll(".room-assignment-choice").forEach((choice) => {
+        const selected = choice.dataset.value === select.value;
+        choice.classList.toggle("selected", selected);
+        choice.setAttribute("aria-selected", String(selected));
+      });
+    }
+  }
+
+  function closeRoomAssignmentPicker({ refocus = false } = {}) {
+    roomAssignmentMenu?.remove();
+    roomAssignmentButton?.setAttribute("aria-expanded", "false");
+    const button = roomAssignmentButton;
+    roomAssignmentMenu = null;
+    roomAssignmentButton = null;
+    roomAssignmentSelect = null;
+    if (refocus) button?.focus();
+  }
+
+  function positionRoomAssignmentPicker() {
+    if (!roomAssignmentMenu || !roomAssignmentButton) return;
+    const rect = roomAssignmentButton.getBoundingClientRect();
+    const width = Math.min(Math.max(rect.width, 300), window.innerWidth - 24);
+    const height = Math.min(roomAssignmentMenu.scrollHeight || 240, 280);
+    const below = window.innerHeight - rect.bottom - 12;
+    const openUp = below < height && rect.top > below;
+    const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12);
+    const top = openUp ? rect.top - height - 6 : rect.bottom + 6;
+    roomAssignmentMenu.classList.toggle("drop-up", openUp);
+    roomAssignmentMenu.style.left = `${left}px`;
+    roomAssignmentMenu.style.top = `${Math.max(12, top)}px`;
+    roomAssignmentMenu.style.width = `${width}px`;
+    roomAssignmentMenu.style.maxHeight = `${height}px`;
+  }
+
+  function renderRoomAssignmentPicker() {
+    if (!roomAssignmentMenu || !roomAssignmentSelect) return;
+    roomAssignmentMenu.innerHTML = "";
+    roomAssignmentMenu.appendChild(el("div", { className: "room-assignment-head", textContent: "Assign extra to room" }));
+
+    [...roomAssignmentSelect.options].forEach((option) => {
+      const choice = el("button", {
+        className: `item-picker-choice room-assignment-choice${option.value ? "" : " is-placeholder"}`,
+        type: "button",
+        role: "option",
+        "aria-selected": String(option.value === roomAssignmentSelect.value),
+      });
+      choice.dataset.value = option.value;
+      choice.classList.toggle("selected", option.value === roomAssignmentSelect.value);
+      const icon = el("span", { className: "room-assignment-icon" });
+      icon.innerHTML = option.value
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20V9M21 20V12a3 3 0 0 0-3-3h-7v11M3 16h18M7 9h4v7H7a4 4 0 0 1-4-4v-1a2 2 0 0 1 2-2h2Z"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16"/></svg>';
+      choice.append(icon, el("span", { className: "room-assignment-choice-label", textContent: option.textContent }));
+      choice.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        roomAssignmentSelect.value = choice.dataset.value;
+        roomAssignmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        closeRoomAssignmentPicker({ refocus: true });
+      });
+      choice.addEventListener("keydown", (event) => {
+        const choices = [...roomAssignmentMenu.querySelectorAll(".room-assignment-choice")];
+        const index = choices.indexOf(choice);
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          choices[(index + (event.key === "ArrowDown" ? 1 : -1) + choices.length) % choices.length]?.focus();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeRoomAssignmentPicker({ refocus: true });
+        }
+      });
+      roomAssignmentMenu.appendChild(choice);
+    });
+
+    positionRoomAssignmentPicker();
+  }
+
+  function openRoomAssignmentPicker(button, select) {
+    closeRoomAssignmentPicker();
+    closePicker();
+    closeItemPicker();
+    closeTypePickers();
+    closeAddServiceMenu();
+    roomAssignmentButton = button;
+    roomAssignmentSelect = select;
+    roomAssignmentMenu = el("div", { className: "item-picker room-assignment-menu open", role: "listbox", "aria-label": "Choose room for extra charge" });
+    document.body.appendChild(roomAssignmentMenu);
+    button.setAttribute("aria-expanded", "true");
+    renderRoomAssignmentPicker();
+  }
+
+  function toggleRoomAssignmentPicker(button, select) {
+    if (roomAssignmentMenu && roomAssignmentSelect === select) {
+      closeRoomAssignmentPicker({ refocus: true });
+      return;
+    }
+    openRoomAssignmentPicker(button, select);
+  }
+
   function isInsideFloatingPanel(target) {
     return target instanceof Element && (
       (picker && picker.contains(target))
       || (itemPicker && itemPicker.contains(target))
+      || (roomAssignmentMenu && roomAssignmentMenu.contains(target))
     );
   }
 
@@ -1086,6 +1199,7 @@
         : (roomGroups.length === 1 ? roomGroups[0].key : "");
       select.dataset.assignedRoomKey = select.value;
       select.title = select.options[select.selectedIndex]?.textContent || "Choose room";
+      syncRoomAssignmentButton(select);
     });
   }
 
@@ -1309,7 +1423,10 @@
       .every((select) => Boolean(select.value));
     const valid = calculated.total !== null && numberInputsValid && roomAssignmentsValid;
     document.querySelectorAll('input[type="number"]').forEach((input) => input.setAttribute("aria-invalid", String(!input.disabled && !input.validity.valid)));
-    rowsEl.querySelectorAll(".assigned-room").forEach((select) => select.setAttribute("aria-invalid", String(!select.closest(".extra-assignment").hidden && !select.value)));
+    rowsEl.querySelectorAll(".assigned-room").forEach((select) => {
+      select.setAttribute("aria-invalid", String(!select.closest(".extra-assignment").hidden && !select.value));
+      syncRoomAssignmentButton(select);
+    });
     $("grandTotal").textContent = valid ? `$${core.money(calculated.total)}` : "Check inputs";
     if (valid) renderStaySummary(calculated.rows);
     else $("staySummary").innerHTML = "";
@@ -1376,11 +1493,21 @@
     item.value = data.item || "";
     itemLayout.appendChild(item);
 
-    const extraAssignment = el("label", { className: "row-allocation extra-assignment" });
+    const extraAssignment = el("div", { className: "row-allocation extra-assignment" });
     extraAssignment.appendChild(el("span", { className: "allocation-title", textContent: "Assign to" }));
-    const assignedRoom = el("select", { className: "assigned-room", "aria-label": "Assign extra charge to room" });
+    const assignmentPicker = el("div", { className: "room-assignment-picker" });
+    const assignedRoom = el("select", { className: "assigned-room assigned-room-native", tabindex: "-1", "aria-hidden": "true" });
     assignedRoom.dataset.assignedRoomKey = data.assignedRoomKey || "";
-    extraAssignment.appendChild(assignedRoom);
+    const assignedRoomButton = el("button", {
+      className: "assigned-room-button is-placeholder",
+      type: "button",
+      "aria-label": "Assign extra charge to room",
+      "aria-haspopup": "listbox",
+      "aria-expanded": "false",
+      textContent: "Choose room",
+    });
+    assignmentPicker.append(assignedRoom, assignedRoomButton);
+    extraAssignment.appendChild(assignmentPicker);
     itemLayout.appendChild(extraAssignment);
     itemCell.appendChild(itemLayout);
 
@@ -1474,7 +1601,20 @@
     assignedRoom.addEventListener("change", () => {
       assignedRoom.dataset.assignedRoomKey = assignedRoom.value;
       assignedRoom.title = assignedRoom.options[assignedRoom.selectedIndex]?.textContent || "Choose room";
+      syncRoomAssignmentButton(assignedRoom);
       recalc();
+    });
+    assignedRoomButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleRoomAssignmentPicker(assignedRoomButton, assignedRoom);
+    });
+    assignedRoomButton.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      event.preventDefault();
+      openRoomAssignmentPicker(assignedRoomButton, assignedRoom);
+      const choices = [...roomAssignmentMenu.querySelectorAll(".room-assignment-choice")];
+      (choices.find((choice) => choice.classList.contains("selected")) || choices[0])?.focus();
     });
 
     tr.querySelectorAll(".from,.to").forEach((input) => {
@@ -1531,6 +1671,7 @@
     tr.querySelector(".delete").addEventListener("click", () => {
       activeStepperStop?.();
       flushUndoSnapshot();
+      closeRoomAssignmentPicker();
       closeTypePickers();
       closeItemPicker({ restore: false });
       tr.remove();
@@ -2454,6 +2595,10 @@
       grid.appendChild(button);
     }
 
+    for (let index = offset + days; index < 42; index += 1) {
+      grid.appendChild(el("span", { className: "empty" }));
+    }
+
     picker.appendChild(grid);
 
     const actions = el("div", { className: "calendar-actions" });
@@ -2611,6 +2756,7 @@
     document.addEventListener("click", (event) => {
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
       if (itemPicker && !itemPicker.contains(event.target) && event.target !== itemPickerInput) closeItemPicker();
+      if (roomAssignmentMenu && !roomAssignmentMenu.contains(event.target) && !roomAssignmentButton?.contains(event.target)) closeRoomAssignmentPicker();
       if (!event.target.closest(".type-picker-wrap") && !event.target.closest(".type-picker-menu")) closeTypePickers();
       if (!event.target.closest(".add-service-wrap")) closeAddServiceMenu();
     });
@@ -2618,6 +2764,7 @@
       if (event.key === "Escape") {
         closeAddServiceMenu();
         closeItemPicker();
+        closeRoomAssignmentPicker();
         closeTypePickers();
       }
     });
@@ -2628,6 +2775,7 @@
     window.addEventListener("resize", () => {
       closePicker();
       closeItemPicker();
+      closeRoomAssignmentPicker();
       closeTypePickers();
       closeAddServiceMenu();
     });
@@ -2635,6 +2783,7 @@
       if (isInsideFloatingPanel(event.target)) return;
       closePicker();
       closeItemPicker();
+      closeRoomAssignmentPicker();
       closeAddServiceMenu();
       positionOpenTypePickers();
     }, true);

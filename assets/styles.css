@@ -799,13 +799,137 @@ td select {
   white-space: nowrap;
 }
 
-.extra-assignment .assigned-room {
+.room-assignment-picker {
+  position: relative;
   width: 190px;
+  min-width: 0;
+}
+
+.extra-assignment .assigned-room-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.assigned-room-button {
+  position: relative;
+  width: 100%;
   height: 28px;
   min-width: 0;
-  padding: 3px 26px 3px 8px;
+  justify-content: flex-start;
+  overflow: hidden;
+  border: 1px solid #dfe7f0;
+  padding: 3px 27px 3px 9px;
+  background: var(--field);
+  color: var(--text);
   font-size: 11px;
   font-weight: 700;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.assigned-room-button::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.assigned-room-button:hover,
+.assigned-room-button:focus-visible,
+.assigned-room-button[aria-expanded="true"] {
+  outline: 0;
+  border-color: #8bbcff;
+  background: var(--field);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+}
+
+.assigned-room-button.is-placeholder {
+  color: var(--muted);
+}
+
+.assigned-room-button[aria-invalid="true"] {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red);
+}
+
+.room-assignment-menu {
+  z-index: 100003;
+  padding: 7px;
+}
+
+.room-assignment-head {
+  padding: 5px 8px 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.room-assignment-menu .room-assignment-choice {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  border-bottom: 0;
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.room-assignment-menu .room-assignment-choice + .room-assignment-choice {
+  margin-top: 2px;
+}
+
+.room-assignment-choice:hover,
+.room-assignment-choice:focus-visible {
+  outline: 0;
+  background: #eaf3ff;
+  color: var(--navy);
+}
+
+.room-assignment-choice.selected {
+  background: #eaf3ff;
+  color: #1f65b8;
+}
+
+.room-assignment-choice.is-placeholder {
+  color: var(--muted);
+}
+
+.room-assignment-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-assignment-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.room-assignment-choice-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 td select.type {
@@ -2407,6 +2531,18 @@ select[aria-invalid="true"] {
 :root[data-theme="dark"] .item-picker-chip:focus-visible,
 :root[data-theme="dark"] .item-picker-chip.selected {
   border-color: var(--blue);
+  background: #183a61;
+  color: #edf6ff;
+}
+
+:root[data-theme="dark"] .assigned-room-button {
+  border-color: #2b4868;
+  background: var(--field);
+}
+
+:root[data-theme="dark"] .room-assignment-choice:hover,
+:root[data-theme="dark"] .room-assignment-choice:focus-visible,
+:root[data-theme="dark"] .room-assignment-choice.selected {
   background: #183a61;
   color: #edf6ff;
 }

@@ -670,3 +670,62 @@ test("guest counters show distinct accessible icons without replacing labels", a
   assert.ok(result.every(({ iconHidden }) => iconHidden === "true"));
   assert.equal(new Set(result.map(({ iconMarkup }) => iconMarkup)).size, 3);
 });
+
+test("calendar keeps the same size for every month", async () => {
+  const result = await page.evaluate(() => {
+    const input = document.getElementById("checkin");
+    return Array.from({ length: 12 }, (_, month) => {
+      const date = `01.${String(month + 1).padStart(2, "0")}.2027`;
+      input.value = date;
+      input.click();
+      const calendar = document.querySelector(".calendar");
+      const measurement = {
+        height: calendar.getBoundingClientRect().height,
+        cells: calendar.querySelector(".calendar-grid").children.length,
+      };
+      input.click();
+      return measurement;
+    });
+  });
+
+  assert.equal(new Set(result.map(({ height }) => height)).size, 1);
+  assert.ok(result.every(({ cells }) => cells === 49));
+});
+
+test("extra room assignment uses the custom room picker", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("rows").innerHTML = "";
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "water", item: "Water Villa", qty: 1 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "ROOM", roomKey: "beach", item: "Beach Villa", qty: 1 }, { preserveValues: true, deferRender: true });
+    const extra = HotelCalculatorApp.addRow({ type: "EXTRA", item: "Extra Adult", qty: 1 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.recalc();
+
+    const select = extra.querySelector(".assigned-room");
+    const button = extra.querySelector(".assigned-room-button");
+    button.click();
+    const menu = document.querySelector(".room-assignment-menu");
+    const choices = [...menu.querySelectorAll(".room-assignment-choice")];
+    const labels = choices.map((choice) => choice.textContent.trim());
+    const roomChoiceStyle = getComputedStyle(choices[1]);
+    const roomChoiceLayout = { display: roomChoiceStyle.display, gap: roomChoiceStyle.gap };
+    choices.find((choice) => choice.dataset.value === "beach").click();
+
+    return {
+      labels,
+      roomChoiceLayout,
+      selected: select.value,
+      buttonText: button.textContent.trim(),
+      expanded: button.getAttribute("aria-expanded"),
+      nativeHidden: getComputedStyle(select).opacity,
+      menuClosed: !document.querySelector(".room-assignment-menu"),
+    };
+  });
+
+  assert.deepEqual(result.labels, ["Choose room", "Room 1 · Water Villa", "Room 2 · Beach Villa"]);
+  assert.deepEqual(result.roomChoiceLayout, { display: "flex", gap: "9px" });
+  assert.equal(result.selected, "beach");
+  assert.equal(result.buttonText, "Room 2 · Beach Villa");
+  assert.equal(result.expanded, "false");
+  assert.equal(result.nativeHidden, "0");
+  assert.equal(result.menuClosed, true);
+});
