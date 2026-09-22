@@ -267,6 +267,50 @@ test("imports a compact Dusit request with a Russian start date and nights", asy
   });
 });
 
+test("imports Amilla using the current check-in when only nights are provided", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("checkin").value = "20.06.2027";
+    $("checkout").value = "25.06.2027";
+    $("showSamoImport").click();
+    $("samoImportText").value = "Amilla Maldives,Water Villa With Pool (4 ночи), 2 adl, HB, seaplane OW";
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    window.confirm = () => true;
+    $("applySamoImport").click();
+    return {
+      preview,
+      hotel: $("hotel").value,
+      checkin: $("checkin").value,
+      checkout: $("checkout").value,
+      nights: $("nights").value,
+      rows: [...document.querySelectorAll("#rows tr")].map((row) => ({
+        type: row.querySelector(".type").value,
+        item: row.querySelector(".item").value,
+        from: row.querySelector(".from")?.value || "",
+        to: row.querySelector(".to")?.value || "",
+        qty: row.querySelector(".qty").value,
+      })),
+    };
+  });
+
+  assert.match(result.preview, /Amilla Maldives/);
+  assert.match(result.preview, /20\.06\.2027 - 24\.06\.2027/);
+  assert.deepEqual({ ...result, preview: undefined }, {
+    preview: undefined,
+    hotel: "Amilla Maldives",
+    checkin: "20.06.2027",
+    checkout: "24.06.2027",
+    nights: "4",
+    rows: [
+      { type: "ROOM", item: "Water Pool Villa", from: "20.06.2027", to: "24.06.2027", qty: "1" },
+      { type: "MEAL", item: "HB - Dine Around - Adult", from: "20.06.2027", to: "24.06.2027", qty: "2" },
+      { type: "TRANSFER", item: "Seaplane OW - Adult", from: "", to: "", qty: "2" },
+      { type: "GREEN_TAX", item: "Green Tax", from: "20.06.2027", to: "24.06.2027", qty: "2" },
+    ],
+  });
+});
+
 test("imports Fuel Surcharge once for adults and children after transfers", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

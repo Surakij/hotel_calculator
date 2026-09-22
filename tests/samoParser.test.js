@@ -151,6 +151,22 @@ test("parses a compact request with a Russian start date and nights", () => {
   assert.deepEqual(result.warnings, []);
 });
 
+test("uses the current check-in for a compact request that only contains nights", () => {
+  const result = parser.parseSamoRequest(
+    "Amilla Maldives,Water Villa With Pool (4 ночи), 2 adl, HB, seaplane OW",
+    { hotelNames: ["Amilla Maldives"], fallbackCheckin: "20.06.2027" },
+  );
+
+  assert.equal(result.mappedHotel, "Amilla Maldives");
+  assert.deepEqual([result.checkin, result.checkout, result.nights], ["20.06.2027", "24.06.2027", 4]);
+  assert.equal(result.rooms[0].item, "Water Villa With Pool");
+  assert.equal(result.mealPlan, "HB");
+  assert.equal(result.transfer.mode, "SEAPLANE");
+  assert.equal(result.transfer.oneWay, true);
+  assert.equal(result.greenTax, true);
+  assert.deepEqual(result.warnings, []);
+});
+
 test("parses English requests across years and does not guess missing years", () => {
   const result = parser.parseSamoRequest("28.12.2026 - 04.01.2027\nFinolhu\nBeach Villa\n2 adults + 1 child (8 years), AI, speedboat", { hotelNames: ["Finolhu"] });
   assert.equal(result.nights, 7);

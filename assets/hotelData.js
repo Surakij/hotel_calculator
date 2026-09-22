@@ -91,6 +91,27 @@
       "AI - Child"
     ]
   },
+  "Amilla Maldives": {
+    "rooms": [
+      "Water Pool Villa",
+      "Lagoon Pool Villa",
+      "Reef Water Pool Villa",
+      "Beach Pool Villa",
+      "Two-Bedroom Treetop Pool Villa",
+      "Two-Bedroom Family Water Pool Villa",
+      "Two-Bedroom Beach Pool Villa"
+    ],
+    "meals": [
+      "BB - Adult",
+      "BB - Child",
+      "HB - Dine Around - Adult",
+      "HB - Dine Around - Child",
+      "FB - Dine Around - Adult",
+      "FB - Dine Around - Child",
+      "Dine Around Inclusive - Adult",
+      "Dine Around Inclusive - Child"
+    ]
+  },
   "Alimatha Aquatic Resort": {
     "rooms": [
       "Over Water",

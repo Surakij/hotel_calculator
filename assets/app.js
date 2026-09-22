@@ -2137,7 +2137,11 @@
     const adultAgeByHotel = Object.fromEntries(Object.entries(HOTEL_DATA)
       .filter(([, record]) => Number(record?.adultAge) > 0)
       .map(([name, record]) => [name, Number(record.adultAge)]));
-    samoImportData = samoParser.parseSamoRequest(text, { hotelNames: HOTEL_NAMES, adultAgeByHotel });
+    samoImportData = samoParser.parseSamoRequest(text, {
+      hotelNames: HOTEL_NAMES,
+      adultAgeByHotel,
+      fallbackCheckin: value("checkin"),
+    });
     renderSamoPreview(samoImportData);
   }
 

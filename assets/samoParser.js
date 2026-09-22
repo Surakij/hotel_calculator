@@ -523,7 +523,7 @@
       }
     } else if (ranges.length > 1) warnings.push("Multiple date ranges found. Split the request into separate stays before applying.");
     if (!from && !to) {
-      const start = russianDate(joined);
+      const start = russianDate(joined) || formatDate(options.fallbackCheckin);
       const compactNights = parseLength(joined);
       if (start && compactNights) {
         from = start;
