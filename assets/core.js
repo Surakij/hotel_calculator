@@ -459,9 +459,8 @@
 
     groupedRows(rows, "TRANSFER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      const prefix = /\bOW\b/i.test(group.label)
-        ? `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : `
-        : "";
+      const transferDate = formatShort(group.rows[0].from || group.rows[0].to);
+      const prefix = /\bOW\b/i.test(group.label) && transferDate ? `${transferDate} : ` : "";
       out.push(`${prefix}${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 

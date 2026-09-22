@@ -324,6 +324,21 @@ test("builds share text with display-format dates", () => {
   assert.match(text, /TOTAL: 408 USD/);
 });
 
+test("shows only one date for a one-way transfer in short share", () => {
+  const text = core.buildShareText({
+    hotel: "Test Hotel",
+    checkin: "20.06.2027",
+    checkout: "24.06.2027",
+    guests: { adults: 2, children: 0 },
+    rows: [
+      { type: "TRANSFER", item: "Seaplane OW - Adult", from: "20.06.2027", to: "24.06.2027", qty: 2, rate: 100 },
+    ],
+  });
+
+  assert.match(text, /20\.06 : Seaplane OW : 100 \* 2 = 200/);
+  assert.doesNotMatch(text, /20\.06\s+-\s+24\.06\s+:\s+Seaplane OW/);
+});
+
 test("short share removes only zero decimal parts", () => {
   const text = core.buildShareText({
     hotel: "Test",

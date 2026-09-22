@@ -811,10 +811,10 @@ test("transfer choices fit a narrow viewport", async () => {
   assert.ok(result.scroll <= result.client, JSON.stringify(result));
 });
 
-test("round-trip transfers hide dates while one-way transfers keep them", async () => {
+test("round-trip transfers hide dates while one-way transfers keep one date", async () => {
   const result = await page.evaluate(() => {
     const roundTrip = HotelCalculatorApp.addRow({ type: "TRANSFER", item: "Seaplane - Adult" });
-    const oneWay = HotelCalculatorApp.addRow({ type: "TRANSFER", item: "Seaplane OW - Adult" });
+    const oneWay = HotelCalculatorApp.addRow({ type: "TRANSFER", item: "Seaplane OW - Adult", from: "20.06.2027", to: "21.06.2027" });
     return {
       roundTrip: {
         fromHidden: roundTrip.querySelector(".from").hidden,
@@ -825,12 +825,14 @@ test("round-trip transfers hide dates while one-way transfers keep them", async 
         toHidden: oneWay.querySelector(".to").hidden,
         fromDisabled: oneWay.querySelector(".from").disabled,
         toDisabled: oneWay.querySelector(".to").disabled,
+        from: oneWay.querySelector(".from").value,
+        to: oneWay.querySelector(".to").value,
       },
     };
   });
   assert.deepEqual(result, {
     roundTrip: { fromHidden: true, toHidden: true },
-    oneWay: { fromHidden: false, toHidden: false, fromDisabled: false, toDisabled: false },
+    oneWay: { fromHidden: false, toHidden: true, fromDisabled: false, toDisabled: true, from: "20.06.2027", to: "" },
   });
 });
 

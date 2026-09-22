@@ -1141,7 +1141,13 @@
       return;
     }
 
-    if (!isDateRangeType(data.type) && !isOneWayTransfer(data)) return;
+    if (isOneWayTransfer(data)) {
+      from.value = clampDateValue(from.value, checkin, checkout);
+      to.value = "";
+      return;
+    }
+
+    if (!isDateRangeType(data.type)) return;
 
     from.value = clampDateValue(from.value, checkin, checkout);
     to.value = clampDateValue(to.value, from.value || checkin, checkout);
@@ -1359,8 +1365,9 @@
     const hideNights = data.type === "TRANSFER" || data.type === "DINNER";
     const hideTransferDates = data.type === "TRANSFER" && !isOneWayTransfer(data);
     const lockDates = data.type === "DINNER" || hideTransferDates;
-    const allowDiscounts = hasType && core.isDiscountable(data);
     const isDinner = data.type === "DINNER";
+    const hideToDate = data.type === "TRANSFER" || isDinner;
+    const allowDiscounts = hasType && core.isDiscountable(data);
 
     tr.querySelector(".extra-assignment").hidden = !isPersonExtra(data);
 
@@ -1369,9 +1376,9 @@
 
     item.disabled = !hasType || hideItem;
     from.disabled = !hasType || lockDates;
-    to.disabled = !hasType || lockDates;
+    to.disabled = !hasType || lockDates || isOneWayTransfer(data);
     from.hidden = hideTransferDates;
-    to.hidden = isDinner || hideTransferDates;
+    to.hidden = hideToDate;
     nights.disabled = !hasType || hideNights;
     qty.disabled = !hasType;
     rate.disabled = !hasType;
