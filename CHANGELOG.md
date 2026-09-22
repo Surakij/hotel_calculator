@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.15
+
+- Added compact request parsing for Russian start dates, night counts, and comma-separated hotel details.
+- Added Green Tax automatically to every imported request.
+- Made the Short Share total bold and underlined while preserving clean plain-text downloads.
+
 ## 1.6.14
 
 - Classified guests aged 12 or older as adults during request import using age at check-in.
