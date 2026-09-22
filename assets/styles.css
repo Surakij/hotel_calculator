@@ -2145,6 +2145,11 @@ select[aria-invalid="true"] {
   font-weight: 900;
 }
 
+.share-preview .share-total {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .calendar {
   position: fixed;
   z-index: 100000;

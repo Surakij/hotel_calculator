@@ -800,6 +800,31 @@ test("short share preview uses Arial 10pt", async () => {
   assert.ok(Math.abs(Number.parseFloat(result.size) - (10 * 4 / 3)) < 0.1);
 });
 
+test("short share total is bold and underlined without changing plain text", async () => {
+  const result = await page.evaluate(() => {
+    document.getElementById("hotel").value = "Test Hotel";
+    document.getElementById("checkin").value = "01.09.2026";
+    document.getElementById("checkout").value = "02.09.2026";
+    document.getElementById("rows").innerHTML = "";
+    HotelCalculatorApp.addRow({ type: "ROOM", item: "Beach Villa", from: "01.09.2026", to: "02.09.2026", qty: 1, rate: 100 });
+    document.getElementById("showShare").click();
+    const total = document.querySelector("#shareText .share-total");
+    const style = getComputedStyle(total);
+    return {
+      text: total.textContent,
+      weight: Number(style.fontWeight),
+      decoration: style.textDecorationLine,
+      plainText: HotelCalculatorApp.shareText(),
+    };
+  });
+
+  assert.equal(result.text, "TOTAL: 100 USD");
+  assert.ok(result.weight >= 700);
+  assert.match(result.decoration, /underline/);
+  assert.match(result.plainText, /\nTOTAL: 100 USD$/);
+  assert.doesNotMatch(result.plainText, /<strong|__|<u>/i);
+});
+
 test("multiple rooms require an explicit room for person extras", async () => {
   const result = await page.evaluate(() => {
     document.getElementById("checkin").value = "28.10.2026";

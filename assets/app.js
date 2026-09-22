@@ -2238,7 +2238,7 @@
   function shareHtml(text) {
     return text.split("\n").map((line) => {
       const escaped = escapeHtml(line);
-      if (/^TOTAL:/i.test(line)) return `<strong>${escaped}</strong>`;
+      if (/^TOTAL:/i.test(line)) return `<strong class="share-total" style="text-decoration:underline;text-underline-offset:2px;">${escaped}</strong>`;
       const datedService = /^(\d{2}\.\d{2}(?:\s+-\s+\d{2}\.\d{2})?)\s+:\s+([^:]+)\s+:\s+(.*)$/.exec(line);
       if (datedService) {
         return `<strong>${escapeHtml(datedService[1])} : ${escapeHtml(datedService[2].trim())}</strong> : ${escapeHtml(datedService[3])}`;
