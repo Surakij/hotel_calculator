@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.14
+
+- Classified guests aged 12 or older as adults during request import using age at check-in.
+- Applied the imported adult classification to meals, transfers, gala dinners, Green Tax, and room extras.
+- Added support for hotel-specific adult-age exceptions without changing manual child-age entry.
+
 ## 1.6.13
 
 - Added explicit room assignment for Extra Adult and Extra Child charges.
