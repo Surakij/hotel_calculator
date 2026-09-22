@@ -102,6 +102,19 @@ test("renamed Angsana Velavaru retains legacy remembered rates", () => {
   }
 });
 
+test("renamed Anantara Dhigu retains legacy remembered rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([{ hotel: "Anantara Resort and Spa Maldives", type: "ROOM", item: "Sunset Over Water Pool Villa", from: "29.12.2026", to: "08.01.2027", rateFormula: "900" }]));
+    const saved = storage.findRateMemory({ hotel: "Anantara Dhigu Maldives", type: "ROOM", item: "Sunset Over Water Pool Villa", from: "29.12.2026", to: "08.01.2027" });
+    assert.equal(saved.rateFormula, "900");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("renamed Heritance Aarah retains legacy remembered rates", () => {
   const key = "hotelCalculator.rateMemory.v1";
   const before = localStorage.getItem(key);

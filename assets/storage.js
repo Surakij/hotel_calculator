@@ -86,6 +86,7 @@
 
   function canonicalHotelName(name, item = "") {
     const value = String(name || "").trim();
+    if (/^anantara resort and spa maldives$/i.test(value)) return "Anantara Dhigu Maldives";
     if (/^angsana resort & spa maldives - velavaru$/i.test(value)) return "Angsana Velavaru";
     if (/^avani\s*\+\s*fares maldives$/i.test(value)) return "Avani+ Fares Maldives Resort";
     if (/^coco palm dhunikolhu$/i.test(value)) return "Coco Palm Dhuni Kolhu";

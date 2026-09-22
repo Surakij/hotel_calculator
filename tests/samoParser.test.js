@@ -66,6 +66,23 @@ test("maps Angsana Velavaru from SAMO", () => {
   assert.equal(result.mealPlan, "AI - Dine");
 });
 
+test("maps Anantara Dhigu with its room and meal plan", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Anantara Dhigu Maldives 5*
+    Number of guest: 2 Adult, 1 Child
+    Arrival date: 29.12.2026
+    Departure date: 08.01.2027
+    Villa category: Sunrise Beach Villa 2 Adl + 1 Chd(2-11,99)
+    Meal Plan: HB
+    Transfer: Speedboat Airport - Hotel - Airport
+  `, { hotelNames: ["Anantara Dhigu Maldives"] });
+  assert.equal(result.mappedHotel, "Anantara Dhigu Maldives");
+  assert.equal(result.hotelStatus, "mapped");
+  assert.equal(result.rooms[0].item, "Sunrise Beach Villa");
+  assert.equal(result.mealPlan, "HB");
+  assert.equal(result.transfer.mode, "SPEEDBOAT");
+});
+
 test("maps Heritance Aarah Maldives Resort to the database hotel", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Heritance Aarah Maldives Resort 5*

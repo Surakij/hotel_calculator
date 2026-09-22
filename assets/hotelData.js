@@ -168,8 +168,14 @@
       "FB - Child"
     ]
   },
-  "Anantara Resort and Spa Maldives": {
+  "Anantara Dhigu Maldives": {
     "rooms": [
+      "Sunrise Beach Villa",
+      "Sunset Beach Villa",
+      "Sunrise Over Water Villa",
+      "Sunrise Beach Pool Villa",
+      "Sunset Beach Pool Villa",
+      "Sunset Over Water Villa",
       "Sunset Over Water Pool Villa",
       "Deluxe Sunset Over Water Pool Villa",
       "Two Bedroom Anantara Beach Pool Villa",

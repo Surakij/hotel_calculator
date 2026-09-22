@@ -672,6 +672,37 @@ Villa category: 2 Bedroom Island Villa 3 Adl + 2 Chd`;
   ]);
 });
 
+test("SAMO maps Anantara Dhigu with its room, HB meals and speedboat", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Anantara Dhigu Maldives 5*
+Number of guest: 2 Adult, 1 Child
+Arrival date: 29.12.2026
+Departure date: 08.01.2027
+Villa category: Sunrise Beach Villa 2 Adl + 1 Chd(2-11,99)
+Meal Plan: HB
+Transfer: Speedboat Airport - Hotel - Airport`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const room = rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "";
+    const meals = rows
+      .filter((row) => row.querySelector(".type")?.value === "MEAL")
+      .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]);
+    const transfers = rows
+      .filter((row) => row.querySelector(".type")?.value === "TRANSFER")
+      .map((row) => row.querySelector(".item").value);
+    return { hotel: $("hotel").value, meals, preview, room, transfers };
+  });
+  assert.equal(result.hotel, "Anantara Dhigu Maldives");
+  assert.equal(result.room, "Sunrise Beach Villa");
+  assert.deepEqual(result.meals, [["HB - Adult", "2"], ["HB - Child", "1"]]);
+  assert.deepEqual(result.transfers, ["Speedboat - Adult", "Speedboat - Child"]);
+  assert.match(result.preview, /Anantara Dhigu MaldivesMapped/);
+});
+
 test("SAMO maps Heritance Aarah and its Premium AI meal", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);
