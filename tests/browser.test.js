@@ -88,6 +88,31 @@ test("restoring partially entered ages preserves their positions", async () => {
   assert.deepEqual(result, ["", "", "6"]);
 });
 
+test("manual child age stays a child and is capped at 17", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("adults").value = "2";
+    $("children").value = "1";
+    $("children").dispatchEvent(new Event("input"));
+    const age = document.querySelector(".child-age-input");
+    age.value = "18";
+    age.dispatchEvent(new Event("input"));
+    return {
+      adults: $("adults").value,
+      children: $("children").value,
+      ages: $("ages").value,
+      ageFields: document.querySelectorAll(".child-age-input").length,
+    };
+  });
+
+  assert.deepEqual(result, {
+    adults: "2",
+    children: "1",
+    ages: "17",
+    ageFields: 1,
+  });
+});
+
 test("SPO discounts are remembered after editing without requiring Save", async () => {
   await page.evaluate(() => {
     document.getElementById("hotel").value = "Test";
@@ -417,6 +442,52 @@ test("SAMO imports inline guest names and meals after matching an ampersand hote
     spo: "MDBP40",
     rooms: [["29.09.2026", "01.10.2026", ""], ["01.10.2026", "06.10.2026", ""]],
     meals: [{ item: "AI - Adult", qty: "2" }, { item: "AI - Child", qty: "1" }],
+  });
+});
+
+test("SAMO treats a guest aged 12 as an adult for meals, transfers and tax", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `
+      Hotel: Kuredhivaru Resort & Spa 5*
+      Guest name:
+      MR ADULT GUEST DOB 01.01.1990 PN XX
+      CHD TWELVE GUEST DOB 14.10.2014 PN XX
+      Number of guest: 1 Adult, 1 Child
+      Arrival date: 14.10.2026
+      Departure date: 21.10.2026
+      Villa category: Deluxe Beach Villa With Pool 1 Adl + 1 Chd
+      Meal Plan: AI
+      Handling fee: Maldives Green Tax (14.10.2026 - 21.10.2026)
+      Transfer: Seaplane Airport - Hotel - Airport
+    `;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    return {
+      preview,
+      adults: $("adults").value,
+      children: $("children").value,
+      ages: $("ages").value,
+      meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL")
+        .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      transfers: rows.filter((row) => row.querySelector(".type")?.value === "TRANSFER")
+        .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      greenTaxQty: rows.find((row) => row.querySelector(".type")?.value === "GREEN_TAX")?.querySelector(".qty").value,
+    };
+  });
+
+  const { preview, ...applied } = result;
+  assert.match(preview, /2 ADL, 0 CHD, 0 INF/);
+  assert.deepEqual(applied, {
+    adults: "2",
+    children: "0",
+    ages: "",
+    meals: [["AI - Adult", "2"]],
+    transfers: [["Seaplane - Adult", "2"]],
+    greenTaxQty: "2",
   });
 });
 

@@ -343,6 +343,49 @@ test("calculates child age from DOB as of check-in", () => {
   assert.deepEqual(result.childAges, [10]);
 });
 
+test("counts a guest aged 12 as an adult on the check-in date", () => {
+  const request = `
+    Hotel: Niva Velassaru Maldives
+    Guest name:
+    MR ADULT GUEST DOB 01.01.1990 PN XX
+    MRS ADULT TWO DOB 01.01.1991 PN XX
+    CHD TWELVE GUEST DOB 05.09.2014 PN XX
+    Number of guest: 2 Adult, 1 Child
+    Arrival date: 05.09.2026
+    Departure date: 10.09.2026
+    Villa category: 1 Bedroom Beach Villa 2 Adl + 1 Chd
+  `;
+  const result = parser.parseSamoRequest(request, { hotelNames: ["Niva Velassaru Maldives"] });
+
+  assert.deepEqual([result.adults, result.children, result.infants], [3, 0, 0]);
+  assert.deepEqual(result.childAges, []);
+  assert.deepEqual(result.rooms[0].occupancy, {
+    adults: 3,
+    children: 0,
+    infants: 0,
+    bedrooms: 1,
+    standardCapacity: 2,
+    extraAdults: 1,
+    extraChildren: 0,
+  });
+});
+
+test("allows a hotel-specific adult age exception", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Niva Velassaru Maldives
+    Guest name: CHD TWELVE GUEST DOB 05.09.2014 PN XX
+    Number of guest: 0 Adult, 1 Child
+    Arrival date: 05.09.2026
+    Departure date: 10.09.2026
+  `, {
+    hotelNames: ["Niva Velassaru Maldives"],
+    adultAgeByHotel: { "Niva Velassaru Maldives": 13 },
+  });
+
+  assert.deepEqual([result.adults, result.children], [0, 1]);
+  assert.deepEqual(result.childAges, [12]);
+});
+
 test("marks unknown hotel as unresolved", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Unknown Island Resort 5*

@@ -3,6 +3,7 @@
   else root.HotelCalculatorSamoParser = factory();
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const DAY = 24 * 60 * 60 * 1000;
+  const DEFAULT_ADULT_AGE = 12;
 
   function pad(value) {
     return String(value).padStart(2, "0");
@@ -175,7 +176,15 @@
     return match ? Number(match[1]) : 0;
   }
 
-  function parseGuestDetails(lines, checkin) {
+  function adultAgeThreshold(options, mappedHotel = "") {
+    const hotelAge = Number(options?.adultAgeByHotel?.[mappedHotel]);
+    const requestedAge = Number(options?.adultAge);
+    if (Number.isFinite(hotelAge) && hotelAge > 0) return hotelAge;
+    if (Number.isFinite(requestedAge) && requestedAge > 0) return requestedAge;
+    return DEFAULT_ADULT_AGE;
+  }
+
+  function parseGuestDetails(lines, checkin, adultAge = DEFAULT_ADULT_AGE) {
     const seen = new Set();
     return lines.reduce((details, line) => {
       const guestLine = line.replace(/^guest\s+name\s*:\s*/i, "");
@@ -188,7 +197,7 @@
       seen.add(key);
       const age = guestAgeOnDate(dob, checkin);
       const type = age !== ""
-        ? age < 2 ? "infants" : age < 18 ? "children" : "adults"
+        ? age < 2 ? "infants" : age < adultAge ? "children" : "adults"
         : role === "INF" ? "infants" : role === "CHD" ? "children" : "adults";
       details[type] += 1;
       if (type === "children" && age !== "") details.childAges.push(age);
@@ -221,24 +230,55 @@
     return { adults, children, infants, bedrooms, standardCapacity, extraAdults, extraChildren };
   }
 
-  function parseRooms(lines) {
+  function occupancyFromGuests(declared, guestDetails) {
+    const detectedTotal = guestDetails.adults + guestDetails.children + guestDetails.infants;
+    const declaredTotal = declared.adults + declared.children + declared.infants;
+    if (!detectedTotal || (declaredTotal && detectedTotal !== declaredTotal)) return declared;
+    const adults = guestDetails.adults;
+    const children = guestDetails.children;
+    const infants = guestDetails.infants;
+    const remainingStandardPlaces = Math.max(0, declared.standardCapacity - adults);
+    return {
+      ...declared,
+      adults,
+      children,
+      infants,
+      extraAdults: declared.standardCapacity ? Math.max(0, adults - declared.standardCapacity) : 0,
+      extraChildren: declared.standardCapacity ? Math.max(0, children - remainingStandardPlaces) : 0,
+    };
+  }
+
+  function parseRooms(lines, adultAge = DEFAULT_ADULT_AGE) {
     const rooms = [];
     let current = {};
 
     function pushCurrent() {
       if (!current.item && !current.from && !current.to) return;
+      const declaredOccupancy = parseRoomOccupancy(current.item);
+      const guestDetails = parseGuestDetails(current.guestLines || [], current.from, adultAge);
       const room = {
         item: cleanRoomName(current.item),
         from: formatDate(current.from),
         to: formatDate(current.to),
         nights: current.nights || nightsBetween(current.from, current.to),
-        occupancy: parseRoomOccupancy(current.item),
+        occupancy: occupancyFromGuests(declaredOccupancy, guestDetails),
       };
       if (room.item || room.from || room.to) rooms.push(room);
       current = {};
     }
 
     lines.forEach((line, index) => {
+      const hotel = valueAtLabel(lines, index, ["Hotel"]);
+      if (hotel) {
+        if (current.item) pushCurrent();
+        return;
+      }
+      const guestLine = line.replace(/^guest\s+name\s*:\s*/i, "");
+      if (/^(MR|MRS|MS|CHD|INF)\b/i.test(guestLine)) {
+        current.guestLines = current.guestLines || [];
+        current.guestLines.push(line);
+        return;
+      }
       const arrival = valueAtLabel(lines, index, ["Arrival date", "Arrival"]);
       if (arrival) {
         if (current.item) pushCurrent();
@@ -340,16 +380,17 @@
     const warnings = [];
     const rawHotel = firstLabel(lines, ["Hotel"]);
     const hotelMatch = matchHotel(rawHotel, options.hotelNames || []);
+    const adultAge = adultAgeThreshold(options, hotelMatch.mappedHotel);
     if (rawHotel && hotelMatch.status === "unresolved") warnings.push("Hotel was detected but not safely matched to the database.");
 
-    const rooms = parseRooms(lines);
+    const rooms = parseRooms(lines, adultAge);
     const labelCheckin = formatDate(firstLabel(lines, ["Arrival date", "Arrival"]));
     const labelCheckout = formatDate(firstLabel(lines, ["Departure date", "Departure"]));
     const checkin = rooms.find((room) => room.from)?.from || labelCheckin;
     const checkout = [...rooms].reverse().find((room) => room.to)?.to || labelCheckout;
     const nights = nightsBetween(checkin, checkout) || parseLength(firstLabel(lines, ["Length of stay", "Stay length"]));
     const pax = parsePax(firstLabel(lines, ["Number of guest", "Number of guests", "Guests", "Pax"]));
-    const guestDetails = parseGuestDetails(lines, checkin);
+    const guestDetails = parseGuestDetails(lines, checkin, adultAge);
     const paxTotal = pax.adults + pax.children + pax.infants;
     const detectedTotal = guestDetails.adults + guestDetails.children + guestDetails.infants;
     const guests = detectedTotal && (!paxTotal || detectedTotal === paxTotal) ? guestDetails : pax;
@@ -455,7 +496,11 @@
       `SPO code: ${firstLabel(lines, ["SPO code", "SPO"])}`,
       `Handling fee: ${/green tax|грин такс/i.test(joined) ? "Maldives Green Tax" : ""}`,
     ].join("\n"), options);
-    result.childAges = ages;
+    const adultAge = adultAgeThreshold(options, result.mappedHotel || hotel);
+    const promotedAges = ages.filter((age) => age >= adultAge);
+    result.adults += promotedAges.length;
+    result.children = Math.max(0, result.children - promotedAges.length);
+    result.childAges = ages.filter((age) => age < adultAge);
     result.warnings = result.warnings.filter((warning) => !warning.startsWith("Some child ages"));
     if (children > 0 && ages.length !== children) warnings.push("Some child ages could not be detected safely.");
     if (!adults) warnings.push("Adult count was not detected. Check the guests.");
