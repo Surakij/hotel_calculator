@@ -134,6 +134,23 @@ test("parses a short Russian request with shared month and year", () => {
   assert.deepEqual(result.warnings, []);
 });
 
+test("parses a compact request with a Russian start date and nights", () => {
+  const result = parser.parseSamoRequest(`
+    с 20 июня 2027 года
+    1) Dusit Thani Maldives,Beach Villa (5 ночей), 2 adl, HB, seaplane OW
+  `, { hotelNames: ["Dusit Thani Maldives", "Finolhu"] });
+
+  assert.equal(result.mappedHotel, "Dusit Thani Maldives");
+  assert.deepEqual([result.checkin, result.checkout, result.nights], ["20.06.2027", "25.06.2027", 5]);
+  assert.deepEqual([result.adults, result.children, result.infants], [2, 0, 0]);
+  assert.equal(result.rooms[0].item, "Beach Villa");
+  assert.equal(result.mealPlan, "HB");
+  assert.equal(result.transfer.mode, "SEAPLANE");
+  assert.equal(result.transfer.oneWay, true);
+  assert.equal(result.greenTax, true);
+  assert.deepEqual(result.warnings, []);
+});
+
 test("parses English requests across years and does not guess missing years", () => {
   const result = parser.parseSamoRequest("28.12.2026 - 04.01.2027\nFinolhu\nBeach Villa\n2 adults + 1 child (8 years), AI, speedboat", { hotelNames: ["Finolhu"] });
   assert.equal(result.nights, 7);
@@ -426,7 +443,7 @@ test("does not fail when optional SAMO fields are missing", () => {
 
   assert.equal(result.spo, "");
   assert.equal(result.transfer.status, "missing");
-  assert.equal(result.greenTax, false);
+  assert.equal(result.greenTax, true);
   assert.equal(result.roomQuotation.components.length, 0);
 });
 

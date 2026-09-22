@@ -201,7 +201,7 @@ test("SAMO resolves room wording and fills empty rates from memory", async () =>
     $("applySamoImport").click();
     return [...document.querySelectorAll("#rows tr")].map((row) => [row.querySelector(".item").value, row.querySelector(".rate").value, row.querySelector(".discount").value]);
   });
-  assert.deepEqual(result, [["Deluxe Beach Pool Villa", "1230", "40"], ["AI - Adult", "50", "40"], ["Seaplane - Adult", "400", "40"]]);
+  assert.deepEqual(result, [["Deluxe Beach Pool Villa", "1230", "40"], ["AI - Adult", "50", "40"], ["Seaplane - Adult", "400", "40"], ["Green Tax", "12", ""]]);
 });
 
 test("imports a short Russian request with ages, meals, transfer and remembered price", async () => {
@@ -219,7 +219,52 @@ test("imports a short Russian request with ages, meals, transfer and remembered 
       rows: [...document.querySelectorAll("#rows tr")].map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value, row.querySelector(".rate").value]),
     };
   });
-  assert.deepEqual(result, { hotel: "Finolhu", nights: "6", ages: ["6", "10"], rows: [["Beach Villa", "1", "800"], ["AI - Adult", "2", ""], ["AI - Child", "2", ""], ["Seaplane - Adult", "2", ""], ["Seaplane - Child", "2", ""]] });
+  assert.deepEqual(result, { hotel: "Finolhu", nights: "6", ages: ["6", "10"], rows: [["Beach Villa", "1", "800"], ["AI - Adult", "2", ""], ["AI - Child", "2", ""], ["Seaplane - Adult", "2", ""], ["Seaplane - Child", "2", ""], ["Green Tax", "4", "12"]] });
+});
+
+test("imports a compact Dusit request with a Russian start date and nights", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `с 20 июня 2027 года
+
+1) Dusit Thani Maldives,Beach Villa (5 ночей), 2 adl, HB, seaplane OW`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    return {
+      preview,
+      hotel: $("hotel").value,
+      checkin: $("checkin").value,
+      checkout: $("checkout").value,
+      nights: $("nights").value,
+      rows: [...document.querySelectorAll("#rows tr")].map((row) => ({
+        type: row.querySelector(".type").value,
+        item: row.querySelector(".item").value,
+        from: row.querySelector(".from")?.value || "",
+        to: row.querySelector(".to")?.value || "",
+        qty: row.querySelector(".qty").value,
+        rate: row.querySelector(".rate").value,
+      })),
+    };
+  });
+
+  assert.match(result.preview, /Dusit Thani Maldives/);
+  assert.match(result.preview, /20\.06\.2027 - 25\.06\.2027/);
+  assert.match(result.preview, /Green Tax\s*Yes/);
+  assert.deepEqual({ ...result, preview: undefined }, {
+    preview: undefined,
+    hotel: "Dusit Thani Maldives",
+    checkin: "20.06.2027",
+    checkout: "25.06.2027",
+    nights: "5",
+    rows: [
+      { type: "ROOM", item: "Beach Villa", from: "20.06.2027", to: "25.06.2027", qty: "1", rate: "" },
+      { type: "MEAL", item: "HB - Dine Around - Adult", from: "20.06.2027", to: "25.06.2027", qty: "2", rate: "" },
+      { type: "TRANSFER", item: "Seaplane OW - Adult", from: "", to: "", qty: "2", rate: "" },
+      { type: "GREEN_TAX", item: "Green Tax", from: "20.06.2027", to: "25.06.2027", qty: "2", rate: "12" },
+    ],
+  });
 });
 
 test("imports Fuel Surcharge once for adults and children after transfers", async () => {

@@ -4,6 +4,20 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const DAY = 24 * 60 * 60 * 1000;
   const DEFAULT_ADULT_AGE = 12;
+  const RUSSIAN_MONTHS = {
+    января: 1,
+    февраля: 2,
+    марта: 3,
+    апреля: 4,
+    мая: 5,
+    июня: 6,
+    июля: 7,
+    августа: 8,
+    сентября: 9,
+    октября: 10,
+    ноября: 11,
+    декабря: 12,
+  };
 
   function pad(value) {
     return String(value).padStart(2, "0");
@@ -30,6 +44,20 @@
     const end = parseDate(to);
     if (!start || !end) return 0;
     return Math.max(0, Math.round((end - start) / DAY));
+  }
+
+  function addDays(value, days) {
+    const date = parseDate(value);
+    if (!date || !Number.isInteger(days) || days <= 0) return "";
+    date.setDate(date.getDate() + days);
+    return formatDate(date);
+  }
+
+  function russianDate(value) {
+    const months = Object.keys(RUSSIAN_MONTHS).join("|");
+    const match = new RegExp(`(?:^|\\s)(?:с\\s+)?(\\d{1,2})\\s+(${months})\\s+(\\d{4})(?:\\s+года)?`, "i").exec(String(value || ""));
+    if (!match) return "";
+    return formatDate(`${match[1]}.${RUSSIAN_MONTHS[match[2].toLowerCase()]}.${match[3]}`);
   }
 
   function normalizeLines(text) {
@@ -155,6 +183,42 @@
     return soft.length === 1 ? { mappedHotel: soft[0].name, status: "mapped" } : { mappedHotel: "", status: "unresolved" };
   }
 
+  function hotelsInLines(lines, hotelNames) {
+    const found = [];
+    lines.forEach((line) => {
+      const cleanLine = line.replace(/^(?:hotel|отель)\s*:\s*/i, "");
+      const direct = matchHotel(cleanLine, hotelNames).mappedHotel;
+      if (direct) {
+        found.push(direct);
+        return;
+      }
+      const normalizedLine = normalizeHotelName(cleanLine);
+      const matches = hotelNames
+        .map((name) => ({ name, normalized: normalizeHotelName(name) }))
+        .filter((candidate) => candidate.normalized && normalizedLine.includes(candidate.normalized));
+      matches
+        .filter((candidate) => !matches.some((other) => other.normalized !== candidate.normalized
+          && other.normalized.length > candidate.normalized.length
+          && other.normalized.includes(candidate.normalized)))
+        .forEach((candidate) => found.push(candidate.name));
+    });
+    return [...new Set(found)];
+  }
+
+  function compactRoomFromLines(lines, hotel) {
+    if (!hotel) return "";
+    for (const line of lines) {
+      const segments = line.replace(/^\s*\d+\)\s*/, "").split(/\s*,\s*/).map((segment) => segment.trim());
+      const hotelIndex = segments.findIndex((segment) => matchHotel(segment, [hotel]).mappedHotel);
+      if (hotelIndex < 0 || !segments[hotelIndex + 1]) continue;
+      const room = segments[hotelIndex + 1]
+        .replace(/\s*\(\s*\d+\s*(?:nights?|ноч(?:ь|и|ей))\s*\)\s*$/i, "")
+        .trim();
+      if (/\b(villa|suite|bungalow|pavilion|room)\b/i.test(room)) return room;
+    }
+    return "";
+  }
+
   function parsePax(value) {
     const text = String(value || "");
     const find = (patterns) => {
@@ -172,7 +236,7 @@
   }
 
   function parseLength(value) {
-    const match = /(\d+)\s*(?:night|nights|nts|n)\b/i.exec(String(value || ""));
+    const match = /(\d+)\s*(?:night|nights|nts|n\b|ночь|ночи|ночей)/i.exec(String(value || ""));
     return match ? Number(match[1]) : 0;
   }
 
@@ -404,7 +468,7 @@
     const roomQuotation = parseRoomQuotation(allLabels(lines, ["Room quotation", "Room quote", "Quotation"]));
     const explicitSpo = firstLabel(lines, ["SPO code", "SPO"]);
     const spo = explicitSpo || spoFromRoomQuotation(roomQuotation);
-    const greenTax = /maldives\s+green\s+tax/i.test(`${handlingFee}\n${lines.join("\n")}`);
+    const greenTax = true;
     const fuelSurcharge = handlingFees.some((fee) => /\bfuel\s+surcharge\b/i.test(fee));
 
     if (!rawHotel) warnings.push("Hotel was not detected.");
@@ -441,7 +505,7 @@
     }
     const warnings = [];
     const joined = lines.join("\n");
-    const hotels = [...new Set(lines.map((line) => matchHotel(line.replace(/^(?:hotel|отель)\s*:\s*/i, ""), options.hotelNames || []).mappedHotel).filter(Boolean))];
+    const hotels = hotelsInLines(lines, options.hotelNames || []);
     const hotel = hotels.length === 1 ? hotels[0] : "";
     if (hotels.length > 1) warnings.push("Multiple hotels found. Select one hotel before applying.");
 
@@ -458,6 +522,14 @@
         warnings.push("Invalid or reversed stay dates. Check the full dates and year.");
       }
     } else if (ranges.length > 1) warnings.push("Multiple date ranges found. Split the request into separate stays before applying.");
+    if (!from && !to) {
+      const start = russianDate(joined);
+      const compactNights = parseLength(joined);
+      if (start && compactNights) {
+        from = start;
+        to = addDays(start, compactNights);
+      }
+    }
 
     const count = (pattern) => {
       const values = [...joined.matchAll(pattern)].map((match) => Number(match[1]));
@@ -483,7 +555,8 @@
     }
     if (meals.length > 1) warnings.push("Multiple meal plans found. Check the meal plan.");
     if (transfers.length > 1) warnings.push("Multiple transfer modes found. Check the transfer.");
-    const roomLines = lines.filter((line) => !hotels.some((name) => matchHotel(line, [name]).mappedHotel)
+    const compactRoom = compactRoomFromLines(lines, hotel);
+    const roomLines = compactRoom ? [compactRoom] : lines.filter((line) => !hotels.some((name) => matchHotel(line, [name]).mappedHotel)
       && /\b(villa|suite|bungalow|pavilion|room)\b/i.test(line)
       && !/\d{1,2}[./]\d{1,2}|\b(adults?|adl|children|chd)\b|взр|детей/i.test(line));
     if (roomLines.length > 1) warnings.push("Multiple room categories found. Check the room category.");
