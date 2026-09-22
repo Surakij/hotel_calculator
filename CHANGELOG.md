@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.16
+
+- Added Amilla Maldives with official villa categories and Dine Around meal plans.
+- Mapped "Water Villa With Pool" requests to the canonical Water Pool Villa category.
+- Allowed compact imports with nights but no date to use the current Check-in and recalculate Check-out.
+
 ## 1.6.15
 
 - Added compact request parsing for Russian start dates, night counts, and comma-separated hotel details.
