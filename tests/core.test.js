@@ -222,6 +222,7 @@ test("calculates stay-based and one-time rows", () => {
   assert.equal(core.calculateRow({ type: "TRANSFER", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 50 }).net, 100);
   assert.equal(core.calculateRow({ type: "GREEN_TAX", item: "Green Tax", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 12 }).net, 72);
   assert.equal(core.calculateRow({ type: "EXTRA", item: "Manual Surcharge", from: "01.09.2026", to: "04.09.2026", qty: 2, rate: 12 }).net, 72);
+  assert.equal(core.calculateRow({ type: "EXTRA", item: "Fuel Surcharge", from: "01.09.2026", to: "04.09.2026", qty: 4, rateFormula: "20+11" }).net, 124);
 });
 
 test("applies stacked discounts sequentially", () => {

@@ -1135,6 +1135,12 @@
       return;
     }
 
+    if (core.isFuelSurcharge(data)) {
+      from.value = "";
+      to.value = "";
+      return;
+    }
+
     if (data.type === "TRANSFER" && !isOneWayTransfer(data)) {
       from.value = "";
       to.value = "";
@@ -1293,6 +1299,10 @@
       qty.value = 1;
     }
 
+    if (core.isFuelSurcharge(data)) {
+      qty.value = Number(value("adults") || 0) + Number(value("children") || 0);
+    }
+
     if (["MEAL", "TRANSFER", "DINNER"].includes(data.type)) {
       if (data.type === "MEAL" && !item) qty.value = value("adults") || 0;
       else if (data.type === "TRANSFER" && !item) qty.value = value("adults") || 0;
@@ -1362,11 +1372,13 @@
     const discountControls = tr.querySelectorAll(".discount, .discount-add, .discount-remove");
     const hasType = Boolean(data.type);
     const hideItem = core.isGreenTax(data);
-    const hideNights = data.type === "TRANSFER" || data.type === "DINNER";
+    const isFuelSurcharge = core.isFuelSurcharge(data);
+    const hideNights = data.type === "TRANSFER" || data.type === "DINNER" || isFuelSurcharge;
     const hideTransferDates = data.type === "TRANSFER" && !isOneWayTransfer(data);
-    const lockDates = data.type === "DINNER" || hideTransferDates;
+    const hideAllDates = hideTransferDates || isFuelSurcharge;
+    const lockDates = data.type === "DINNER" || hideAllDates;
     const isDinner = data.type === "DINNER";
-    const hideToDate = data.type === "TRANSFER" || isDinner;
+    const hideToDate = data.type === "TRANSFER" || isDinner || isFuelSurcharge;
     const allowDiscounts = hasType && core.isDiscountable(data);
 
     tr.querySelector(".extra-assignment").hidden = !isPersonExtra(data);
@@ -1377,7 +1389,7 @@
     item.disabled = !hasType || hideItem;
     from.disabled = !hasType || lockDates;
     to.disabled = !hasType || lockDates || isOneWayTransfer(data);
-    from.hidden = hideTransferDates;
+    from.hidden = hideAllDates;
     to.hidden = hideToDate;
     nights.disabled = !hasType || hideNights;
     qty.disabled = !hasType;
@@ -1396,8 +1408,8 @@
     item.closest("td").classList.toggle("muted-cell", hideItem);
     nights.closest("td").classList.toggle("muted-cell", hideNights);
     tr.querySelector(".discounts").classList.toggle("muted-cell", !allowDiscounts);
-    from.closest("td").classList.toggle("muted-cell", hideTransferDates);
-    to.closest("td").classList.toggle("muted-cell", isDinner || hideTransferDates);
+    from.closest("td").classList.toggle("muted-cell", hideAllDates);
+    to.closest("td").classList.toggle("muted-cell", isDinner || hideAllDates);
   }
 
   function recalc() {

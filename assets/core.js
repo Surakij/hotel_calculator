@@ -164,6 +164,10 @@
     return row.type === "GREEN_TAX" || (row.type === "EXTRA" && /^green tax$/i.test(row.item || ""));
   }
 
+  function isFuelSurcharge(row) {
+    return row.type === "EXTRA" && /^fuel surcharge$/i.test(row.item || "");
+  }
+
   function isStayBased(row) {
     return row.type === "ROOM" || row.type === "MEAL" || isGreenTax(row);
   }
@@ -185,7 +189,7 @@
     let base = qty * rate;
 
     if (isStayBased(row)) base *= nights;
-    else if (row.type === "EXTRA" && row.from && row.to) base *= nights;
+    else if (row.type === "EXTRA" && !isFuelSurcharge(row) && row.from && row.to) base *= nights;
 
     const discounts = isDiscountable(row) ? (row.discounts || []).map(Number).filter((item) => item > 0) : [];
     return {
@@ -244,7 +248,7 @@
     let formula = hasRateFormula(row)
       ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : ` * ${row.qty}`}`
       : `${row.rate ? shareMoney(row.rate).replaceAll(",", "") : "0"} * ${row.qty}`;
-    if ((isStayBased(row) || row.type === "EXTRA") && row.nights > 0) formula += ` * ${row.nights}`;
+    if ((isStayBased(row) || (row.type === "EXTRA" && !isFuelSurcharge(row))) && row.nights > 0) formula += ` * ${row.nights}`;
     row.discounts.forEach((discount) => {
       formula += ` - ${discount}%`;
     });
@@ -273,7 +277,7 @@
     ));
     let formula = parts.length > 1 ? `(${parts.join(" + ")})` : parts[0];
     const first = group.rows[0];
-    if ((isStayBased(first) || first.type === "EXTRA") && first.nights > 0) formula += ` * ${first.nights}`;
+    if ((isStayBased(first) || (first.type === "EXTRA" && !isFuelSurcharge(first))) && first.nights > 0) formula += ` * ${first.nights}`;
     first.discounts.forEach((discount) => {
       formula += ` - ${discount}%`;
     });
@@ -481,6 +485,7 @@
     calculateRows,
     formatDate,
     formatShort,
+    isFuelSurcharge,
     isGreenTax,
     isDiscountable,
     isStayBased,

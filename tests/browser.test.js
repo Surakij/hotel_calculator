@@ -325,18 +325,41 @@ Handling fee: Maldives Green Tax (11.12.2026 - 18.12.2026)
 Transfer: SPEEDBOAT Airport - Hotel - Airport`;
     $("parseSamoImport").click();
     $("applySamoImport").click();
-    return [...document.querySelectorAll("#rows tr")].map((row) => ({
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const fuel = rows.find((row) => row.querySelector(".item").value === "Fuel Surcharge");
+    fuel.querySelector(".from").value = "23.10.2026";
+    fuel.querySelector(".to").value = "25.10.2026";
+    fuel.querySelector(".rate").value = "20+11";
+    $("adults").value = "3";
+    $("children").value = "1";
+    $("adults").dispatchEvent(new Event("input", { bubbles: true }));
+    HotelCalculatorApp.recalc();
+    return rows.map((row) => ({
       type: row.querySelector(".type").value,
       item: row.querySelector(".item").value,
       qty: row.querySelector(".qty").value,
       from: row.querySelector(".from")?.value || "",
       to: row.querySelector(".to")?.value || "",
+      fromHidden: row.querySelector(".from")?.hidden || false,
+      toHidden: row.querySelector(".to")?.hidden || false,
+      nightsHidden: row.querySelector(".nights")?.disabled || false,
+      net: row.querySelector(".net")?.textContent || "",
     }));
   });
   const fuelIndex = result.findIndex((row) => row.item === "Fuel Surcharge");
   const lastTransferIndex = result.reduce((index, row, current) => row.type === "TRANSFER" ? current : index, -1);
   assert.equal(fuelIndex, lastTransferIndex + 1);
-  assert.deepEqual(result[fuelIndex], { type: "EXTRA", item: "Fuel Surcharge", qty: "3", from: "", to: "" });
+  assert.deepEqual(result[fuelIndex], {
+    type: "EXTRA",
+    item: "Fuel Surcharge",
+    qty: "4",
+    from: "",
+    to: "",
+    fromHidden: true,
+    toHidden: true,
+    nightsHidden: true,
+    net: "124.00",
+  });
 });
 
 test("dinner rows display and store only one date", async () => {
