@@ -548,7 +548,7 @@ test("combines repeated room categories across date ranges", () => {
   ]);
 
   assert.equal(summaries.length, 1);
-  assert.equal(summaries[0].dates, "01.09 - 03.09; 03.09 - 05.09");
+  assert.equal(summaries[0].dates, "01.09 - 05.09");
   assert.equal(summaries[0].room, "2 Bedroom Suite");
   assert.equal(summaries[0].roomNet, 500);
   assert.equal(summaries[0].mealNet, 80);
@@ -567,11 +567,24 @@ test("includes full-stay meals and person extras across split same-category room
   ]);
 
   assert.equal(summaries.length, 1);
-  assert.equal(summaries[0].dates, "23.10 - 29.10; 29.10 - 31.10");
+  assert.equal(summaries[0].dates, "23.10 - 31.10");
   assert.equal(summaries[0].roomNet, 3210);
   assert.equal(summaries[0].mealNet, 3600);
   assert.equal(summaries[0].extraNet, 1710);
   assert.equal(summaries[0].total, 8520);
+});
+
+test("keeps simultaneous rooms of the same category separate", () => {
+  const summaries = core.buildStaySummaries([
+    { type: "ROOM", roomKey: "first", item: "Beach Villa", from: "01.09.2026", to: "05.09.2026", qty: 1, rate: 100 },
+    { type: "ROOM", roomKey: "second", item: "Beach Villa", from: "01.09.2026", to: "05.09.2026", qty: 1, rate: 150 },
+  ]);
+
+  assert.equal(summaries.length, 2);
+  assert.deepEqual(summaries.map((summary) => ({ dates: summary.dates, roomNet: summary.roomNet })), [
+    { dates: "01.09 - 05.09", roomNet: 400 },
+    { dates: "01.09 - 05.09", roomNet: 600 },
+  ]);
 });
 
 test("does not split unassigned extras across simultaneous room categories", () => {

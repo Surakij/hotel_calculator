@@ -978,6 +978,43 @@ test("extra room assignment is calculated, saved and restored", async () => {
   assert.equal(result.savedAssignment, "sunset");
 });
 
+test("stay summary merges consecutive rate periods but keeps simultaneous rooms separate", async () => {
+  const result = await page.evaluate(() => {
+    const rows = document.getElementById("rows");
+    const summaryRows = () => [...document.querySelectorAll("#staySummary tbody tr")]
+      .map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent.trim()));
+
+    document.getElementById("checkin").value = "23.10.2026";
+    document.getElementById("checkout").value = "02.11.2026";
+    rows.innerHTML = "";
+    HotelCalculatorApp.addRow({ type: "ROOM", item: "Sunrise Two-Bedroom Beach Pool Villa", from: "23.10.2026", to: "01.11.2026", qty: 1, rate: 1516, followGlobal: false }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "ROOM", item: "Sunrise Two-Bedroom Beach Pool Villa", from: "01.11.2026", to: "02.11.2026", qty: 1, rate: 2217, followGlobal: false }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.recalc();
+    const consecutive = summaryRows();
+
+    rows.innerHTML = "";
+    HotelCalculatorApp.addRow({ type: "ROOM", item: "Beach Villa", from: "23.10.2026", to: "02.11.2026", qty: 1, rate: 100 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.addRow({ type: "ROOM", item: "Beach Villa", from: "23.10.2026", to: "02.11.2026", qty: 1, rate: 150 }, { preserveValues: true, deferRender: true });
+    HotelCalculatorApp.recalc();
+
+    return { consecutive, simultaneous: summaryRows() };
+  });
+
+  assert.deepEqual(result.consecutive, [[
+    "23.10 - 02.11",
+    "Sunrise Two-Bedroom Beach Pool Villa",
+    "15,861.00",
+    "0.00",
+    "0.00",
+    "15,861.00",
+  ]]);
+  assert.equal(result.simultaneous.length, 2);
+  assert.deepEqual(result.simultaneous.map((row) => row.slice(0, 3)), [
+    ["23.10 - 02.11", "Beach Villa", "1,000.00"],
+    ["23.10 - 02.11", "Beach Villa", "1,500.00"],
+  ]);
+});
+
 test("service colors continue behind plain fields and type labels stay on one line", async () => {
   const result = await page.evaluate(() => {
     document.getElementById("rows").innerHTML = "";

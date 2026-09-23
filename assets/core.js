@@ -287,27 +287,29 @@
   function buildStaySummaries(inputRows, { calculated = false } = {}) {
     const rows = (calculated ? inputRows : calculateRows(inputRows || []).rows)
       .filter((row) => row.type || row.item || row.rate);
-    const rooms = rows.filter((row) => row.type === "ROOM");
-    const roomCounts = rooms.reduce((counts, row) => {
-      const label = row.item || "Room";
-      counts[label] = (counts[label] || 0) + 1;
-      return counts;
-    }, {});
+    const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
     const groups = [];
 
     rooms.forEach((room) => {
       const roomLabel = room.item || "Room";
-      const key = room.roomKey
-        ? `room:${room.roomKey}`
-        : (roomCounts[roomLabel] > 1 ? `room:${roomLabel}` : `stay:${room.from}:${room.to}:${roomLabel}`);
-      let group = groups.find((item) => item.key === key);
+      let group = room.roomKey
+        ? groups.find((item) => item.roomKeys.has(room.roomKey))
+        : null;
+
+      if (!group) {
+        const continuations = groups.filter((item) => (
+          item.room === roomLabel
+          && item.to === room.from
+          && Number(item.rooms.at(-1)?.qty || 0) === Number(room.qty || 0)
+        ));
+        if (continuations.length === 1) [group] = continuations;
+      }
+
       if (!group) {
         group = {
-          key,
-          roomKey: room.roomKey || "",
+          roomKeys: new Set(),
           from: room.from,
           to: room.to,
-          dates: new Set(),
           rooms: [],
           room: roomLabel,
           roomNet: 0,
@@ -318,7 +320,8 @@
         groups.push(group);
       }
 
-      group.dates.add(dateRangeLabel(room.from, room.to));
+      if (room.roomKey) group.roomKeys.add(room.roomKey);
+      group.to = room.to;
       group.rooms.push(room);
       group.roomNet += room.net;
     });
@@ -337,7 +340,7 @@
         if (groups.length === 1) {
           allocations.forEach(({ group }) => { group.extraNet += row.net; });
         } else if (row.assignedRoomKey) {
-          allocations = allocations.filter(({ group }) => group.roomKey === row.assignedRoomKey);
+          allocations = allocations.filter(({ group }) => group.roomKeys.has(row.assignedRoomKey));
           allocations.forEach(({ group }) => { group.extraNet += row.net; });
         }
         return;
@@ -358,7 +361,11 @@
     });
 
     return groups.map((group) => {
-      const dates = [...group.dates].filter(Boolean).join("; ");
+      const periods = [...group.rooms].sort(compareDateRows);
+      const continuous = periods.every((room, index) => index === 0 || periods[index - 1].to === room.from);
+      const dates = continuous
+        ? dateRangeLabel(periods[0]?.from, periods.at(-1)?.to)
+        : [...new Set(periods.map((room) => dateRangeLabel(room.from, room.to)).filter(Boolean))].join("; ");
       const total = group.roomNet + group.mealNet + group.extraNet;
       return {
         dates,
