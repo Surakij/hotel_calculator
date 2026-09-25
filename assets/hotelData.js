@@ -1504,6 +1504,24 @@
       "Signature Platinum Plan - Child"
     ]
   },
+  "Ifuru Island Maldives": {
+    "rooms": [
+      "Sunset Sky Suite",
+      "Sunset Beach Suite",
+      "Sunset Beach Villa",
+      "Sunset Beach Villa with Pool",
+      "Sunset Family Sky Suite",
+      "Sunset Family Beach Suite",
+      "Sunset Two Bedroom Villa with Pool",
+      "Family 4 Bedroom Nest",
+      "20 Bedroom Island Reserve",
+      "32 Bedroom Island Reserve"
+    ],
+    "meals": [
+      "Premium AI - Adult",
+      "Premium AI - Child"
+    ]
+  },
   "Intercontinental Maldives Maamunagau Resort": {
     "rooms": [
       "Beach Pool Villa",

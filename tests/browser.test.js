@@ -807,6 +807,36 @@ Transfer: Seaplane`;
   assert.match(result.previewHotel, /Heritance Aarah MaldivesMapped/);
 });
 
+test("SAMO maps Ifuru Island, its two-bedroom villa and Premium AI meals", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Ifuru Island Maldives 5*
+Number of guest: 2 Adult, 2 Child
+Arrival date: 28.12.2026
+Departure date: 08.01.2027
+Villa category: 2 Bedroom Sunset Beach Villa With Pool 2 Adl + 2 Chd
+Meal Plan: AI - Premium
+Transfer: Domestic Flight Airport - Hotel - Airport`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    return {
+      hotel: $("hotel").value,
+      room: rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "",
+      meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL")
+        .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      preview,
+    };
+  });
+  assert.equal(result.hotel, "Ifuru Island Maldives");
+  assert.equal(result.room, "Sunset Two Bedroom Villa with Pool");
+  assert.deepEqual(result.meals, [["Premium AI - Adult", "2"], ["Premium AI - Child", "2"]]);
+  assert.match(result.preview, /Ifuru Island MaldivesMapped/);
+  assert.doesNotMatch(result.preview, /not safely mapped/i);
+});
+
 test("SAMO maps Ritz-Carlton and creates its HB meal rows", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.20";
+  const APP_VERSION = "1.6.21";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -1950,6 +1950,13 @@
 
     function mappedRoomName(item) {
       const names = record?.rooms || [];
+      const roomAliases = {
+        "Ifuru Island Maldives": {
+          "2 bedroom sunset beach villa with pool": "Sunset Two Bedroom Villa with Pool",
+        },
+      };
+      const alias = roomAliases[parsed.mappedHotel]?.[String(item || "").trim().toLowerCase()];
+      if (alias && names.includes(alias)) return alias;
       const tokens = (name) => String(name || "")
         .toLowerCase()
         .replace(/-/g, " ")
