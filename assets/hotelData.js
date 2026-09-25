@@ -192,7 +192,7 @@
       "AI - Child"
     ]
   },
-  "Anantara Veli and Naladhu": {
+  "Anantara Veli Maldives": {
     "rooms": [
       "Beach Pool Villa",
       "Over Water Villa",
@@ -200,10 +200,22 @@
       "Deluxe Over Water Villa",
       "Ocean Pool Villa",
       "Over Water Pool Villa",
-      "Deluxe Over Water Pool Villa",
+      "Deluxe Over Water Pool Villa"
+    ],
+    "meals": [
+      "BB - Adult",
+      "HB - Adult",
+      "FB - Adult",
+      "AI - Adult"
+    ]
+  },
+  "Naladhu Private Island Maldives": {
+    "rooms": [
+      "Ocean House with Pool and Private Beach Cabana",
       "Beach House with Pool",
-      "Ocean House with Pool",
-      "Two Bedroom Beach Pool Residence"
+      "Two Bedroom Ocean House with Pool",
+      "Two Bedroom Beach Pool Residence",
+      "Jo Loves House"
     ],
     "meals": [
       "BB - Adult",

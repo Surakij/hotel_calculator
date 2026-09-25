@@ -86,6 +86,10 @@
 
   function canonicalHotelName(name, item = "") {
     const value = String(name || "").trim();
+    if (/^anantara veli and naladhu$/i.test(value)) {
+      if (/^(?:Beach Pool Villa|Over Water Villa|Superior Over Water Villa|Deluxe Over Water Villa|Ocean Pool Villa|Over Water Pool Villa|Deluxe Over Water Pool Villa)$/i.test(item)) return "Anantara Veli Maldives";
+      if (/^(?:Beach House with Pool|Ocean House with Pool|Two Bedroom Beach Pool Residence)$/i.test(item)) return "Naladhu Private Island Maldives";
+    }
     if (/^anantara resort and spa maldives$/i.test(value)) return "Anantara Dhigu Maldives";
     if (/^angsana resort & spa maldives - velavaru$/i.test(value)) return "Angsana Velavaru";
     if (/^avani\s*\+\s*fares maldives$/i.test(value)) return "Avani+ Fares Maldives Resort";

@@ -83,6 +83,39 @@ test("maps Anantara Dhigu with its room and meal plan", () => {
   assert.equal(result.transfer.mode, "SPEEDBOAT");
 });
 
+test("maps Anantara Veli and removes a damaged SPO suffix", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Anantara Veli Maldives 5*
+    Number of guest: 2 Adult, 0 Child
+    Arrival date: 08.11.2026
+    Departure date: 14.11.2026
+    Villa category: Superior Overwater Villa 2 Adl
+    Meal Plan: HB
+    Transfer: Speedboat Airport - Hotel - Airport
+    Room quotation: 6*763.00[8971/Std/S52W59HI ??“ 4]
+  `, { hotelNames: ["Anantara Veli Maldives", "Naladhu Private Island Maldives"] });
+  assert.equal(result.mappedHotel, "Anantara Veli Maldives");
+  assert.equal(result.rooms[0].item, "Superior Overwater Villa");
+  assert.equal(result.mealPlan, "HB");
+  assert.equal(result.transfer.mode, "SPEEDBOAT");
+  assert.equal(result.spo, "S52W59HI");
+});
+
+test("maps Naladhu independently from Anantara Veli", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Naladhu Private Island Maldives 5* Deluxe
+    Number of guest: 2 Adult, 1 Child
+    Arrival date: 08.11.2026
+    Departure date: 14.11.2026
+    Villa category: Ocean House with Pool and Private Beach Cabana 2 Adl + 1 Chd
+    Meal Plan: HB
+    Transfer: Speedboat Airport - Hotel - Airport
+  `, { hotelNames: ["Anantara Veli Maldives", "Naladhu Private Island Maldives"] });
+  assert.equal(result.mappedHotel, "Naladhu Private Island Maldives");
+  assert.equal(result.rooms[0].item, "Ocean House with Pool and Private Beach Cabana");
+  assert.equal(result.mealPlan, "HB");
+});
+
 test("maps Heritance Aarah Maldives Resort to the database hotel", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Heritance Aarah Maldives Resort 5*

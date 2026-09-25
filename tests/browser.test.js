@@ -726,6 +726,65 @@ Transfer: Speedboat Airport - Hotel - Airport`;
   assert.match(result.preview, /Anantara Dhigu MaldivesMapped/);
 });
 
+test("SAMO maps Anantara Veli separately with its canonical room, adult meal and clean SPO", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Anantara Veli Maldives 5*
+Number of guest: 2 Adult, 0 Child
+Arrival date: 08.11.2026
+Departure date: 14.11.2026
+Villa category: Superior Overwater Villa 2 Adl
+Meal Plan: HB
+Transfer: Speedboat Airport - Hotel - Airport
+Room quotation: 6*763.00[8971/Std/S52W59HI ??“ 4]`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    return {
+      hotel: $("hotel").value,
+      room: rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "",
+      meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL").map((row) => row.querySelector(".item").value),
+      spo: $("spo").value,
+      preview,
+    };
+  });
+  assert.equal(result.hotel, "Anantara Veli Maldives");
+  assert.equal(result.room, "Superior Over Water Villa");
+  assert.deepEqual(result.meals, ["HB - Adult"]);
+  assert.equal(result.spo, "S52W59HI");
+  assert.match(result.preview, /Anantara Veli MaldivesMapped/);
+});
+
+test("SAMO maps Naladhu separately with adult and child meals", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Naladhu Private Island Maldives 5* Deluxe
+Number of guest: 2 Adult, 1 Child
+Arrival date: 08.11.2026
+Departure date: 14.11.2026
+Villa category: Ocean House with Pool and Private Beach Cabana 2 Adl + 1 Chd
+Meal Plan: HB
+Transfer: Speedboat Airport - Hotel - Airport`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    return {
+      hotel: $("hotel").value,
+      room: rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "",
+      meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL").map((row) => row.querySelector(".item").value),
+      preview,
+    };
+  });
+  assert.equal(result.hotel, "Naladhu Private Island Maldives");
+  assert.equal(result.room, "Ocean House with Pool and Private Beach Cabana");
+  assert.deepEqual(result.meals, ["HB - Adult", "HB - Child"]);
+  assert.match(result.preview, /Naladhu Private Island MaldivesMapped/);
+});
+
 test("SAMO maps Heritance Aarah and its Premium AI meal", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

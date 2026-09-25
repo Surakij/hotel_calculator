@@ -412,7 +412,9 @@
     const codes = [];
     for (const part of bracketParts) {
       const pieces = part.split(/[;/]/).map((item) => item.trim()).filter(Boolean);
-      const code = [...pieces].reverse().find((item) => !/^\d+$/.test(item) && !/^std$/i.test(item));
+      const code = [...pieces].reverse()
+        .map((item) => item.replace(/\s+\?{2,}.*$/, "").trim())
+        .find((item) => !/^\d+$/.test(item) && !/^std$/i.test(item));
       if (code && !codes.includes(code)) codes.push(code);
     }
     return codes.join(" + ");

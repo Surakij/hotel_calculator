@@ -115,6 +115,22 @@ test("renamed Anantara Dhigu retains legacy remembered rates", () => {
   }
 });
 
+test("split Anantara Veli and Naladhu retain identifiable legacy room rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([
+      { hotel: "Anantara Veli and Naladhu", type: "ROOM", item: "Superior Over Water Villa", from: "08.11.2026", to: "14.11.2026", rateFormula: "763" },
+      { hotel: "Anantara Veli and Naladhu", type: "ROOM", item: "Beach House with Pool", from: "08.11.2026", to: "14.11.2026", rateFormula: "1200" },
+    ]));
+    assert.equal(storage.findRateMemory({ hotel: "Anantara Veli Maldives", type: "ROOM", item: "Superior Over Water Villa", from: "08.11.2026", to: "14.11.2026" }).rateFormula, "763");
+    assert.equal(storage.findRateMemory({ hotel: "Naladhu Private Island Maldives", type: "ROOM", item: "Beach House with Pool", from: "08.11.2026", to: "14.11.2026" }).rateFormula, "1200");
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("renamed Heritance Aarah retains legacy remembered rates", () => {
   const key = "hotelCalculator.rateMemory.v1";
   const before = localStorage.getItem(key);
