@@ -837,6 +837,46 @@ Transfer: Domestic Flight Airport - Hotel - Airport`;
   assert.doesNotMatch(result.preview, /not safely mapped/i);
 });
 
+test("SAMO maps legacy Meeru name, split rooms and AI Dine Around", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Meeru Island Resort & Spa 4*
+Number of guest: 2 Adult, 0 Child
+Arrival date: 08.11.2026
+Departure date: 11.11.2026
+Length of stay: 3 Nights
+Villa category: Water Villa With Jacuzzi 2 Adl
+Arrival date: 11.11.2026
+Departure date: 14.11.2026
+Length of stay: 3 Nights
+Villa category: Beach Pool Villa 2 Adl
+Meal Plan: AI - Dine Around
+Transfer: Speedboat Airport - Hotel - Airport
+Room quotation: 3*616.00[6965/Std/MEE-RM30-0726W26] + 3*924.00[7364/Std/MEE-RM40TSB-0726W27]`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    return {
+      hotel: $("hotel").value,
+      rooms: rows.filter((row) => row.querySelector(".type")?.value === "ROOM")
+        .map((row) => [row.querySelector(".item").value, row.querySelector(".from").value, row.querySelector(".to").value]),
+      meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL")
+        .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      preview,
+    };
+  });
+  assert.equal(result.hotel, "Meeru Maldives Resort Island");
+  assert.deepEqual(result.rooms, [
+    ["Jacuzzi Water Villa", "08.11.2026", "11.11.2026"],
+    ["Beach Pool Villa", "11.11.2026", "14.11.2026"],
+  ]);
+  assert.deepEqual(result.meals, [["AI Dine Around - Adult", "2"]]);
+  assert.match(result.preview, /Meeru Maldives Resort IslandMapped/);
+  assert.doesNotMatch(result.preview, /not safely mapped/i);
+});
+
 test("SAMO maps Ritz-Carlton and creates its HB meal rows", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

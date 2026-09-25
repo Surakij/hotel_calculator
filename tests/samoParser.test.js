@@ -52,6 +52,21 @@ test("maps Coco Palm Dhuni Kolhu spelling from SAMO", () => {
   assert.equal(result.spo, "Sun Fun Offer 2026");
 });
 
+test("maps the legacy Meeru Island Resort name to the current hotel", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Meeru Island Resort & Spa 4*
+    Number of guest: 2 Adult, 0 Child
+    Arrival date: 08.11.2026
+    Departure date: 14.11.2026
+    Villa category: Water Villa With Jacuzzi 2 Adl
+    Meal Plan: AI - Dine Around
+    Transfer: Speedboat
+  `, { hotelNames: ["Meeru Maldives Resort Island"] });
+  assert.equal(result.mappedHotel, "Meeru Maldives Resort Island");
+  assert.equal(result.rooms[0].item, "Water Villa With Jacuzzi");
+  assert.equal(result.mealPlan, "AI - Dine Around");
+});
+
 test("maps Angsana Velavaru from SAMO", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Angsana Velavaru 5*

@@ -2095,9 +2095,13 @@
   "Meeru Maldives Resort Island": {
     "rooms": [
       "Beach Villa",
+      "Beach Pool Villa",
+      "Family Villa",
       "Garden Room",
       "Jacuzzi Beach Villa",
       "Jacuzzi Water Villa",
+      "Meeru Ocean Villa",
+      "Two Bedroom Beach Pool Villa",
       "Two-Bedroom Villa",
       "Water Front Villa"
     ],

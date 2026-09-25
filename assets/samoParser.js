@@ -162,6 +162,7 @@
       .replace(/\b[1-7]\s*\*+\s*(?:deluxe)?\s*$/i, "")
       .replace(/\binter\s+continental\b/gi, "Intercontinental")
       .replace(/&/g, " and ")
+      .replace(/\bmeeru\s+island(?:\s+resort)?(?:\s+and\s+spa)?(?=\s*$)/gi, "Meeru Maldives Resort Island")
       .replace(/\+/g, " ")
       .replace(/\(\s*ex\.?\s+[^)]*\)/gi, " ")
       .replace(/[(),.'’\-]/g, " ")
