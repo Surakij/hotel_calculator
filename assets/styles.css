@@ -58,12 +58,10 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 22px;
-  background: #fff;
-  color: var(--navy);
-  min-height: 82px;
+  background: var(--navy);
+  color: #fff;
+  min-height: 76px;
   padding: 8px 26px;
-  border: 1px solid var(--line);
-  border-top: 0;
   border-radius: 0 0 10px 10px;
   box-shadow: var(--shadow);
   font-size: 21px;
@@ -78,13 +76,30 @@ body {
   min-width: 0;
 }
 
-.brand-logo {
-  width: auto;
-  height: 64px;
-  max-width: min(420px, 70vw);
+.brand-icon {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
   display: block;
-  object-fit: contain;
-  object-position: left center;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-copy strong {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.brand-copy span {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .title-settings {
@@ -92,10 +107,10 @@ body {
   height: 40px;
   flex: 0 0 40px;
   padding: 0;
-  border-color: #c9d8ea;
+  border-color: rgba(255, 255, 255, .18);
   border-radius: 10px;
-  background: #eef4fb;
-  color: var(--navy);
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
   box-shadow: none;
 }
 
@@ -108,8 +123,8 @@ body {
 
 .title-settings:hover {
   transform: none;
-  border-color: #9bb5d4;
-  background: #e1ecf8;
+  border-color: rgba(255, 255, 255, .34);
+  background: rgba(255, 255, 255, .15);
   box-shadow: 0 10px 22px rgba(0, 0, 0, .15);
 }
 
@@ -2788,7 +2803,7 @@ select[aria-invalid="true"] {
   .app { padding: 0 10px 22px; }
 
   .title {
-    min-height: 68px;
+    min-height: 66px;
     padding: 6px 14px;
   }
 
@@ -2796,9 +2811,18 @@ select[aria-invalid="true"] {
     gap: 11px;
   }
 
-  .brand-logo {
-    height: 52px;
-    max-width: min(330px, 72vw);
+  .brand-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+
+  .brand-copy strong {
+    font-size: 24px;
+  }
+
+  .brand-copy span {
+    font-size: 14px;
   }
 
   .cards,
@@ -2839,9 +2863,18 @@ select[aria-invalid="true"] {
     padding-inline: 10px;
   }
 
-  .brand-logo {
-    height: 46px;
-    max-width: calc(100vw - 86px);
+  .brand-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .brand-copy strong {
+    font-size: 21px;
+  }
+
+  .brand-copy span {
+    font-size: 12px;
   }
 
   .cards,

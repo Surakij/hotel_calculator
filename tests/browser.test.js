@@ -1228,23 +1228,24 @@ test("guest counters show distinct accessible icons without replacing labels", a
   assert.equal(new Set(result.map(({ iconMarkup }) => iconMarkup)).size, 3);
 });
 
-test("brand logo and favicon load without overlapping header controls", async () => {
+test("brand header and favicon load without overlapping controls", async () => {
   const inspect = () => {
-    const logo = document.querySelector(".brand-logo");
-    const logoBox = logo.getBoundingClientRect();
+    const brand = document.querySelector(".brand");
+    const icon = document.querySelector(".brand-icon");
+    const brandBox = brand.getBoundingClientRect();
     const settingsBox = document.querySelector(".title-settings").getBoundingClientRect();
     return {
-      loaded: logo.complete && logo.naturalWidth > 0 && logo.naturalHeight > 0,
-      alt: logo.alt,
+      loaded: icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0,
+      text: brand.textContent.replace(/\s+/g, " ").trim(),
       favicon: document.querySelector('link[rel="icon"]')?.getAttribute("href") || "",
-      overlaps: !(logoBox.right <= settingsBox.left || settingsBox.right <= logoBox.left),
+      overlaps: !(brandBox.right <= settingsBox.left || settingsBox.right <= brandBox.left),
     };
   };
 
   assert.deepEqual(await page.evaluate(inspect), {
     loaded: true,
-    alt: "Maldives Quote Calculator",
-    favicon: "assets/favicon.png?v=1.6.23",
+    text: "Maldives Quote Calculator",
+    favicon: "assets/favicon.png?v=1.6.24",
     overlaps: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });
