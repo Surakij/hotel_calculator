@@ -1228,6 +1228,29 @@ test("guest counters show distinct accessible icons without replacing labels", a
   assert.equal(new Set(result.map(({ iconMarkup }) => iconMarkup)).size, 3);
 });
 
+test("brand logo and favicon load without overlapping header controls", async () => {
+  const inspect = () => {
+    const logo = document.querySelector(".brand-logo");
+    const logoBox = logo.getBoundingClientRect();
+    const settingsBox = document.querySelector(".title-settings").getBoundingClientRect();
+    return {
+      loaded: logo.complete && logo.naturalWidth > 0 && logo.naturalHeight > 0,
+      alt: logo.alt,
+      favicon: document.querySelector('link[rel="icon"]')?.getAttribute("href") || "",
+      overlaps: !(logoBox.right <= settingsBox.left || settingsBox.right <= logoBox.left),
+    };
+  };
+
+  assert.deepEqual(await page.evaluate(inspect), {
+    loaded: true,
+    alt: "Maldives Quote Calculator",
+    favicon: "assets/favicon.png?v=1.6.23",
+    overlaps: false,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal((await page.evaluate(inspect)).overlaps, false);
+});
+
 test("calendar keeps the same size for every month", async () => {
   const result = await page.evaluate(() => {
     const input = document.getElementById("checkin");

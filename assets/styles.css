@@ -58,11 +58,14 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 22px;
-  background: var(--navy);
-  color: #fff;
-  min-height: 68px;
-  padding: 0 26px;
+  background: #fff;
+  color: var(--navy);
+  min-height: 82px;
+  padding: 8px 26px;
+  border: 1px solid var(--line);
+  border-top: 0;
   border-radius: 0 0 10px 10px;
+  box-shadow: var(--shadow);
   font-size: 21px;
   font-weight: 760;
   letter-spacing: 0;
@@ -75,17 +78,13 @@ body {
   min-width: 0;
 }
 
-.brand span {
-  line-height: 1;
-  letter-spacing: .01em;
-}
-
-.brand-mark {
-  width: 38px;
-  height: 38px;
+.brand-logo {
+  width: auto;
+  height: 64px;
+  max-width: min(420px, 70vw);
   display: block;
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, .18), inset 0 0 0 1px rgba(255, 255, 255, .18);
+  object-fit: contain;
+  object-position: left center;
 }
 
 .title-settings {
@@ -93,10 +92,10 @@ body {
   height: 40px;
   flex: 0 0 40px;
   padding: 0;
-  border-color: rgba(255, 255, 255, .18);
+  border-color: #c9d8ea;
   border-radius: 10px;
-  background: rgba(255, 255, 255, .08);
-  color: #fff;
+  background: #eef4fb;
+  color: var(--navy);
   box-shadow: none;
 }
 
@@ -109,8 +108,8 @@ body {
 
 .title-settings:hover {
   transform: none;
-  border-color: rgba(255, 255, 255, .34);
-  background: rgba(255, 255, 255, .15);
+  border-color: #9bb5d4;
+  background: #e1ecf8;
   box-shadow: 0 10px 22px rgba(0, 0, 0, .15);
 }
 
@@ -2365,7 +2364,6 @@ select[aria-invalid="true"] {
   font-size: 12px;
 }
 
-:root[data-theme="dark"] .title,
 :root[data-theme="dark"] th,
 :root[data-theme="dark"] .calc-table thead tr,
 :root[data-theme="dark"] .calc-table th,
@@ -2790,17 +2788,17 @@ select[aria-invalid="true"] {
   .app { padding: 0 10px 22px; }
 
   .title {
-    min-height: 60px;
-    font-size: 19px;
+    min-height: 68px;
+    padding: 6px 14px;
   }
 
   .brand {
     gap: 11px;
   }
 
-  .brand-mark {
-    width: 34px;
-    height: 34px;
+  .brand-logo {
+    height: 52px;
+    max-width: min(330px, 72vw);
   }
 
   .cards,
@@ -2837,7 +2835,13 @@ select[aria-invalid="true"] {
 
 @media (max-width: 460px) {
   .title {
-    font-size: 17px;
+    min-height: 62px;
+    padding-inline: 10px;
+  }
+
+  .brand-logo {
+    height: 46px;
+    max-width: calc(100vw - 86px);
   }
 
   .cards,
