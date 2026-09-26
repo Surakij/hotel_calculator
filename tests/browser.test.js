@@ -1245,7 +1245,7 @@ test("brand header and favicon load without overlapping controls", async () => {
   assert.deepEqual(await page.evaluate(inspect), {
     loaded: true,
     text: "Maldives Quote Calculator",
-    favicon: "assets/favicon.png?v=1.6.24",
+    favicon: "assets/favicon.png?v=1.6.25",
     overlaps: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });
