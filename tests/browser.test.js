@@ -941,7 +941,7 @@ Number of guest: 2 Adult, 1 Child
 Arrival date: 31.10.2026
 Departure date: 07.11.2026
 Villa category: 2 Bedroom Beach Villa 2 Adl + 1 Chd
-Meal Plan: AI
+Meal Plan: AI - Premium Beverage Package
 Transfer: DOMESTIC FLIGHT + SPEEDBOAT Airport - Hotel - Airport
 SPO code: VFAR_EBO_VR`;
     $("parseSamoImport").click();
@@ -951,7 +951,11 @@ SPO code: VFAR_EBO_VR`;
     const room = rows.find((row) => row.querySelector(".type")?.value === "ROOM")?.querySelector(".item").value || "";
     const meals = rows
       .filter((row) => row.querySelector(".type")?.value === "MEAL")
-      .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]);
+      .map((row) => [
+        row.querySelector(".item").value,
+        row.querySelector(".qty").value,
+        row.querySelector(".beverage-package").value,
+      ]);
     const transfers = rows
       .filter((row) => row.querySelector(".type")?.value === "TRANSFER")
       .map((row) => row.querySelector(".item").value);
@@ -959,7 +963,10 @@ SPO code: VFAR_EBO_VR`;
   });
   assert.equal(result.hotel, "Avani+ Fares Maldives Resort");
   assert.equal(result.room, "Two-Bedroom Beach Villa");
-  assert.deepEqual(result.meals, [["AI - Adult", "2"], ["AI - Child", "1"]]);
+  assert.deepEqual(result.meals, [
+    ["AI - Adult", "2", "Premium Beverage Package - Adult"],
+    ["AI - Child", "1", "Premium Beverage Package - Child"],
+  ]);
   assert.deepEqual(result.transfers, ["Domestic - Adult", "Domestic - Child"]);
   assert.match(result.preview, /Avani\+ Fares Maldives ResortMapped/);
 });
@@ -1308,7 +1315,7 @@ test("brand header and favicon load without overlapping controls", async () => {
   assert.deepEqual(await page.evaluate(inspect), {
     loaded: true,
     text: "Maldives Quote Calculator",
-    favicon: "assets/favicon.png?v=1.6.27",
+    favicon: "assets/favicon.png?v=1.6.28",
     overlaps: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });

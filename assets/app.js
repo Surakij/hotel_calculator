@@ -5,8 +5,14 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.27";
+  const APP_VERSION = "1.6.28";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
+  const DEFAULT_BEVERAGES = [
+    "Standard Beverage Package - Adult",
+    "Standard Beverage Package - Child",
+    "Premium Beverage Package - Adult",
+    "Premium Beverage Package - Child",
+  ];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
   const TYPE_LABELS = {
@@ -888,7 +894,7 @@
   }
 
   function recordBeverages(record) {
-    return Array.isArray(record?.beverages) ? record.beverages : [];
+    return Array.isArray(record?.beverages) && record.beverages.length ? record.beverages : DEFAULT_BEVERAGES;
   }
 
   function beverageOptionsForMeal(record, meal) {
