@@ -184,23 +184,37 @@
     const nights = nightsBetween(row.from, row.to);
     const qty = Number(row.qty || 0);
     const rate = parseRateExpression(row.rateFormula || row.rate);
+    const beverageRate = row.type === "MEAL" && row.beveragePackage
+      ? parseRateExpression(row.beverageRateFormula || row.beverageRate)
+      : 0;
     const valid = Number.isFinite(qty) && qty >= 0 && Number.isInteger(qty)
       && (!isDiscountable(row) || (row.discounts || []).every((discount) => Number.isFinite(Number(discount)) && Number(discount) >= 0 && Number(discount) <= 100));
-    let base = qty * rate;
+    let mealBase = qty * rate;
+    let beverageBase = qty * beverageRate;
 
-    if (isStayBased(row)) base *= nights;
-    else if (row.type === "EXTRA" && !isFuelSurcharge(row) && row.from && row.to) base *= nights;
+    if (isStayBased(row)) {
+      mealBase *= nights;
+      beverageBase *= nights;
+    } else if (row.type === "EXTRA" && !isFuelSurcharge(row) && row.from && row.to) {
+      mealBase *= nights;
+    }
 
     const discounts = isDiscountable(row) ? (row.discounts || []).map(Number).filter((item) => item > 0) : [];
+    const mealNet = valid ? applyDiscounts(mealBase, discounts) : null;
+    const beverageNet = valid ? applyDiscounts(beverageBase, discounts) : null;
     return {
       ...row,
       qty,
       rate,
+      beverageRate,
       rateFormula: normalizeRateFormula(row.rateFormula || row.rate),
+      beverageRateFormula: normalizeRateFormula(row.beverageRateFormula || row.beverageRate),
       discounts,
       nights,
       valid,
-      net: valid ? applyDiscounts(base, discounts) : null,
+      mealNet,
+      beverageNet,
+      net: valid ? mealNet + beverageNet : null,
     };
   }
 
@@ -245,9 +259,13 @@
   }
 
   function expression(row) {
-    let formula = hasRateFormula(row)
+    const mealRate = hasRateFormula(row)
       ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : ` * ${row.qty}`}`
       : `${row.rate ? shareMoney(row.rate).replaceAll(",", "") : "0"} * ${row.qty}`;
+    const beverageRate = row.type === "MEAL" && row.beveragePackage
+      ? `${/[+\-*/()]/.test(normalizeRateFormula(row.beverageRateFormula)) ? `(${shareRateFormula(row.beverageRateFormula)})` : shareMoney(row.beverageRate).replaceAll(",", "")} * ${row.qty}`
+      : "";
+    let formula = beverageRate ? `(${mealRate} + ${beverageRate})` : mealRate;
     if ((isStayBased(row) || (row.type === "EXTRA" && !isFuelSurcharge(row))) && row.nights > 0) formula += ` * ${row.nights}`;
     row.discounts.forEach((discount) => {
       formula += ` - ${discount}%`;
@@ -258,10 +276,11 @@
   function groupedRows(rows, type) {
     const groups = [];
     rows.filter((row) => row.type === type).forEach((row) => {
-      const key = [baseLabel(row.item), row.from, row.to, row.discounts.join(",")].join("|");
+      const beverageLabel = type === "MEAL" ? baseLabel(row.beveragePackage) : "";
+      const key = [baseLabel(row.item), beverageLabel, row.from, row.to, row.discounts.join(",")].join("|");
       let group = groups.find((item) => item.key === key);
       if (!group) {
-        group = { key, label: baseLabel(row.item), rows: [] };
+        group = { key, label: [baseLabel(row.item), beverageLabel].filter(Boolean).join(" + "), rows: [] };
         groups.push(group);
       }
       group.rows.push(row);
@@ -270,11 +289,16 @@
   }
 
   function groupExpression(group) {
-    const parts = group.rows.map((row) => (
-      hasRateFormula(row)
+    const parts = group.rows.map((row) => {
+      const mealPart = hasRateFormula(row)
         ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : ` * ${row.qty}`}`
-        : `${shareMoney(row.rate).replaceAll(",", "")} * ${row.qty}`
-    ));
+        : `${shareMoney(row.rate).replaceAll(",", "")} * ${row.qty}`;
+      if (row.type !== "MEAL" || !row.beveragePackage) return mealPart;
+      const beveragePart = /[+\-*/()]/.test(normalizeRateFormula(row.beverageRateFormula))
+        ? `(${shareRateFormula(row.beverageRateFormula)}) * ${row.qty}`
+        : `${shareMoney(row.beverageRate).replaceAll(",", "")} * ${row.qty}`;
+      return `(${mealPart} + ${beveragePart})`;
+    });
     let formula = parts.length > 1 ? `(${parts.join(" + ")})` : parts[0];
     const first = group.rows[0];
     if ((isStayBased(first) || (first.type === "EXTRA" && !isFuelSurcharge(first))) && first.nights > 0) formula += ` * ${first.nights}`;
@@ -314,6 +338,8 @@
           room: roomLabel,
           roomNet: 0,
           mealNet: 0,
+          mealBaseNet: 0,
+          beverageNet: 0,
           extraNet: 0,
           total: 0,
         };
@@ -355,7 +381,11 @@
 
       allocations.forEach(({ group, weight }) => {
         const amount = row.net * weight / allocationBase;
-        if (row.type === "MEAL") group.mealNet += amount;
+        if (row.type === "MEAL") {
+          group.mealNet += amount;
+          group.mealBaseNet += row.mealNet * weight / allocationBase;
+          group.beverageNet += row.beverageNet * weight / allocationBase;
+        }
         else group.extraNet += amount;
       });
     });
@@ -372,6 +402,7 @@
         room: group.room,
         roomNet: group.roomNet,
         mealNet: group.mealNet,
+        ...(group.beverageNet > 0 ? { mealBaseNet: group.mealBaseNet, beverageNet: group.beverageNet } : {}),
         extraNet: group.extraNet,
         total,
       };

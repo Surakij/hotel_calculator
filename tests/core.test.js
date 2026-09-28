@@ -644,3 +644,39 @@ test("assigns person extras to one room without automatic splitting", () => {
   ]);
   assert.equal(summaries.reduce((sum, summary) => sum + summary.total, 0), 31395);
 });
+
+test("adds a beverage package to its meal rate and shows both parts", () => {
+  const meal = core.calculateRow({
+    type: "MEAL",
+    item: "FB - Adult",
+    beveragePackage: "Premium Beverage Package - Adult",
+    from: "30.10.2026",
+    to: "10.11.2026",
+    qty: 2,
+    rateFormula: "100",
+    beverageRateFormula: "50",
+    discounts: [10],
+  });
+  assert.equal(meal.mealNet, 1980);
+  assert.equal(meal.beverageNet, 990);
+  assert.equal(meal.net, 2970);
+
+  const rows = [
+    { type: "ROOM", item: "Overwater Villa With Pool", from: "30.10.2026", to: "10.11.2026", qty: 1, rate: 500 },
+    { type: "MEAL", item: "FB - Adult", beveragePackage: "Premium Beverage Package - Adult", from: "30.10.2026", to: "10.11.2026", qty: 2, rate: 100, beverageRate: 50 },
+  ];
+  const summary = core.buildStaySummaries(rows)[0];
+  assert.deepEqual({ mealBaseNet: summary.mealBaseNet, beverageNet: summary.beverageNet, mealNet: summary.mealNet }, {
+    mealBaseNet: 2200,
+    beverageNet: 1100,
+    mealNet: 3300,
+  });
+  const share = core.buildShareText({
+    hotel: "Vakkaru Maldives",
+    checkin: "30.10.2026",
+    checkout: "10.11.2026",
+    guests: { adults: 2 },
+    rows,
+  });
+  assert.match(share, /FB \+ Premium Beverage Package : \(100 \* 2 \+ 50 \* 2\) \* 11 = 3,300/);
+});

@@ -442,6 +442,19 @@
     };
   }
 
+  function splitMealSelection(value) {
+    const raw = String(value || "").trim();
+    const match = /\b(standard|premium)\s+beverage(?:\s+package)?\b/i.exec(raw);
+    if (!match) return { mealPlan: raw, beveragePackage: "" };
+    const beveragePackage = `${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()} Beverage Package`;
+    const mealPlan = raw
+      .replace(match[0], "")
+      .replace(/\s*[-+&,/]\s*$/g, "")
+      .replace(/^\s*[-+&,/]\s*/g, "")
+      .trim();
+    return { mealPlan, beveragePackage };
+  }
+
   function parseStructuredRequest(text, options = {}) {
     const lines = normalizeLines(text);
     const warnings = [];
@@ -462,7 +475,9 @@
     const detectedTotal = guestDetails.adults + guestDetails.children + guestDetails.infants;
     const guests = detectedTotal && (!paxTotal || detectedTotal === paxTotal) ? guestDetails : pax;
     const childAges = guestDetails.childAges;
-    const mealPlan = firstLabel(lines, ["Meal Plan", "Meal"]);
+    const mealSelection = splitMealSelection(firstLabel(lines, ["Meal Plan", "Meal"]));
+    const mealPlan = mealSelection.mealPlan;
+    const beveragePackage = mealSelection.beveragePackage;
     const handlingFees = allLabels(lines, ["Handling", "Handling fee", "Service text"]);
     const handlingFee = handlingFees.join("\n");
     const transfer = parseTransfer(firstLabel(lines, ["Transfer"]));
@@ -491,6 +506,7 @@
       childAges,
       rooms,
       mealPlan,
+      beveragePackage,
       transfer,
       galaDinners,
       greenTax,
@@ -572,6 +588,7 @@
       `SPO code: ${firstLabel(lines, ["SPO code", "SPO"])}`,
       `Handling fee: ${/green tax|грин такс/i.test(joined) ? "Maldives Green Tax" : ""}`,
     ].join("\n"), options);
+    result.beveragePackage = splitMealSelection(joined).beveragePackage;
     const adultAge = adultAgeThreshold(options, result.mappedHotel || hotel);
     const promotedAges = ages.filter((age) => age >= adultAge);
     result.adults += promotedAges.length;

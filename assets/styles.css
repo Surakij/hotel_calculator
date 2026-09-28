@@ -708,7 +708,7 @@ button:disabled {
 
 table {
   width: 100%;
-  min-width: calc(1304px + var(--discount-column-width, 152px));
+  min-width: calc(1404px + var(--discount-column-width, 152px));
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -718,11 +718,11 @@ table {
 }
 
 .calc-table .col-type { width: 130px; }
-.calc-table .col-item { width: calc(100% - (844px + var(--discount-column-width, 152px))); }
+.calc-table .col-item { width: calc(100% - (944px + var(--discount-column-width, 152px))); }
 .calc-table .col-date { width: 120px; }
 .calc-table .col-nights { width: 100px; }
 .calc-table .col-qty { width: 100px; }
-.calc-table .col-rate { width: 118px; }
+.calc-table .col-rate { width: 218px; }
 .calc-table .col-discounts { width: var(--discount-column-width, 152px); }
 .calc-table .col-net { width: 104px; }
 .calc-table .col-delete { width: 52px; }
@@ -798,6 +798,11 @@ td select {
   flex: 0 0 150px;
 }
 
+.item-layout:has(.meal-beverage-addon:not([hidden])) > .item {
+  min-width: 160px;
+  flex: 1 1 210px;
+}
+
 .row-allocation {
   display: flex;
   align-items: center;
@@ -813,6 +818,53 @@ td select {
 
 .row-allocation[hidden] {
   display: none;
+}
+
+.meal-beverage-addon {
+  min-width: 0;
+  flex: 1 1 235px;
+}
+
+.beverage-select-wrap {
+  position: relative;
+  min-width: 185px;
+  flex: 1 1 auto;
+}
+
+.beverage-select-wrap::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.meal-beverage-addon .beverage-package {
+  height: 28px;
+  appearance: none;
+  padding: 3px 27px 3px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rate-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.rate-layout.has-beverage {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rate-layout input {
+  min-width: 0;
 }
 
 .allocation-title {

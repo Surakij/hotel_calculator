@@ -964,6 +964,56 @@ SPO code: VFAR_EBO_VR`;
   assert.match(result.preview, /Avani\+ Fares Maldives ResortMapped/);
 });
 
+test("SAMO adds a beverage package inside its meal rows", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Vakkaru Maldives 5*
+Number of guest: 2 Adult, 1 Child, 1 Infant
+Arrival date: 30.10.2026
+Departure date: 10.11.2026
+Villa category: Overwater Pool Villa 2 Adl + 1 Chd
+Meal Plan: FB - Premium Beverage Package
+Transfer: Seaplane Airport - Hotel - Airport`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const meals = [...document.querySelectorAll("#rows tr")]
+      .filter((row) => row.querySelector(".type")?.value === "MEAL");
+    meals.forEach((row) => {
+      const child = /Child$/.test(row.querySelector(".item").value);
+      row.querySelector(".rate").value = child ? "60" : "100";
+      row.querySelector(".beverage-rate").value = child ? "25" : "50";
+    });
+    HotelCalculatorApp.recalc();
+    HotelCalculatorApp.saveCalculation();
+    const savedMeals = HotelCalculatorStorage.history()[0].payload.rows.filter((row) => row.type === "MEAL");
+    return {
+      preview,
+      rows: meals.map((row) => ({
+        item: row.querySelector(".item").value,
+        beverage: row.querySelector(".beverage-package").value,
+        beverageRateVisible: !row.querySelector(".beverage-rate").hidden,
+      })),
+      summary: $("staySummary").textContent.replace(/\s+/g, " "),
+      share: HotelCalculatorApp.shareText(),
+      saved: savedMeals.map((row) => [row.beveragePackage, row.beverageRateFormula]),
+    };
+  });
+  assert.match(result.preview, /MealFBDetected/);
+  assert.match(result.preview, /BeveragePremium Beverage PackageMapped/);
+  assert.deepEqual(result.rows, [
+    { item: "FB - Adult", beverage: "Premium Beverage Package - Adult", beverageRateVisible: true },
+    { item: "FB - Child", beverage: "Premium Beverage Package - Child", beverageRateVisible: true },
+  ]);
+  assert.match(result.summary, /2,860\.00 \+ 1,375\.00 = 4,235\.00/);
+  assert.match(result.share, /FB \+ Premium Beverage Package/);
+  assert.deepEqual(result.saved, [
+    ["Premium Beverage Package - Adult", "50"],
+    ["Premium Beverage Package - Child", "25"],
+  ]);
+});
+
 test("restoring a batch calculates once and keeps an empty service list", async () => {
   const result = await page.evaluate(() => {
     const payload = { hotel: "Test", guests: {}, rows: Array.from({ length: 40 }, () => ({ type: "ROOM", qty: 1 })) };
@@ -1245,7 +1295,7 @@ test("brand header and favicon load without overlapping controls", async () => {
   assert.deepEqual(await page.evaluate(inspect), {
     loaded: true,
     text: "Maldives Quote Calculator",
-    favicon: "assets/favicon.png?v=1.6.25",
+    favicon: "assets/favicon.png?v=1.6.26",
     overlaps: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });

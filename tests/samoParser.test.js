@@ -741,3 +741,19 @@ test("extracts text and code SPO values from room quotation brackets", () => {
   assert.deepEqual(result.galaDinners.map((gala) => gala.itemBase), ["Christmas Gala Dinner"]);
   assert.deepEqual(result.roomQuotation.components.map((item) => item.expression), ["5*1117.20", "2*1995.20"]);
 });
+
+test("separates a beverage package from the meal plan", () => {
+  const result = parser.parseSamoRequest(`
+    Hotel: Vakkaru Maldives 5*
+    Number of guest: 2 Adult, 1 Child, 1 Infant
+    Arrival date: 30.10.2026
+    Departure date: 10.11.2026
+    Villa category: Overwater Villa With Pool 2 Adl + 1 Chd
+    Meal Plan: FB - Premium Beverage Package
+    Transfer: Seaplane Airport - Hotel - Airport
+  `, { hotelNames: ["Vakkaru Maldives"] });
+
+  assert.equal(result.mappedHotel, "Vakkaru Maldives");
+  assert.equal(result.mealPlan, "FB");
+  assert.equal(result.beveragePackage, "Premium Beverage Package");
+});

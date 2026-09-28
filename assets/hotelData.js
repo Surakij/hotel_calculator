@@ -3386,6 +3386,12 @@
       "HB - Child",
       "FB - Adult",
       "FB - Child"
+    ],
+    "beverages": [
+      "Standard Beverage Package - Adult",
+      "Standard Beverage Package - Child",
+      "Premium Beverage Package - Adult",
+      "Premium Beverage Package - Child"
     ]
   },
   "Varu Island Resort": {
