@@ -1,6 +1,6 @@
 {
   "name": "hotel-calculator",
-  "version": "1.6.26",
+  "version": "1.6.27",
   "private": true,
   "description": "Browser-based Maldives resort quotation and reservation pricing calculator.",
   "scripts": {

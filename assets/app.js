@@ -5,7 +5,7 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.26";
+  const APP_VERSION = "1.6.27";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const ROW_TYPE_ORDER = ["ROOM", "EXTRA", "MEAL", "DINNER", "TRANSFER", "GREEN_TAX"];
   const ADD_TYPE_ORDER = ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX", "EXTRA", "DINNER"];
@@ -70,6 +70,9 @@
   let roomAssignmentMenu = null;
   let roomAssignmentButton = null;
   let roomAssignmentSelect = null;
+  let beveragePackageMenu = null;
+  let beveragePackageButton = null;
+  let beveragePackageSelect = null;
   let addServiceMenuOpen = false;
   let draftTimer = null;
   let undoTimer = null;
@@ -375,6 +378,7 @@
 
   function openItemPicker(input, tr, { clearCurrent = false } = {}) {
     closeItemPicker({ restore: false });
+    closeBeveragePackagePicker();
     itemPickerInput = input;
     itemPickerRow = tr;
     if (clearCurrent) prepareItemReselect(input, tr);
@@ -484,6 +488,7 @@
 
   function openRoomAssignmentPicker(button, select) {
     closeRoomAssignmentPicker();
+    closeBeveragePackagePicker();
     closePicker();
     closeItemPicker();
     closeTypePickers();
@@ -504,11 +509,118 @@
     openRoomAssignmentPicker(button, select);
   }
 
+  function syncBeveragePackageButton(select) {
+    const button = select.closest(".beverage-select-wrap")?.querySelector(".beverage-package-button");
+    if (!button) return;
+    const label = select.options[select.selectedIndex]?.textContent || "Add beverage package";
+    button.querySelector(".beverage-package-button-label").textContent = label;
+    button.title = label;
+    button.classList.toggle("is-placeholder", !select.value);
+    if (beveragePackageSelect === select && beveragePackageMenu) {
+      beveragePackageMenu.querySelectorAll(".beverage-package-choice").forEach((choice) => {
+        const selected = choice.dataset.value === select.value;
+        choice.classList.toggle("selected", selected);
+        choice.setAttribute("aria-selected", String(selected));
+      });
+    }
+  }
+
+  function closeBeveragePackagePicker({ refocus = false } = {}) {
+    beveragePackageMenu?.remove();
+    beveragePackageButton?.setAttribute("aria-expanded", "false");
+    const button = beveragePackageButton;
+    beveragePackageMenu = null;
+    beveragePackageButton = null;
+    beveragePackageSelect = null;
+    if (refocus) button?.focus();
+  }
+
+  function positionBeveragePackagePicker() {
+    if (!beveragePackageMenu || !beveragePackageButton) return;
+    const rect = beveragePackageButton.getBoundingClientRect();
+    const width = Math.min(Math.max(rect.width, 280), window.innerWidth - 24);
+    const height = Math.min(beveragePackageMenu.scrollHeight || 220, 260);
+    const below = window.innerHeight - rect.bottom - 12;
+    const openUp = below < height && rect.top > below;
+    const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12);
+    const top = openUp ? rect.top - height - 6 : rect.bottom + 6;
+    beveragePackageMenu.classList.toggle("drop-up", openUp);
+    beveragePackageMenu.style.left = `${left}px`;
+    beveragePackageMenu.style.top = `${Math.max(12, top)}px`;
+    beveragePackageMenu.style.width = `${width}px`;
+    beveragePackageMenu.style.maxHeight = `${height}px`;
+  }
+
+  function renderBeveragePackagePicker() {
+    if (!beveragePackageMenu || !beveragePackageSelect) return;
+    beveragePackageMenu.innerHTML = "";
+    beveragePackageMenu.appendChild(el("div", { className: "room-assignment-head", textContent: "Add beverage package" }));
+    [...beveragePackageSelect.options].forEach((option) => {
+      const choice = el("button", {
+        className: `item-picker-choice room-assignment-choice beverage-package-choice${option.value ? "" : " is-placeholder"}`,
+        type: "button",
+        role: "option",
+        "aria-selected": String(option.value === beveragePackageSelect.value),
+      });
+      choice.dataset.value = option.value;
+      choice.classList.toggle("selected", option.value === beveragePackageSelect.value);
+      const icon = el("span", { className: "room-assignment-icon" });
+      icon.innerHTML = option.value
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l-1 7a4 4 0 0 1-8 0L8 3Zm4 11v7M8 21h8"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16"/></svg>';
+      choice.append(icon, el("span", { className: "room-assignment-choice-label", textContent: option.textContent }));
+      choice.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        beveragePackageSelect.value = choice.dataset.value;
+        beveragePackageSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        closeBeveragePackagePicker({ refocus: true });
+      });
+      choice.addEventListener("keydown", (event) => {
+        const choices = [...beveragePackageMenu.querySelectorAll(".beverage-package-choice")];
+        const index = choices.indexOf(choice);
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          choices[(index + (event.key === "ArrowDown" ? 1 : -1) + choices.length) % choices.length]?.focus();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeBeveragePackagePicker({ refocus: true });
+        }
+      });
+      beveragePackageMenu.appendChild(choice);
+    });
+    positionBeveragePackagePicker();
+  }
+
+  function openBeveragePackagePicker(button, select) {
+    closeBeveragePackagePicker();
+    closeRoomAssignmentPicker();
+    closePicker();
+    closeItemPicker();
+    closeTypePickers();
+    closeAddServiceMenu();
+    beveragePackageButton = button;
+    beveragePackageSelect = select;
+    beveragePackageMenu = el("div", { className: "item-picker room-assignment-menu beverage-package-menu open", role: "listbox", "aria-label": "Choose beverage package" });
+    document.body.appendChild(beveragePackageMenu);
+    button.setAttribute("aria-expanded", "true");
+    renderBeveragePackagePicker();
+  }
+
+  function toggleBeveragePackagePicker(button, select) {
+    if (beveragePackageMenu && beveragePackageSelect === select) {
+      closeBeveragePackagePicker({ refocus: true });
+      return;
+    }
+    openBeveragePackagePicker(button, select);
+  }
+
   function isInsideFloatingPanel(target) {
     return target instanceof Element && (
       (picker && picker.contains(target))
       || (itemPicker && itemPicker.contains(target))
       || (roomAssignmentMenu && roomAssignmentMenu.contains(target))
+      || (beveragePackageMenu && beveragePackageMenu.contains(target))
     );
   }
 
@@ -805,6 +917,7 @@
     controls.hidden = type !== "MEAL" || (!choices.length && !selected);
     rate.hidden = !selected || type !== "MEAL";
     rate.closest(".rate-layout")?.classList.toggle("has-beverage", !rate.hidden);
+    syncBeveragePackageButton(select);
   }
 
   function refreshAllBeverageControls() {
@@ -1635,9 +1748,17 @@
     beverageAddon.hidden = true;
     beverageAddon.appendChild(el("span", { className: "allocation-title", textContent: "+ Drinks" }));
     const beverageSelectWrap = el("div", { className: "beverage-select-wrap" });
-    const beveragePackage = el("select", { className: "beverage-package", "aria-label": "Beverage package" });
+    const beveragePackage = el("select", { className: "beverage-package beverage-package-native", tabindex: "-1", "aria-hidden": "true" });
     beveragePackage.dataset.initialValue = data.beveragePackage || "";
-    beverageSelectWrap.appendChild(beveragePackage);
+    const beveragePackageButtonControl = el("button", {
+      className: "beverage-package-button is-placeholder",
+      type: "button",
+      "aria-label": "Choose beverage package",
+      "aria-haspopup": "listbox",
+      "aria-expanded": "false",
+    });
+    beveragePackageButtonControl.appendChild(el("span", { className: "beverage-package-button-label", textContent: "Add beverage package" }));
+    beverageSelectWrap.append(beveragePackage, beveragePackageButtonControl);
     beverageAddon.appendChild(beverageSelectWrap);
     itemLayout.appendChild(beverageAddon);
     itemCell.appendChild(itemLayout);
@@ -1768,6 +1889,18 @@
       applyRememberedBeverageRate(tr);
       recalc();
     });
+    beveragePackageButtonControl.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleBeveragePackagePicker(beveragePackageButtonControl, beveragePackage);
+    });
+    beveragePackageButtonControl.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      event.preventDefault();
+      openBeveragePackagePicker(beveragePackageButtonControl, beveragePackage);
+      const choices = [...beveragePackageMenu.querySelectorAll(".beverage-package-choice")];
+      (choices.find((choice) => choice.classList.contains("selected")) || choices[0])?.focus();
+    });
 
     tr.querySelectorAll(".from,.to").forEach((input) => {
       input.addEventListener("input", () => cleanDateInput(input));
@@ -1833,6 +1966,7 @@
       activeStepperStop?.();
       flushUndoSnapshot();
       closeRoomAssignmentPicker();
+      closeBeveragePackagePicker();
       closeTypePickers();
       closeItemPicker({ restore: false });
       tr.remove();
@@ -1941,6 +2075,7 @@
     pendingRates.clear();
     closePicker();
     closeItemPicker({ restore: false });
+    closeBeveragePackagePicker();
     suppressDraft = true;
     $("hotel").value = storage.canonicalHotelName(payload.hotel);
     if (payload.hotel === "Riu Atoll and Riu Palace Maldivas") {
@@ -2988,6 +3123,7 @@
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
       if (itemPicker && !itemPicker.contains(event.target) && event.target !== itemPickerInput) closeItemPicker();
       if (roomAssignmentMenu && !roomAssignmentMenu.contains(event.target) && !roomAssignmentButton?.contains(event.target)) closeRoomAssignmentPicker();
+      if (beveragePackageMenu && !beveragePackageMenu.contains(event.target) && !beveragePackageButton?.contains(event.target)) closeBeveragePackagePicker();
       if (!event.target.closest(".type-picker-wrap") && !event.target.closest(".type-picker-menu")) closeTypePickers();
       if (!event.target.closest(".add-service-wrap")) closeAddServiceMenu();
     });
@@ -2996,6 +3132,7 @@
         closeAddServiceMenu();
         closeItemPicker();
         closeRoomAssignmentPicker();
+        closeBeveragePackagePicker();
         closeTypePickers();
       }
     });
@@ -3007,6 +3144,7 @@
       closePicker();
       closeItemPicker();
       closeRoomAssignmentPicker();
+      closeBeveragePackagePicker();
       closeTypePickers();
       closeAddServiceMenu();
     });
@@ -3015,6 +3153,7 @@
       closePicker();
       closeItemPicker();
       closeRoomAssignmentPicker();
+      closeBeveragePackagePicker();
       closeAddServiceMenu();
       positionOpenTypePickers();
     }, true);

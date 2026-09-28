@@ -799,8 +799,9 @@ td select {
 }
 
 .item-layout:has(.meal-beverage-addon:not([hidden])) > .item {
-  min-width: 160px;
-  flex: 1 1 210px;
+  width: 205px;
+  min-width: 205px;
+  flex: 0 0 205px;
 }
 
 .row-allocation {
@@ -822,35 +823,21 @@ td select {
 
 .meal-beverage-addon {
   min-width: 0;
-  flex: 1 1 235px;
+  flex: 1 1 225px;
 }
 
 .beverage-select-wrap {
   position: relative;
-  min-width: 185px;
+  min-width: 0;
   flex: 1 1 auto;
 }
 
-.beverage-select-wrap::after {
-  content: "";
+.meal-beverage-addon .beverage-package-native {
   position: absolute;
-  top: 9px;
-  right: 10px;
-  width: 6px;
-  height: 6px;
-  border-right: 2px solid var(--muted);
-  border-bottom: 2px solid var(--muted);
-  transform: rotate(45deg);
+  width: 1px;
+  height: 1px;
+  opacity: 0;
   pointer-events: none;
-}
-
-.meal-beverage-addon .beverage-package {
-  height: 28px;
-  appearance: none;
-  padding: 3px 27px 3px 9px;
-  font-size: 12px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .rate-layout {
@@ -896,7 +883,8 @@ td select {
   pointer-events: none;
 }
 
-.assigned-room-button {
+.assigned-room-button,
+.beverage-package-button {
   position: relative;
   width: 100%;
   height: 28px;
@@ -915,7 +903,8 @@ td select {
   box-shadow: none;
 }
 
-.assigned-room-button-label {
+.assigned-room-button-label,
+.beverage-package-button-label {
   display: block;
   min-width: 0;
   overflow: hidden;
@@ -923,7 +912,8 @@ td select {
   white-space: nowrap;
 }
 
-.assigned-room-button::after {
+.assigned-room-button::after,
+.beverage-package-button::after {
   content: "";
   position: absolute;
   right: 10px;
@@ -936,14 +926,18 @@ td select {
 
 .assigned-room-button:hover,
 .assigned-room-button:focus-visible,
-.assigned-room-button[aria-expanded="true"] {
+.assigned-room-button[aria-expanded="true"],
+.beverage-package-button:hover,
+.beverage-package-button:focus-visible,
+.beverage-package-button[aria-expanded="true"] {
   outline: 0;
   border-color: #8bbcff;
   background: var(--field);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
 }
 
-.assigned-room-button.is-placeholder {
+.assigned-room-button.is-placeholder,
+.beverage-package-button.is-placeholder {
   color: var(--muted);
 }
 
@@ -955,6 +949,13 @@ td select {
 .room-assignment-menu {
   z-index: 100003;
   padding: 7px;
+}
+
+.beverage-package-menu .beverage-package-choice:hover,
+.beverage-package-menu .beverage-package-choice:focus-visible,
+.beverage-package-menu .beverage-package-choice.selected {
+  background: #ecfdf3;
+  color: #148043;
 }
 
 .room-assignment-head {
@@ -2630,7 +2631,8 @@ select[aria-invalid="true"] {
   color: #edf6ff;
 }
 
-:root[data-theme="dark"] .assigned-room-button {
+:root[data-theme="dark"] .assigned-room-button,
+:root[data-theme="dark"] .beverage-package-button {
   border-color: #2b4868;
   background: var(--field);
 }
@@ -2640,6 +2642,13 @@ select[aria-invalid="true"] {
 :root[data-theme="dark"] .room-assignment-choice.selected {
   background: #183a61;
   color: #edf6ff;
+}
+
+:root[data-theme="dark"] .beverage-package-menu .beverage-package-choice:hover,
+:root[data-theme="dark"] .beverage-package-menu .beverage-package-choice:focus-visible,
+:root[data-theme="dark"] .beverage-package-menu .beverage-package-choice.selected {
+  background: #123324;
+  color: #7ce6a2;
 }
 
 :root[data-theme="dark"] .item-picker-chip[data-type="MEAL"] {

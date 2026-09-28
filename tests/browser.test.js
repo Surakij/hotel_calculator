@@ -980,6 +980,13 @@ Transfer: Seaplane Airport - Hotel - Airport`;
     $("applySamoImport").click();
     const meals = [...document.querySelectorAll("#rows tr")]
       .filter((row) => row.querySelector(".type")?.value === "MEAL");
+    const packageButton = meals[0].querySelector(".beverage-package-button");
+    packageButton.click();
+    const packageMenu = document.querySelector(".beverage-package-menu");
+    const packageChoices = [...packageMenu.querySelectorAll(".beverage-package-choice")].map((choice) => choice.textContent.trim());
+    const packageMenuOpen = packageMenu.classList.contains("open") && packageButton.getAttribute("aria-expanded") === "true";
+    const packageGap = meals[0].querySelector(".from").getBoundingClientRect().left - packageButton.getBoundingClientRect().right;
+    packageMenu.querySelector('.beverage-package-choice[data-value="Premium Beverage Package - Adult"]').click();
     meals.forEach((row) => {
       const child = /Child$/.test(row.querySelector(".item").value);
       row.querySelector(".rate").value = child ? "60" : "100";
@@ -990,6 +997,9 @@ Transfer: Seaplane Airport - Hotel - Airport`;
     const savedMeals = HotelCalculatorStorage.history()[0].payload.rows.filter((row) => row.type === "MEAL");
     return {
       preview,
+      packageChoices,
+      packageGap,
+      packageMenuOpen,
       rows: meals.map((row) => ({
         item: row.querySelector(".item").value,
         beverage: row.querySelector(".beverage-package").value,
@@ -1002,6 +1012,9 @@ Transfer: Seaplane Airport - Hotel - Airport`;
   });
   assert.match(result.preview, /MealFBDetected/);
   assert.match(result.preview, /BeveragePremium Beverage PackageMapped/);
+  assert.equal(result.packageMenuOpen, true);
+  assert.deepEqual(result.packageChoices, ["Add beverage package", "Standard Beverage Package", "Premium Beverage Package"]);
+  assert.ok(result.packageGap >= 8);
   assert.deepEqual(result.rows, [
     { item: "FB - Adult", beverage: "Premium Beverage Package - Adult", beverageRateVisible: true },
     { item: "FB - Child", beverage: "Premium Beverage Package - Child", beverageRateVisible: true },
@@ -1295,7 +1308,7 @@ test("brand header and favicon load without overlapping controls", async () => {
   assert.deepEqual(await page.evaluate(inspect), {
     loaded: true,
     text: "Maldives Quote Calculator",
-    favicon: "assets/favicon.png?v=1.6.26",
+    favicon: "assets/favicon.png?v=1.6.27",
     overlaps: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });
