@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Defer automatic updates while editing fields or using a dialog.
+- Require successful draft storage and a reload guard before an automatic update.
+- Ignore malformed release versions and overlapping update checks.
+- Bound arithmetic expression length to prevent excessive recursion.
+- Run lint and unit tests on pushes and pull requests.
+
 ## 1.6.16
 
 - Added Amilla Maldives with official villa categories and Dine Around meal plans.

@@ -3,6 +3,25 @@ const assert = require("node:assert/strict");
 const core = require("../assets/core.js");
 const storage = require("../assets/storage.js");
 
+test("rate expressions reject malformed, infinite and excessively deep input", () => {
+  const parseRate = (rateFormula) => core.calculateRow({ type: "TRANSFER", qty: 1, rateFormula }).rate;
+  for (const formula of ["1/0", "1..2", "()", "9".repeat(400), "(".repeat(10000) + "1" + ")".repeat(10000), "-".repeat(10000) + "1"]) {
+    assert.equal(parseRate(formula), 0);
+  }
+  assert.equal(parseRate("-(-(-(-2)))"), 2);
+  assert.equal(parseRate("(100.25+49.75)/2"), 75);
+});
+
+test("draft writes report storage failure", () => {
+  const original = localStorage.setItem;
+  try {
+    localStorage.setItem = () => { throw new Error("Storage full"); };
+    assert.equal(storage.saveDraft({ hotel: "Unsaved" }), false);
+  } finally {
+    localStorage.setItem = original;
+  }
+});
+
 global.localStorage = {
   data: new Map(),
   getItem(key) {

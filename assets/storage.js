@@ -68,7 +68,7 @@
   }
 
   function saveDraft(payload) {
-    writeJson(DRAFT_KEY, { savedAt: new Date().toISOString(), payload });
+    return writeJson(DRAFT_KEY, { savedAt: new Date().toISOString(), payload });
   }
 
   function loadDraft() {

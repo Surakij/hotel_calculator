@@ -2576,15 +2576,19 @@
     return 0;
   }
 
+  let updateCheckRunning = false;
+
   async function checkForAppUpdate() {
-    if (!/^https?:$/.test(window.location.protocol)) return false;
+    if (!/^https?:$/.test(window.location.protocol) || updateCheckRunning) return false;
+    updateCheckRunning = true;
     try {
       const versionUrl = new URL("version.json", window.location.href);
       versionUrl.searchParams.set("_", Date.now());
       const response = await fetch(versionUrl, { cache: "no-store" });
       if (!response.ok) return false;
       const publishedVersion = String((await response.json())?.version || "").trim();
-      if (!publishedVersion || compareVersions(publishedVersion, APP_BUILD) <= 0) {
+      if (!/^\d+(?:\.\d+){2,3}$/.test(publishedVersion)) return false;
+      if (compareVersions(publishedVersion, APP_BUILD) <= 0) {
         try { sessionStorage.removeItem("hotelCalculator.pendingVersion"); } catch { /* Storage may be unavailable. */ }
         return false;
       }
@@ -2593,15 +2597,20 @@
       try { attemptedVersion = sessionStorage.getItem("hotelCalculator.pendingVersion") || ""; } catch { /* Storage may be unavailable. */ }
       if (attemptedVersion === publishedVersion) return false;
 
+      // Import text and partially edited fields are not represented by the draft.
+      if (document.querySelector("dialog[open]") || document.activeElement?.matches("input, textarea, select, [contenteditable]")) return false;
+
       clearTimeout(draftTimer);
-      storage?.saveDraft(sharePayload());
-      try { sessionStorage.setItem("hotelCalculator.pendingVersion", publishedVersion); } catch { /* Storage may be unavailable. */ }
+      if (!storage?.saveDraft(sharePayload())) return false;
+      try { sessionStorage.setItem("hotelCalculator.pendingVersion", publishedVersion); } catch { return false; }
       const nextUrl = new URL(window.location.href);
       nextUrl.searchParams.set("v", publishedVersion);
       window.location.replace(nextUrl.href);
       return true;
     } catch {
       return false;
+    } finally {
+      updateCheckRunning = false;
     }
   }
 

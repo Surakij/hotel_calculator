@@ -71,6 +71,21 @@ test("a published version update reloads once and restores the current draft", a
 
   await page.goto("https://updates.test/hotel_calculator/");
   await page.waitForFunction(() => Boolean(window.HotelCalculatorApp));
+  const blocked = await page.evaluate(async () => {
+    const original = HotelCalculatorStorage.saveDraft;
+    HotelCalculatorStorage.saveDraft = () => false;
+    const failedSave = await HotelCalculatorApp.checkForAppUpdate();
+    HotelCalculatorStorage.saveDraft = original;
+    document.getElementById("showSamoImport").click();
+    document.getElementById("samoImportText").value = "Request still being edited";
+    const openImport = await HotelCalculatorApp.checkForAppUpdate();
+    document.getElementById("closeSamoImport").click();
+    document.getElementById("hotel").focus();
+    const editing = await HotelCalculatorApp.checkForAppUpdate();
+    document.getElementById("hotel").blur();
+    return { failedSave, openImport, editing, pending: sessionStorage.getItem("hotelCalculator.pendingVersion") };
+  });
+  assert.deepEqual(blocked, { failedSave: false, openImport: false, editing: false, pending: null });
   await page.evaluate(() => {
     const hotel = document.getElementById("hotel");
     hotel.value = "Draft Resort";

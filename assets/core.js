@@ -96,7 +96,7 @@
 
     const formula = normalizeRateFormula(value);
     if (!formula) return 0;
-    if (!/^[\d.+\-*/()]+$/.test(formula)) return 0;
+    if (formula.length > 512 || !/^[\d.+\-*/()]+$/.test(formula)) return 0;
 
     let index = 0;
 

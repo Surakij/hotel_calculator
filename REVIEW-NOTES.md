@@ -1,0 +1,39 @@
+# Review decisions
+
+This branch addresses reliability findings from the supplied 25-point review.
+
+## Implemented
+
+- Update safety: failed draft writes now prevent navigation. Active input and
+  dialogs defer updates because partial fields and import text are not in drafts.
+  Unavailable session storage also prevents navigation; it is needed for the
+  reload guard. Concurrent checks are suppressed and manifest versions validated.
+- Formula resilience (10): limit expressions to 512 characters before recursive
+  parsing. Regression cases cover invalid numbers, division by zero, overflow,
+  nested signs and excessive nesting through the public calculation API.
+- Release maintenance (21, 22): record this branch in Unreleased and add CI for
+  lint and unit tests. Browser tests are still run locally before release.
+
+## Deferred
+
+- Module extraction (1, 12, 13, 16): reasonable incremental work, but moving
+  calendars, share grouping, storage or undo is not required for these fixes.
+- Shared rules and state (2, 3, 14, 15): preserve current input contracts. Manual
+  child ages intentionally differ from imported adult-age classification.
+  A universal normalizer or state rewrite needs its own compatibility work.
+- Performance (4-8, 24, 25): recalc updates existing row controls; it does not
+  rebuild the complete row table on every price change. Measure realistic large
+  calculations before introducing caches, event delegation or delayed loading.
+- Dates (9): current calendar-day helpers already account for ordinary daylight
+  saving changes through rounded night differences. No date rewrite in this pass.
+- Rounding (11, 23): current totals retain precision until display. Switching to
+  rounded line totals would change financial results; that policy needs a
+  separate decision and dedicated reconciliation cases.
+- Aliases and hotel data (17, 18): several migrations depend on room names, not
+  just hotel aliases. JSON generation adds a build step to the file-based app.
+- Historical scripts (19): left in place; deleting old tooling is not needed for
+  runtime reliability and their external use has not been established.
+- Version automation (20): lint already checks package, visible version, build
+  manifest and app reference agreement. A release command is a useful follow-up.
+
+No production deployment or version bump is part of this branch.
