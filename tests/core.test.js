@@ -3,6 +3,27 @@ const assert = require("node:assert/strict");
 const core = require("../assets/core.js");
 const storage = require("../assets/storage.js");
 
+test("short share groups room categories before sorting their date periods", () => {
+  for (const withKeys of [false, true]) {
+    const rows = [
+      { item: "Deluxe Villa", from: "01.11.2026", to: "04.11.2026" },
+      { item: "Beach Villa With Pool", from: "28.10.2026", to: "01.11.2026" },
+      { item: "Deluxe Villa", from: "28.10.2026", to: "01.11.2026" },
+      { item: "Beach Villa With Pool", from: "01.11.2026", to: "04.11.2026" },
+    ].map((row, index) => ({ ...row, type: "ROOM", qty: 1, rate: 100, ...(withKeys ? { roomKey: `room-${index}` } : {}) }));
+    const before = JSON.stringify(rows);
+    const text = core.buildShareText({ rows });
+    assert.deepEqual(text.split("\n").filter((line) => / : .*Villa/.test(line)).map((line) => line.split(" : ").slice(0, 2).join(" : ")), [
+      "28.10 - 01.11 : Beach Villa With Pool",
+      "01.11 - 04.11 : Beach Villa With Pool",
+      "28.10 - 01.11 : Deluxe Villa",
+      "01.11 - 04.11 : Deluxe Villa",
+    ]);
+    assert.ok(text.endsWith("TOTAL: 1,400 USD"));
+    assert.equal(JSON.stringify(rows), before);
+  }
+});
+
 test("short share and table use identical cent rounding", () => {
   for (const rate of [1.005, 10.075, 2.675, 100]) {
     const payload = { rows: [{ type: "TRANSFER", item: "Transfer", qty: 1, rate }] };

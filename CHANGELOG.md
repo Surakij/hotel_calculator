@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.31
+
+- Group Short Share room periods by category, then by date, preserving extra assignments and totals.
+
 ## 1.6.30
 
 - Fit the service table to desktop widths with narrower rate fields.

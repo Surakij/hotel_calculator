@@ -452,6 +452,13 @@
     out.push("");
 
     const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
+    const categoryKey = (row) => String(row.item || "").trim().replace(/\s+/g, " ").toLowerCase();
+    const categoryOrder = new Map();
+    rooms.forEach((room) => {
+      const key = categoryKey(room);
+      if (!categoryOrder.has(key)) categoryOrder.set(key, categoryOrder.size);
+    });
+    rooms.sort((a, b) => categoryOrder.get(categoryKey(a)) - categoryOrder.get(categoryKey(b)) || compareDateRows(a, b));
     const extras = rows.filter((row) => row.type === "EXTRA" && !isGreenTax(row));
     const personExtras = extras.filter((row) => /(adult|child)/i.test(row.item || ""));
     const otherExtras = extras.filter((row) => !personExtras.includes(row));
