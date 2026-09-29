@@ -49,11 +49,12 @@ if (!/window\.HotelCalculatorApp/.test(app)) fail("App should expose a small deb
 const packageVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
 const publishedVersion = JSON.parse(readFileSync(join(root, "version.json"), "utf8")).version;
 const appVersion = /const APP_VERSION = "([^"]+)"/.exec(app)?.[1];
-if (!packageVersion || packageVersion !== publishedVersion || packageVersion !== appVersion) {
-  fail(`Version mismatch: package=${packageVersion}, manifest=${publishedVersion}, app=${appVersion}.`);
+const appBuild = /const APP_BUILD = "([^"]+)"/.exec(app)?.[1];
+if (!packageVersion || packageVersion !== appVersion || publishedVersion !== appBuild) {
+  fail(`Version mismatch: package=${packageVersion}, manifest=${publishedVersion}, app=${appVersion}, build=${appBuild}.`);
 }
-if (!html.includes(`id="appVersion">v${packageVersion}<`) || !html.includes(`assets/app.js?v=${packageVersion}`)) {
-  fail(`index.html does not reference version ${packageVersion}.`);
+if (!html.includes(`id="appVersion">v${packageVersion}<`) || !html.includes(`assets/app.js?v=${appBuild}`)) {
+  fail(`index.html does not reference version ${packageVersion} and build ${appBuild}.`);
 }
 
 if (failed) process.exit(1);

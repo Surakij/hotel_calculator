@@ -6,6 +6,7 @@
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
   const APP_VERSION = "1.6.29";
+  const APP_BUILD = "1.6.29.1";
   const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
@@ -2583,7 +2584,7 @@
       const response = await fetch(versionUrl, { cache: "no-store" });
       if (!response.ok) return false;
       const publishedVersion = String((await response.json())?.version || "").trim();
-      if (!publishedVersion || compareVersions(publishedVersion, APP_VERSION) <= 0) {
+      if (!publishedVersion || compareVersions(publishedVersion, APP_BUILD) <= 0) {
         try { sessionStorage.removeItem("hotelCalculator.pendingVersion"); } catch { /* Storage may be unavailable. */ }
         return false;
       }
