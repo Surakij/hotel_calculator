@@ -46,5 +46,15 @@ if (!html.includes("https://static.cloudflareinsights.com/beacon.min.js") || !ht
 const app = readFileSync(join(root, "assets/app.js"), "utf8");
 if (!/window\.HotelCalculatorApp/.test(app)) fail("App should expose a small debug/test surface.");
 
+const packageVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+const publishedVersion = JSON.parse(readFileSync(join(root, "version.json"), "utf8")).version;
+const appVersion = /const APP_VERSION = "([^"]+)"/.exec(app)?.[1];
+if (!packageVersion || packageVersion !== publishedVersion || packageVersion !== appVersion) {
+  fail(`Version mismatch: package=${packageVersion}, manifest=${publishedVersion}, app=${appVersion}.`);
+}
+if (!html.includes(`id="appVersion">v${packageVersion}<`) || !html.includes(`assets/app.js?v=${packageVersion}`)) {
+  fail(`index.html does not reference version ${packageVersion}.`);
+}
+
 if (failed) process.exit(1);
 console.log("Lint passed.");

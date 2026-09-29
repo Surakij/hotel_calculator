@@ -1,5 +1,6 @@
 const { test, before, after, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
 const { pathToFileURL } = require("node:url");
 const { resolve } = require("node:path");
 const { chromium } = require("playwright");
@@ -47,6 +48,40 @@ test("history restores manual quantities, child ages and Days Before exactly", a
     return { age: $("ages").value, days: $("eboDays").value, total: $("grandTotal").textContent, saved: $("saveCalculation").disabled };
   });
   assert.deepEqual(result, { age: "6", days: "60", total: "$100.00", saved: true });
+});
+
+test("a published version update reloads once and restores the current draft", async () => {
+  await context.unroute("https://**/*");
+  await context.route("https://**/*", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.hostname !== "updates.test") return route.abort();
+    if (url.pathname.endsWith("/version.json")) {
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ version: "1.6.30" }) });
+    }
+    const relativePath = url.pathname.replace(/^\/hotel_calculator\/?/, "") || "index.html";
+    const filePath = resolve(__dirname, "..", relativePath);
+    const contentTypes = { ".css": "text/css", ".js": "text/javascript", ".png": "image/png", ".html": "text/html" };
+    const extension = /\.[^.]+$/.exec(filePath)?.[0] || ".html";
+    try {
+      return route.fulfill({ contentType: contentTypes[extension] || "application/octet-stream", body: readFileSync(filePath) });
+    } catch {
+      return route.fulfill({ status: 404, body: "Not found" });
+    }
+  });
+
+  await page.goto("https://updates.test/hotel_calculator/");
+  await page.waitForFunction(() => Boolean(window.HotelCalculatorApp));
+  await page.evaluate(() => {
+    const hotel = document.getElementById("hotel");
+    hotel.value = "Draft Resort";
+    hotel.dispatchEvent(new Event("input"));
+    window.HotelCalculatorApp.checkForAppUpdate();
+  });
+  await page.waitForURL("**/hotel_calculator/?v=1.6.30");
+  await page.waitForFunction(() => Boolean(window.HotelCalculatorApp));
+
+  assert.equal(await page.locator("#hotel").inputValue(), "Draft Resort");
+  assert.equal(await page.evaluate(() => sessionStorage.getItem("hotelCalculator.pendingVersion")), "1.6.30");
 });
 
 test("Undo and Redo preserve manual service quantities", async () => {
@@ -1315,7 +1350,7 @@ test("brand header and favicon load without overlapping controls", async () => {
   assert.deepEqual(await page.evaluate(inspect), {
     loaded: true,
     text: "Maldives Quote Calculator",
-    favicon: "assets/favicon.png?v=1.6.28",
+    favicon: "assets/favicon.png?v=1.6.29",
     overlaps: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });

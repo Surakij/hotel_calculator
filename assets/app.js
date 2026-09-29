@@ -5,7 +5,8 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.28";
+  const APP_VERSION = "1.6.29";
+  const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -2563,6 +2564,56 @@
     return applyPayload(draft.payload);
   }
 
+  function compareVersions(left, right) {
+    const leftParts = String(left || "").split(".").map((part) => Number(part) || 0);
+    const rightParts = String(right || "").split(".").map((part) => Number(part) || 0);
+    const length = Math.max(leftParts.length, rightParts.length);
+    for (let index = 0; index < length; index += 1) {
+      const difference = (leftParts[index] || 0) - (rightParts[index] || 0);
+      if (difference) return Math.sign(difference);
+    }
+    return 0;
+  }
+
+  async function checkForAppUpdate() {
+    if (!/^https?:$/.test(window.location.protocol)) return false;
+    try {
+      const versionUrl = new URL("version.json", window.location.href);
+      versionUrl.searchParams.set("_", Date.now());
+      const response = await fetch(versionUrl, { cache: "no-store" });
+      if (!response.ok) return false;
+      const publishedVersion = String((await response.json())?.version || "").trim();
+      if (!publishedVersion || compareVersions(publishedVersion, APP_VERSION) <= 0) {
+        try { sessionStorage.removeItem("hotelCalculator.pendingVersion"); } catch { /* Storage may be unavailable. */ }
+        return false;
+      }
+
+      let attemptedVersion = "";
+      try { attemptedVersion = sessionStorage.getItem("hotelCalculator.pendingVersion") || ""; } catch { /* Storage may be unavailable. */ }
+      if (attemptedVersion === publishedVersion) return false;
+
+      clearTimeout(draftTimer);
+      storage?.saveDraft(sharePayload());
+      try { sessionStorage.setItem("hotelCalculator.pendingVersion", publishedVersion); } catch { /* Storage may be unavailable. */ }
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set("v", publishedVersion);
+      window.location.replace(nextUrl.href);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function initUpdateChecks() {
+    if (!/^https?:$/.test(window.location.protocol)) return;
+    window.setTimeout(checkForAppUpdate, 2000);
+    window.setInterval(checkForAppUpdate, VERSION_CHECK_INTERVAL);
+    window.addEventListener("focus", checkForAppUpdate);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) checkForAppUpdate();
+    });
+  }
+
   function shareText() {
     if (!recalc()) {
       toast("Check the highlighted numbers before sharing.");
@@ -3172,5 +3223,6 @@
   if (!restoreDraft()) createDefaultRows();
   recalc();
   initUndoHistory();
-  window.HotelCalculatorApp = { addRow, applyRememberedRates, recalc, shareText, saveCalculation, undoChange, redoChange, parseSamoImport: samoParser?.parseSamoRequest };
+  initUpdateChecks();
+  window.HotelCalculatorApp = { addRow, applyRememberedRates, checkForAppUpdate, recalc, shareText, saveCalculation, undoChange, redoChange, parseSamoImport: samoParser?.parseSamoRequest };
 })();
