@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Align Short Share rounding with table money formatting (for example 10.075).
+- Add release:prepare to synchronize displayed versions and asset build references.
+
 - Extract automatic updates into updateManager.js.
 - Read each row once for the calculation and rendering pass.
 

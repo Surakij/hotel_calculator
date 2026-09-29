@@ -75,12 +75,7 @@
   }
 
   function shareMoney(value) {
-    const rounded = Math.round(Number(value || 0) * 100) / 100;
-    const digits = Number.isInteger(rounded) ? 0 : 2;
-    return rounded.toLocaleString("en-US", {
-      minimumFractionDigits: digits,
-      maximumFractionDigits: 2,
-    });
+    return money(value).replace(/\.00$/, "");
   }
 
   function shareRateFormula(value) {

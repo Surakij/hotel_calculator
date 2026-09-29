@@ -4,6 +4,16 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Implemented
 
+- Money formatting (11, 23): Short Share now uses the same cent formatting as
+  the table, removing its separate floating-point rounding step. Calculation
+  precision is unchanged. Tests cover half-cent values and split periods with
+  fractional rates and stacked discounts.
+- Release preparation (20): `npm run release:prepare -- 1.6.30` prepares a
+  visible release; `npm run release:prepare -- 1.6.29.2` prepares an internal
+  build. The command updates package, manifest, app constants and HTML assets.
+  It does not commit or publish. Update Unreleased notes and run checks before
+  committing. No release command was applied to this branch yet.
+
 - Module extraction (1): move update polling and reload decisions to
   updateManager.js, with draft saving provided by the application.
 - DOM reads (8): reuse row values within one recalc pass; no persistent cache.
@@ -30,14 +40,12 @@ This branch addresses reliability findings from the supplied 25-point review.
   calculations before introducing caches, event delegation or delayed loading.
 - Dates (9): current calendar-day helpers already account for ordinary daylight
   saving changes through rounded night differences. No date rewrite in this pass.
-- Rounding (11, 23): current totals retain precision until display. Switching to
+- Further rounding policy (11, 23): current totals retain precision until display. Switching to
   rounded line totals would change financial results; that policy needs a
   separate decision and dedicated reconciliation cases.
 - Aliases and hotel data (17, 18): several migrations depend on room names, not
   just hotel aliases. JSON generation adds a build step to the file-based app.
 - Historical scripts (19): left in place; deleting old tooling is not needed for
   runtime reliability and their external use has not been established.
-- Version automation (20): lint already checks package, visible version, build
-  manifest and app reference agreement. A release command is a useful follow-up.
 
 No production deployment or version bump is part of this branch.

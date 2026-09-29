@@ -3,6 +3,23 @@ const assert = require("node:assert/strict");
 const core = require("../assets/core.js");
 const storage = require("../assets/storage.js");
 
+test("short share and table use identical cent rounding", () => {
+  for (const rate of [1.005, 10.075, 2.675, 100]) {
+    const payload = { rows: [{ type: "TRANSFER", item: "Transfer", qty: 1, rate }] };
+    const expected = core.money(core.calculateRows(payload.rows).total).replace(/\.00$/, "");
+    assert.ok(core.buildShareText(payload).endsWith(`TOTAL: ${expected} USD`));
+  }
+});
+
+test("fractional rates and stacked discounts retain precision across split periods", () => {
+  const row = { type: "ROOM", item: "Villa", qty: 1, rate: 123.45, discounts: [33.33, 10], from: "01.11.2026", to: "11.11.2026" };
+  const total = core.calculateRows([row]).total;
+  const split = core.calculateRows([{ ...row, to: "04.11.2026" }, { ...row, from: "04.11.2026" }]).total;
+  assert.ok(Math.abs(total - 740.737035) < 1e-9);
+  assert.ok(Math.abs(total - split) < 1e-9);
+  assert.equal(core.money(total), "740.74");
+});
+
 test("rate expressions reject malformed, infinite and excessively deep input", () => {
   const parseRate = (rateFormula) => core.calculateRow({ type: "TRANSFER", qty: 1, rateFormula }).rate;
   for (const formula of ["1/0", "1..2", "()", "9".repeat(400), "(".repeat(10000) + "1" + ")".repeat(10000), "-".repeat(10000) + "1"]) {
