@@ -4,6 +4,10 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Implemented
 
+- Module extraction (1): move update polling and reload decisions to
+  updateManager.js, with draft saving provided by the application.
+- DOM reads (8): reuse row values within one recalc pass; no persistent cache.
+
 - Update safety: failed draft writes now prevent navigation. Active input and
   dialogs defer updates because partial fields and import text are not in drafts.
   Unavailable session storage also prevents navigation; it is needed for the
@@ -16,7 +20,7 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Deferred
 
-- Module extraction (1, 12, 13, 16): reasonable incremental work, but moving
+- Further module extraction (1, 12, 13, 16): reasonable incremental work, but moving
   calendars, share grouping, storage or undo is not required for these fixes.
 - Shared rules and state (2, 3, 14, 15): preserve current input contracts. Manual
   child ages intentionally differ from imported adult-age classification.

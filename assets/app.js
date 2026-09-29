@@ -7,7 +7,6 @@
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
   const APP_VERSION = "1.6.29";
   const APP_BUILD = "1.6.29.1";
-  const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -1636,10 +1635,12 @@
     syncTableMinHeight();
     $("nights").value = core.nightsBetween(value("checkin"), value("checkout"));
 
-    const calculated = core.calculateRows(currentRows());
+    const rowElements = [...rowsEl.querySelectorAll("tr")];
+    const rowValues = rowElements.map(rowData);
+    const calculated = core.calculateRows(rowValues.filter((row) => row.type));
     let rowIndex = 0;
-    rowsEl.querySelectorAll("tr").forEach((tr) => {
-      const data = rowData(tr);
+    rowElements.forEach((tr, index) => {
+      const data = rowValues[index];
       if (!data.type) {
         tr.querySelector(".nights").value = "0";
         tr.querySelector(".net").textContent = "0.00";
@@ -2565,64 +2566,13 @@
     return applyPayload(draft.payload);
   }
 
-  function compareVersions(left, right) {
-    const leftParts = String(left || "").split(".").map((part) => Number(part) || 0);
-    const rightParts = String(right || "").split(".").map((part) => Number(part) || 0);
-    const length = Math.max(leftParts.length, rightParts.length);
-    for (let index = 0; index < length; index += 1) {
-      const difference = (leftParts[index] || 0) - (rightParts[index] || 0);
-      if (difference) return Math.sign(difference);
-    }
-    return 0;
-  }
-
-  let updateCheckRunning = false;
-
-  async function checkForAppUpdate() {
-    if (!/^https?:$/.test(window.location.protocol) || updateCheckRunning) return false;
-    updateCheckRunning = true;
-    try {
-      const versionUrl = new URL("version.json", window.location.href);
-      versionUrl.searchParams.set("_", Date.now());
-      const response = await fetch(versionUrl, { cache: "no-store" });
-      if (!response.ok) return false;
-      const publishedVersion = String((await response.json())?.version || "").trim();
-      if (!/^\d+(?:\.\d+){2,3}$/.test(publishedVersion)) return false;
-      if (compareVersions(publishedVersion, APP_BUILD) <= 0) {
-        try { sessionStorage.removeItem("hotelCalculator.pendingVersion"); } catch { /* Storage may be unavailable. */ }
-        return false;
-      }
-
-      let attemptedVersion = "";
-      try { attemptedVersion = sessionStorage.getItem("hotelCalculator.pendingVersion") || ""; } catch { /* Storage may be unavailable. */ }
-      if (attemptedVersion === publishedVersion) return false;
-
-      // Import text and partially edited fields are not represented by the draft.
-      if (document.querySelector("dialog[open]") || document.activeElement?.matches("input, textarea, select, [contenteditable]")) return false;
-
+  const updates = window.HotelCalculatorUpdates.create({
+    build: APP_BUILD,
+    saveDraft() {
       clearTimeout(draftTimer);
-      if (!storage?.saveDraft(sharePayload())) return false;
-      try { sessionStorage.setItem("hotelCalculator.pendingVersion", publishedVersion); } catch { return false; }
-      const nextUrl = new URL(window.location.href);
-      nextUrl.searchParams.set("v", publishedVersion);
-      window.location.replace(nextUrl.href);
-      return true;
-    } catch {
-      return false;
-    } finally {
-      updateCheckRunning = false;
-    }
-  }
-
-  function initUpdateChecks() {
-    if (!/^https?:$/.test(window.location.protocol)) return;
-    window.setTimeout(checkForAppUpdate, 2000);
-    window.setInterval(checkForAppUpdate, VERSION_CHECK_INTERVAL);
-    window.addEventListener("focus", checkForAppUpdate);
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) checkForAppUpdate();
-    });
-  }
+      return storage.saveDraft(sharePayload());
+    },
+  });
 
   function shareText() {
     if (!recalc()) {
@@ -3233,6 +3183,6 @@
   if (!restoreDraft()) createDefaultRows();
   recalc();
   initUndoHistory();
-  initUpdateChecks();
-  window.HotelCalculatorApp = { addRow, applyRememberedRates, checkForAppUpdate, recalc, shareText, saveCalculation, undoChange, redoChange, parseSamoImport: samoParser?.parseSamoRequest };
+  updates.start();
+  window.HotelCalculatorApp = { addRow, applyRememberedRates, checkForAppUpdate: updates.check, recalc, shareText, saveCalculation, undoChange, redoChange, parseSamoImport: samoParser?.parseSamoRequest };
 })();

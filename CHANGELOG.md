@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Extract automatic updates into updateManager.js.
+- Read each row once for the calculation and rendering pass.
+
 - Defer automatic updates while editing fields or using a dialog.
 - Require successful draft storage and a reload guard before an automatic update.
 - Ignore malformed release versions and overlapping update checks.
