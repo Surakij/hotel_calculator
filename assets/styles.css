@@ -715,14 +715,15 @@ table {
 
 .calc-table {
   margin-bottom: 18px;
+  min-width: calc(1280px + var(--discount-column-width, 152px));
 }
 
 .calc-table .col-type { width: 130px; }
-.calc-table .col-item { width: calc(100% - (944px + var(--discount-column-width, 152px))); }
+.calc-table .col-item { width: calc(100% - (860px + var(--discount-column-width, 152px))); }
 .calc-table .col-date { width: 120px; }
 .calc-table .col-nights { width: 100px; }
 .calc-table .col-qty { width: 100px; }
-.calc-table .col-rate { width: 218px; }
+.calc-table .col-rate { width: 134px; }
 .calc-table .col-discounts { width: var(--discount-column-width, 152px); }
 .calc-table .col-net { width: 104px; }
 .calc-table .col-delete { width: 52px; }
@@ -850,6 +851,23 @@ td select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+@media (max-width: 1450px) {
+  .calc-table { min-width: calc(1120px + var(--discount-column-width, 152px)); }
+  .calc-table .col-type { width: 116px; }
+  .calc-table .col-item { width: calc(100% - (790px + var(--discount-column-width, 152px))); }
+  .calc-table .col-date { width: 112px; }
+  .calc-table .col-nights,
+  .calc-table .col-qty { width: 92px; }
+  .calc-table .col-rate { width: 116px; }
+  .calc-table .col-net { width: 98px; }
+  .calc-table .col-delete { width: 52px; }
+  .item-layout:has(.meal-beverage-addon:not([hidden])) > .item {
+    width: 140px;
+    min-width: 140px;
+    flex-basis: 140px;
+  }
+}
+
 .rate-layout input {
   min-width: 0;
 }
@@ -871,7 +889,7 @@ td select {
 
 .item-layout:has(.extra-assignment:not([hidden])) .room-assignment-picker {
   width: auto;
-  min-width: 220px;
+  min-width: 0;
   flex: 1 1 auto;
 }
 

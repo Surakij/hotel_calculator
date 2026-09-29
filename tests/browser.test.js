@@ -50,6 +50,33 @@ test("history restores manual quantities, child ages and Days Before exactly", a
   assert.deepEqual(result, { age: "6", days: "60", total: "$100.00", saved: true });
 });
 
+test("service table fits desktop widths with compact rates", async () => {
+  await page.evaluate(() => {
+    HotelCalculatorApp.addRow({ type: "ROOM", item: "Two Bedroom Water Villa With Pool", qty: 1 });
+    HotelCalculatorApp.addRow({ type: "MEAL", item: "HB - Adult", beveragePackage: "Premium Beverage Package - Adult", rate: 120, beverageRate: 50, qty: 2 });
+    HotelCalculatorApp.addRow({ type: "EXTRA", item: "Extra Adult", qty: 1 });
+  });
+  for (const width of [1366, 1536, 1854]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const result = await page.evaluate(() => {
+      const wrap = document.querySelector(".table-wrap");
+      const rows = [...document.querySelectorAll("#rows tr")];
+      return {
+        overflow: wrap.scrollWidth - wrap.clientWidth,
+        controlsFit: rows.every((row) => {
+          const item = row.querySelector(".item-layout");
+          return item.scrollWidth <= item.clientWidth + 1;
+        }),
+        deleteFits: rows.every((row) => row.querySelector(".delete").getBoundingClientRect().right <= wrap.getBoundingClientRect().right),
+      };
+    });
+    assert.ok(result.overflow <= 1, `${width}: overflow ${result.overflow}`);
+    assert.equal(result.controlsFit, true, `${width}: item/date overlap`);
+    assert.equal(result.deleteFits, true, `${width}: delete clipped`);
+  }
+  await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), "hotel-compact-table.png"), fullPage: true });
+});
+
 test("a published version update reloads once and restores the current draft", async () => {
   await context.unroute("https://**/*");
   await context.route("https://**/*", async (route) => {
