@@ -4,6 +4,12 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Implemented
 
+- Share presentation (1): HTML emphasis/escaping is isolated in
+  sharePresentation.js, shared by preview and clipboard. Tests cover manual HTML
+  characters and preserved line formatting; core text grouping is unchanged.
+- Row documentation (14): JSDoc describes calculation inputs, formula priority,
+  calendar dates, sequential discounts and room/beverage relationships.
+
 - Batch restore performance (5, 7, 8): room-assignment choices now refresh once
   after loading all rows. Benchmark on this workstation (headless Edge, mixed
   rooms/meals, ten warmed recalc samples): restore times for 10/50/100 rows

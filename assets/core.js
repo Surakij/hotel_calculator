@@ -4,6 +4,26 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const DAY = 24 * 60 * 60 * 1000;
 
+  /**
+   * Input shared by forms, imports and stored calculations. Dates are calendar
+   * strings (dd.mm.yyyy or yyyy-mm-dd), not timestamps. Form numbers may be strings.
+   * @typedef {Object} CalculationRow
+   * @property {"ROOM"|"MEAL"|"TRANSFER"|"EXTRA"|"GREEN_TAX"|"DINNER"} type
+   * @property {string} [item]
+   * @property {string} [from]
+   * @property {string} [to]
+   * @property {number|string} [qty]
+   * @property {number|string} [rate] Fallback when rateFormula is empty.
+   * @property {string} [rateFormula] Arithmetic expression; takes precedence over rate.
+   * @property {Array<number|string>} [discounts] Sequential percentage discounts.
+   * @property {string} [roomKey] Shared by periods belonging to the same room.
+   * @property {string} [assignedRoomKey] Explicit room assignment for person extras.
+   * @property {string} [beveragePackage] Optional MEAL add-on, using the same qty/dates.
+   * @property {number|string} [beverageRate]
+   * @property {string} [beverageRateFormula]
+   * @property {boolean} [followGlobal] Whether the UI follows the global stay dates.
+   */
+
   function pad(value) {
     return String(value).padStart(2, "0");
   }
@@ -175,6 +195,7 @@
     return (discounts || []).reduce((result, discount) => result * (1 - Number(discount || 0) / 100), value);
   }
 
+  /** @param {CalculationRow} row */
   function calculateRow(row) {
     const nights = nightsBetween(row.from, row.to);
     const qty = Number(row.qty || 0);
@@ -213,6 +234,7 @@
     };
   }
 
+  /** @param {CalculationRow[]} rows */
   function calculateRows(rows) {
     const calculatedRows = rows.map(calculateRow);
     const total = calculatedRows.every((row) => row.valid) ? calculatedRows.reduce((sum, row) => sum + row.net, 0) : null;

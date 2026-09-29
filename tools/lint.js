@@ -14,6 +14,8 @@ const filesToCheck = [
   "assets/samoParser.js",
   "assets/app.js",
   "assets/updateManager.js",
+  "assets/sharePresentation.js",
+  "tests/sharePresentation.test.js",
   "assets/hotelReselect.js",
   "tools/lint.js",
   "tools/set-version.js",
@@ -39,7 +41,8 @@ for (const file of filesToCheck) {
 
 const html = readFileSync(join(root, "index.html"), "utf8");
 const scriptTags = [...html.matchAll(/<script\b/g)].length;
-if (scriptTags !== 13) fail(`Expected exactly 13 script tags, found ${scriptTags}.`);
+if (scriptTags !== 14) fail(`Expected exactly 14 script tags, found ${scriptTags}.`);
+if (!html.includes("assets/sharePresentation.js")) fail("HTML must load sharePresentation.js.");
 if (!html.includes("assets/updateManager.js")) fail("HTML must load updateManager.js.");
 if (/onclick=|onchange=|oninput=/.test(html)) fail("Inline event handlers are not allowed.");
 if (!html.includes("assets/initialLayout.js") || !html.includes("assets/appearanceInit.js") || !html.includes("assets/core.js") || !html.includes("assets/hotelData.js") || !html.includes("assets/storage.js") || !html.includes("assets/googleConfig.js") || !html.includes("assets/googleDrive.js") || !html.includes("assets/samoParser.js") || !html.includes("assets/app.js") || !html.includes("assets/hotelReselect.js")) {
