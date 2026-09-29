@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Collect simple legacy hotel renames in a lookup table, retaining room-specific migrations.
+
 - Extract Short Share HTML formatting and document the calculation row contract.
 
 - Refresh room assignment choices once after batch restoration, instead of per row.

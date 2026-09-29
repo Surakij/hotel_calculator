@@ -4,6 +4,10 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Implemented
 
+- Legacy aliases (17): simple case-insensitive hotel renames are now a Map in
+  storage.js. Room-dependent hotel splits and Avani whitespace matching retain
+  their existing rules. Existing migration tests cover remembered rates.
+
 - Share presentation (1): HTML emphasis/escaping is isolated in
   sharePresentation.js, shared by preview and clipboard. Tests cover manual HTML
   characters and preserved line formatting; core text grouping is unchanged.

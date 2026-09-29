@@ -84,29 +84,32 @@
     return Array.isArray(rows) ? rows : [];
   }
 
+  const LEGACY_HOTEL_NAMES = new Map([
+    ["anantara resort and spa maldives", "Anantara Dhigu Maldives"],
+    ["angsana resort & spa maldives - velavaru", "Angsana Velavaru"],
+    ["coco palm dhunikolhu", "Coco Palm Dhuni Kolhu"],
+    ["heritance aarah", "Heritance Aarah Maldives"],
+    ["lily beach resort", "Lily Beach Resort & Spa"],
+    ["the ritz carlton maldives fari islands", "The Ritz-Carlton Maldives, Fari Islands"],
+    ["fihaalhohi maldives", "Fihalhohi Maldives"],
+    ["inter continental maldives maamunagau", "Intercontinental Maldives Maamunagau Resort"],
+  ]);
+
   function canonicalHotelName(name, item = "") {
     const value = String(name || "").trim();
     if (/^anantara veli and naladhu$/i.test(value)) {
       if (/^(?:Beach Pool Villa|Over Water Villa|Superior Over Water Villa|Deluxe Over Water Villa|Ocean Pool Villa|Over Water Pool Villa|Deluxe Over Water Pool Villa)$/i.test(item)) return "Anantara Veli Maldives";
       if (/^(?:Beach House with Pool|Ocean House with Pool|Two Bedroom Beach Pool Residence)$/i.test(item)) return "Naladhu Private Island Maldives";
     }
-    if (/^anantara resort and spa maldives$/i.test(value)) return "Anantara Dhigu Maldives";
-    if (/^angsana resort & spa maldives - velavaru$/i.test(value)) return "Angsana Velavaru";
     if (/^avani\s*\+\s*fares maldives$/i.test(value)) return "Avani+ Fares Maldives Resort";
-    if (/^coco palm dhunikolhu$/i.test(value)) return "Coco Palm Dhuni Kolhu";
-    if (/^heritance aarah$/i.test(value)) return "Heritance Aarah Maldives";
-    if (/^lily beach resort$/i.test(value)) return "Lily Beach Resort & Spa";
-    if (/^the ritz carlton maldives fari islands$/i.test(value)) return "The Ritz-Carlton Maldives, Fari Islands";
     if (value === "Centara Mirage Lagoon Maldives & Centara Grand Lagoon Maldives") {
       if (/^(?:Panoramic|Mirage|Beachfront|Overwater|Four Bedroom)/i.test(item)) return "Centara Mirage Lagoon Maldives";
     }
-    if (/^fihaalhohi maldives$/i.test(value)) return "Fihalhohi Maldives";
     if (value === "Riu Atoll and Riu Palace Maldivas") {
       if (/^RIU Atoll - /i.test(item)) return "Riu Atoll";
       if (/^RIU Palace Maldivas - /i.test(item)) return "Riu Palace Maldives";
     }
-    return /^inter continental maldives maamunagau$/i.test(value)
-      ? "Intercontinental Maldives Maamunagau Resort" : value;
+    return LEGACY_HOTEL_NAMES.get(value.toLowerCase()) || value;
   }
 
   function canonicalItemName(hotel, item) {
