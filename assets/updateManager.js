@@ -3,6 +3,7 @@
 
   function create({ build, saveDraft }) {
     const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
+    const REQUEST_TIMEOUT = 10000;
     function compareVersions(left, right) {
       const leftParts = String(left || "").split(".").map((part) => Number(part) || 0);
       const rightParts = String(right || "").split(".").map((part) => Number(part) || 0);
@@ -19,10 +20,12 @@
     async function checkForAppUpdate() {
       if (!/^https?:$/.test(window.location.protocol) || updateCheckRunning) return false;
       updateCheckRunning = true;
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
       try {
         const versionUrl = new URL("version.json", window.location.href);
         versionUrl.searchParams.set("_", Date.now());
-        const response = await fetch(versionUrl, { cache: "no-store" });
+        const response = await fetch(versionUrl, { cache: "no-store", signal: controller.signal });
         if (!response.ok) return false;
         const publishedVersion = String((await response.json())?.version || "").trim();
         if (!/^\d+(?:\.\d+){2,3}$/.test(publishedVersion)) return false;
@@ -47,6 +50,7 @@
       } catch {
         return false;
       } finally {
+        window.clearTimeout(timeout);
         updateCheckRunning = false;
       }
     }

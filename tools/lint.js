@@ -19,6 +19,7 @@ const filesToCheck = [
   "tools/set-version.js",
   "tests/core.test.js",
   "tests/release.test.js",
+  "tests/updateManager.test.js",
   "tests/samoParser.test.js",
   "tests/googleDrive.test.js",
   "tests/browser.test.js",
@@ -59,6 +60,11 @@ if (!packageVersion || packageVersion !== appVersion || publishedVersion !== app
 }
 if (!html.includes(`id="appVersion">v${packageVersion}<`) || !html.includes(`assets/app.js?v=${appBuild}`)) {
   fail(`index.html does not reference version ${packageVersion} and build ${appBuild}.`);
+}
+for (const match of html.matchAll(/(?:src|href)="(assets\/[^"?]+)(?:\?([^"#]*))?"/g)) {
+  if (new URLSearchParams(match[2] || "").get("v") !== appBuild) {
+    fail(`Asset build mismatch: ${match[1]}. Expected ${appBuild}.`);
+  }
 }
 
 if (failed) process.exit(1);

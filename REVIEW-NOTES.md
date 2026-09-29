@@ -4,6 +4,10 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Implemented
 
+- Update requests now have a ten-second timeout. Isolated tests cover retries,
+  concurrent checks, invalid manifests, storage failures and the reload guard.
+- Release lint verifies all local asset build references, including styles.
+
 - Money formatting (11, 23): Short Share now uses the same cent formatting as
   the table, removing its separate floating-point rounding step. Calculation
   precision is unchanged. Tests cover half-cent values and split periods with

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Abort stalled update requests after ten seconds so future checks can retry.
+- Validate build references for every local HTML asset.
+
 - Align Short Share rounding with table money formatting (for example 10.075).
 - Add release:prepare to synchronize displayed versions and asset build references.
 
