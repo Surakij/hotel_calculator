@@ -78,12 +78,15 @@ test("service table fits desktop widths with compact rates", async () => {
 });
 
 test("a published version update reloads once and restores the current draft", async () => {
+  const parts = require("../version.json").version.split(".").map(Number);
+  parts[parts.length - 1] += 1;
+  const nextVersion = parts.join(".");
   await context.unroute("https://**/*");
   await context.route("https://**/*", async (route) => {
     const url = new URL(route.request().url());
     if (url.hostname !== "updates.test") return route.abort();
     if (url.pathname.endsWith("/version.json")) {
-      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ version: "1.6.30" }) });
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ version: nextVersion }) });
     }
     const relativePath = url.pathname.replace(/^\/hotel_calculator\/?/, "") || "index.html";
     const filePath = resolve(__dirname, "..", relativePath);
@@ -119,11 +122,11 @@ test("a published version update reloads once and restores the current draft", a
     hotel.dispatchEvent(new Event("input"));
     window.HotelCalculatorApp.checkForAppUpdate();
   });
-  await page.waitForURL("**/hotel_calculator/?v=1.6.30");
+  await page.waitForURL(`**/hotel_calculator/?v=${nextVersion}`);
   await page.waitForFunction(() => Boolean(window.HotelCalculatorApp));
 
   assert.equal(await page.locator("#hotel").inputValue(), "Draft Resort");
-  assert.equal(await page.evaluate(() => sessionStorage.getItem("hotelCalculator.pendingVersion")), "1.6.30");
+  assert.equal(await page.evaluate(() => sessionStorage.getItem("hotelCalculator.pendingVersion")), nextVersion);
 });
 
 test("Undo and Redo preserve manual service quantities", async () => {

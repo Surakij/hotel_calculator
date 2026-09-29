@@ -33,7 +33,7 @@ This branch addresses reliability findings from the supplied 25-point review.
   visible release; `npm run release:prepare -- 1.6.29.2` prepares an internal
   build. The command updates package, manifest, app constants and HTML assets.
   It does not commit or publish. Update Unreleased notes and run checks before
-  committing. No release command was applied to this branch yet.
+  committing. Release 1.6.30 was prepared after user approval.
 
 - Module extraction (1): move update polling and reload decisions to
   updateManager.js, with draft saving provided by the application.
@@ -69,4 +69,4 @@ This branch addresses reliability findings from the supplied 25-point review.
 - Historical scripts (19): left in place; deleting old tooling is not needed for
   runtime reliability and their external use has not been established.
 
-No production deployment or version bump is part of this branch.
+The user approved publication of this reviewed branch as 1.6.30.

@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.6.30
+
+- Fit the service table to desktop widths with narrower rate fields.
 
 - Collect simple legacy hotel renames in a lookup table, retaining room-specific migrations.
 
