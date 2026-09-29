@@ -17,6 +17,7 @@ const filesToCheck = [
   "assets/hotelReselect.js",
   "tools/lint.js",
   "tools/set-version.js",
+  "tools/benchmark.js",
   "tests/core.test.js",
   "tests/release.test.js",
   "tests/updateManager.test.js",

@@ -4,6 +4,13 @@ This branch addresses reliability findings from the supplied 25-point review.
 
 ## Implemented
 
+- Batch restore performance (5, 7, 8): room-assignment choices now refresh once
+  after loading all rows. Benchmark on this workstation (headless Edge, mixed
+  rooms/meals, ten warmed recalc samples): restore times for 10/50/100 rows
+  changed from 26/179/1060 ms to 13/45/94 ms. Median recalc at 100 rows was about
+  19 ms, with input rates preserved. These are local observations, not universal
+  performance guarantees. Run `npm run benchmark` with Playwright available.
+
 - Update requests now have a ten-second timeout. Isolated tests cover retries,
   concurrent checks, invalid manifests, storage failures and the reload guard.
 - Release lint verifies all local asset build references, including styles.
@@ -39,7 +46,7 @@ This branch addresses reliability findings from the supplied 25-point review.
 - Shared rules and state (2, 3, 14, 15): preserve current input contracts. Manual
   child ages intentionally differ from imported adult-age classification.
   A universal normalizer or state rewrite needs its own compatibility work.
-- Performance (4-8, 24, 25): recalc updates existing row controls; it does not
+- Further performance work (4-8, 24, 25): recalc updates existing row controls; it does not
   rebuild the complete row table on every price change. Measure realistic large
   calculations before introducing caches, event delegation or delayed loading.
 - Dates (9): current calendar-day helpers already account for ordinary daylight

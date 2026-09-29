@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Refresh room assignment choices once after batch restoration, instead of per row.
+- Add an isolated browser benchmark for 10, 50 and 100-row calculations.
+
 - Abort stalled update requests after ten seconds so future checks can retry.
 - Validate build references for every local HTML asset.
 

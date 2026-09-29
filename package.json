@@ -5,6 +5,7 @@
   "description": "Browser-based Maldives resort quotation and reservation pricing calculator.",
   "scripts": {
     "release:prepare": "node tools/set-version.js",
+    "benchmark": "node tools/benchmark.js",
     "lint": "node tools/lint.js",
     "test": "node tests/core.test.js && node tests/samoParser.test.js && node tests/googleDrive.test.js && node tests/release.test.js && node tests/updateManager.test.js",
     "test:browser": "node --test tests/browser.test.js"

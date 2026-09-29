@@ -1989,7 +1989,7 @@
     if (!options.preserveValues) applyAutoQty(tr);
     clampRowDates(tr);
     updateRowState(tr);
-    refreshRoomAllocationControls();
+    if (!options.deferRoomAllocation) refreshRoomAllocationControls();
     if (!options.deferRender) {
       if (data.type) groupRowsByType();
       recalc();
@@ -2000,7 +2000,8 @@
   function createDefaultRows() {
     activeStepperStop?.();
     rowsEl.innerHTML = "";
-    ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX"].forEach((type) => addRow(serviceDefaults(type), { deferRender: true }));
+    ["ROOM", "MEAL", "TRANSFER", "GREEN_TAX"].forEach((type) => addRow(serviceDefaults(type), { deferRender: true, deferRoomAllocation: true }));
+    refreshRoomAllocationControls();
   }
 
   function setCheckoutFromNights() {
@@ -2110,8 +2111,9 @@
     rowsEl.innerHTML = "";
     if (Array.isArray(payload.rows)) {
       prepareRoomAllocationRows(payload.rows)
-        .forEach((row) => addRow(row, { preserveValues: true, deferRender: true }));
+        .forEach((row) => addRow(row, { preserveValues: true, deferRender: true, deferRoomAllocation: true }));
       groupRowsByType();
+      refreshRoomAllocationControls();
     } else createDefaultRows();
     suppressDraft = false;
     recalc();
