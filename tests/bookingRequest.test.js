@@ -17,6 +17,7 @@ test("booking separates room identities and expands quantities without guessing 
 test("booking email escapes user input and orders split periods within rooms", () => {
   const draft = booking.create({ rows: [] });
   draft.hotel = '<img src=x onerror="bad()">';
+  draft.spo = "ONLY-ONCE";
   draft.periods = [
     { room: "1", from: "04.11.2026", to: "07.11.2026", category: "Water", meal: "HB" },
     { room: "1", from: "01.11.2026", to: "04.11.2026", category: "Beach", meal: "HB" },
@@ -29,6 +30,7 @@ test("booking email escapes user input and orders split periods within rooms", (
   assert.ok(html.includes("Quotation summary (USD)"));
   assert.ok(html.includes("300.00"));
   assert.ok(html.includes("<table"));
+  assert.equal((html.match(/ONLY-ONCE/g) || []).length, 1);
 });
 
 test("booking warns about missing assignments, overlaps and guest counts", () => {

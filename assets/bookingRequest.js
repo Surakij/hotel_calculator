@@ -89,10 +89,11 @@
     const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
     const showPassport = draft.guests.some((guest) => guest.passport || guest.validTill);
     const showRoom = rooms.length > 1;
-    const guestColumns = [["#", (_, index) => index + 1], ["Name", (guest) => guest.name], ["DOB", (guest) => guest.dob]];
-    if (showPassport) guestColumns.push(["Passport No.", (guest) => guest.passport], ["Valid till", (guest) => guest.validTill]);
-    if (showRoom) guestColumns.push(["Room", (guest) => guest.room]);
-    body += `${tableStart}${band("Guest details", "", guestColumns.length)}<tr>${guestColumns.map(([title]) => `<th ${head}>${title}</th>`).join("")}</tr>`;
+    const guestColumns = [["#", (_, index) => index + 1, 30], ["Name", (guest) => guest.name, 0], ["DOB", (guest) => guest.dob, 95]];
+    if (showPassport) guestColumns.push(["Passport No.", (guest) => guest.passport, 140], ["Valid till", (guest) => guest.validTill, 95]);
+    if (showRoom) guestColumns.push(["Rm", (guest) => guest.room, 42]);
+    const guestColumnWidths = guestColumns.map(([, , width]) => `<col${width ? ` width="${width}" style="width:${width}px;"` : ""}>`).join("");
+    body += `${tableStart}<colgroup>${guestColumnWidths}</colgroup>${band("Guest details", "", guestColumns.length)}<tr>${guestColumns.map(([title, , width]) => `<th ${head}${width ? ` style="width:${width}px;"` : ""}>${title}</th>`).join("")}</tr>`;
     draft.guests.filter((guest) => guest.name).forEach((guest, index) => {
       body += `<tr>${guestColumns.map(([, getter]) => `<td ${cell}>${escape(getter(guest, index))}</td>`).join("")}</tr>`;
     });
@@ -116,7 +117,7 @@
       });
       body += "</table>";
     }
-    body += `${tableStart}${band("Quotation summary (USD)", draft.spo ? `SPO: ${draft.spo}` : "", 2)}<tr><th ${head}>Item</th><th ${head} style="width:125px;text-align:right;">Amount (USD)</th></tr>`;
+    body += `${tableStart}${band("Quotation summary (USD)", "", 2)}<tr><th ${head}>Item</th><th ${head} style="width:125px;text-align:right;">Amount (USD)</th></tr>`;
     calculated.rows.filter((row) => row.net > 0).forEach((row) => {
       const period = row.from && row.to ? `${String(row.from).slice(0, 5)} - ${String(row.to).slice(0, 5)}: ` : "";
       body += `<tr><td ${cell}>${escape(`${period}${row.item}${row.nights ? ` (${row.nights} Nights)` : ""}`)}</td><td ${cell} style="width:125px;text-align:right;">${escape(core.money(row.net))}</td></tr>`;
