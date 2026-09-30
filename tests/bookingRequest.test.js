@@ -11,8 +11,7 @@ test("booking separates room identities and expands quantities without guessing 
   ] };
   const draft = booking.create(payload, "MR TEST PERSON DOB 01.01.1980 PN 123456\nMR TEST PERSON DOB 01.01.1980 PN 123456");
   assert.deepEqual(draft.periods.map((period) => period.room), ["1", "2", "1", "2"]);
-  assert.deepEqual(draft.guests, [{ name: "MR TEST PERSON", dob: "01.01.1980", room: "" }]);
-  assert.ok(!JSON.stringify(draft).includes("123456"));
+  assert.deepEqual(draft.guests, [{ name: "MR TEST PERSON", dob: "01.01.1980", passport: "123456", validTill: "", room: "" }]);
 });
 
 test("booking email escapes user input and orders split periods within rooms", () => {
@@ -22,11 +21,13 @@ test("booking email escapes user input and orders split periods within rooms", (
     { room: "1", from: "04.11.2026", to: "07.11.2026", category: "Water", meal: "HB" },
     { room: "1", from: "01.11.2026", to: "04.11.2026", category: "Beach", meal: "HB" },
   ];
-  const html = booking.html(draft, "TOTAL: 100 USD", shareHtml, core);
+  const payload = { rows: [{ type: "ROOM", item: "Beach", from: "01.11.2026", to: "04.11.2026", qty: 1, rate: 100 }] };
+  const html = booking.html(draft, "TOTAL: 300 USD", shareHtml, core, payload);
   assert.ok(!html.includes("<img"));
   assert.ok(html.includes("&lt;img"));
   assert.ok(html.indexOf("Beach") < html.indexOf("Water"));
-  assert.ok(html.includes("text-decoration:underline"));
+  assert.ok(html.includes("Quotation summary (USD)"));
+  assert.ok(html.includes("300.00"));
   assert.ok(html.includes("<table"));
 });
 
@@ -42,9 +43,9 @@ test("booking warns about missing assignments, overlaps and guest counts", () =>
   assert.ok(warnings.some((text) => text.includes("assign every guest")));
 });
 
-test("booking captures only needed guest details and preserves period-specific meals", () => {
+test("booking captures reservation guest details and preserves period-specific meals", () => {
   const source = booking.captureSource("Guest name: MR TEST PERSON DOB 01.01.1980 PN 123456 TILL 01.01.2030\nMRS OTHER PERSON\nFlight details: AB123\nFlight details: CD456\nRemarks:\nQuiet room please\nSPO code: SPECIAL");
-  assert.ok(!source.includes("123456"));
+  assert.ok(source.includes("PN 123456 TILL 01.01.2030"));
   const draft = booking.create({ rows: [
     { type: "ROOM", item: "Beach", from: "01.11.2026", to: "04.11.2026" },
     { type: "ROOM", item: "Water", from: "04.11.2026", to: "07.11.2026" },
@@ -53,6 +54,8 @@ test("booking captures only needed guest details and preserves period-specific m
   ] }, source);
   assert.equal(draft.guests.length, 2);
   assert.equal(draft.guests[1].dob, "");
+  assert.equal(draft.guests[0].passport, "123456");
+  assert.equal(draft.guests[0].validTill, "01.01.2030");
   assert.equal(draft.arrival, "AB123");
   assert.equal(draft.departure, "CD456");
   assert.equal(draft.remarks, "Quiet room please");

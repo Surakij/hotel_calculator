@@ -5,6 +5,9 @@
   const escape = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
   const lines = (value) => escape(value).replace(/\r?\n/g, "<br>");
   const label = (value) => String(value || "").replace(/\s*-\s*(Adult|Child|Infant)$/i, "");
+  const guestKind = (name) => /^\s*(CHD|INF)\b/i.test(name || "") ? (/^\s*INF\b/i.test(name || "") ? "Infant" : "Child") : "Adult";
+  const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+  const guestSummary = (guests) => ["Adult", "Child", "Infant"].map((kind) => [guests.filter((guest) => guestKind(guest.name) === kind).length, kind]).filter(([count]) => count).map(([count, kind]) => plural(count, kind)).join(", ");
   function create(payload, source = "") {
     const rows = payload.rows || [];
     const service = (type, key = "item", period) => [...new Set(rows.filter((row) => row.type === type && (!period || !row.from || !row.to || (date(row.from) < date(period.to) && date(row.to) > date(period.from)))).map((row) => label(row[key])).filter(Boolean))].join(" / ");
@@ -26,17 +29,20 @@
       const dob = /\bDOB\s+(\d{2}\.\d{2}\.\d{4})/i.exec(match[2])?.[1] || "";
       const name = `${match[1].toUpperCase()} ${match[2].split(/\s+(?:DOB|PN|PASSPORT)\b/i)[0].trim()}`;
       const key = `${name}|${dob}`;
-      if (!seen.has(key)) guests.push({ name, dob, room: "" });
+      const passport = /\b(?:PN|PASSPORT(?:\s+NO\.?)?)\s*([A-Z0-9 ]+?)(?=\s+TILL\b|$)/i.exec(match[2])?.[1]?.trim() || "";
+      const validTill = /\bTILL\s+(\d{2}\.\d{2}\.\d{4})/i.exec(match[2])?.[1] || "";
+      if (!seen.has(key)) guests.push({ name, dob, passport, validTill, room: "" });
       seen.add(key);
     }
-    if (!guests.length) guests.push({ name: "", dob: "", room: "" });
+    if (!guests.length) guests.push({ name: "", dob: "", passport: "", validTill: "", room: "" });
     const flights = [...source.matchAll(/Flight details\s*:\s*([^\r\n]+)/gi)].map((match) => match[1].trim());
     const remarks = /Remarks\s*:?\s*\r?\n([\s\S]*?)(?=\r?\n\s*(?:SPO code|Room quotation|Hotel)\s*:|$)/i.exec(source)?.[1]?.trim() || "";
     return {
       hotel: payload.hotel || "", subject: `Booking request | ${payload.hotel || "Hotel"} | ${payload.checkin || ""} - ${payload.checkout || ""}`,
       guests, periods, transfer: service("TRANSFER"), arrival: flights[0] || "", departure: flights[1] || "", remarks,
-      greeting: "Dear Reservations Team,\nPlease accept and confirm the following reservation:",
-      closing: "Please confirm availability and provide the invoice.\n\nWith best regards,",
+      meal: service("MEAL"), spo: payload.spo || "", checkin: payload.checkin || "", checkout: payload.checkout || "",
+      greeting: "Please accept and confirm our new reservation:",
+      closing: "If the exact category is unavailable, please advise the closest alternative.",
     };
   }
   function date(value) {
@@ -46,7 +52,7 @@
   function captureSource(source) {
     const imported = create({ rows: [] }, source);
     return [
-      ...imported.guests.filter((guest) => guest.name).map((guest) => `${guest.name}${guest.dob ? ` DOB ${guest.dob}` : ""}`),
+      ...imported.guests.filter((guest) => guest.name).map((guest) => `${guest.name}${guest.dob ? ` DOB ${guest.dob}` : ""}${guest.passport ? ` PN ${guest.passport}` : ""}${guest.validTill ? ` TILL ${guest.validTill}` : ""}`),
       `Flight details: ${imported.arrival || "TBA"}`,
       `Flight details: ${imported.departure || "TBA"}`,
       `Remarks:\n${imported.remarks}\nSPO code:`,
@@ -69,25 +75,46 @@
     return [...new Set(result)];
   }
   function html(draft, calculation, shareHtml, core) {
-    const cell = 'style="border:1px solid #ccd3dc;padding:8px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:10pt Arial,sans-serif;text-transform:none;white-space:normal;"';
-    let body = `<p>${lines(draft.greeting)}</p><p><b>Hotel: ${escape(draft.hotel)}</b></p>`;
+    const payload = arguments[4] || { rows: [] };
+    const calculated = core.calculateRows(payload.rows || []);
+    const cell = 'style="border:1px solid #9fc4e5;padding:6px 9px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:10pt Arial,sans-serif;text-transform:none;white-space:normal;"';
+    const head = 'style="border:1px solid #78add7;padding:6px 9px;text-align:left;background:#dceefa;color:#092e61;font:bold 10pt Arial,sans-serif;"';
+    const band = (title, right = "") => `<tr><td colspan="6" style="border:1px solid #397cae;padding:6px 9px;background:#397cae;color:#ffffff;font:bold 10pt Arial,sans-serif;">${escape(title)}${right ? `<span style="float:right;">${escape(right)}</span>` : ""}</td></tr>`;
+    const tableStart = '<table cellpadding="0" cellspacing="0" width="100%" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:10pt Arial,sans-serif;margin:0 0 9px;">';
+    const roomNights = (period) => core.nightsBetween(period.from, period.to);
+    let body = `<p style="margin:0 0 9px;">${lines(draft.greeting)}</p>`;
+    body += `${tableStart}<tr>${["Hotel", "Stay dates", "Nights", "Guests", "Meal plan", "Transfer"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
+    body += `<tr>${[draft.hotel, `${draft.checkin} - ${draft.checkout}`, `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`, guestSummary(draft.guests), draft.meal, draft.transfer].map((value) => `<td ${cell}><b>${escape(value)}</b></td>`).join("")}</tr></table>`;
+    body += `${tableStart}${band("Guest details")}<tr>${["#", "Name", "DOB", "Passport No.", "Valid till", "Room"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
+    draft.guests.filter((guest) => guest.name).forEach((guest, index) => {
+      body += `<tr>${[index + 1, guest.name, guest.dob, guest.passport, guest.validTill, guest.room].map((value) => `<td ${cell}>${escape(value)}</td>`).join("")}</tr>`;
+    });
+    body += "</table>";
+    body += `${tableStart}${band("Reservation details")}`;
+    for (const [leftTitle, leftValue, rightTitle, rightValue] of [
+      ["Villa category", draft.periods.length > 1 ? "Split stay (see below)" : draft.periods[0]?.category || "", "Arrival flight", draft.arrival],
+      ["Meal plan", draft.meal, "Departure flight", draft.departure],
+      ["Transfer", draft.transfer, "SPO code", draft.spo],
+      ["Remarks", draft.remarks, "", ""],
+    ]) body += `<tr><th ${head}>${escape(leftTitle)}</th><td ${cell} colspan="2">${lines(leftValue)}</td><th ${head}>${escape(rightTitle)}</th><td ${cell} colspan="2">${lines(rightValue)}</td></tr>`;
+    body += "</table>";
+    body += `${tableStart}${band(draft.periods.length > 1 ? "Split stay details" : "Stay details")}<tr><th ${head} colspan="2">Period</th><th ${head}>Nights</th><th ${head} colspan="2">Room / Villa category</th><th ${head}>Occupancy</th></tr>`;
     const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
     rooms.forEach((room) => {
-      body += `<p><b>Room ${escape(room)}</b><br>${draft.guests.filter((guest) => guest.room === room).map((guest) => `${escape(guest.name)}${guest.dob ? ` &middot; DOB ${escape(guest.dob)}` : ""}`).join("<br>")}</p>`;
-      body += '<table cellpadding="0" cellspacing="0" width="100%" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:10pt Arial,sans-serif;"><tr>';
-      body += ["Check-in", "Check-out", "Villa category", "Meal plan", "Drinks"].map((title) => `<th ${cell}><b>${title}</b></th>`).join("") + "</tr>";
+      const occupancy = guestSummary(draft.guests.filter((guest) => guest.room === room));
       draft.periods.filter((period) => period.room === room).sort((a, b) => core.parseDate(a.from) - core.parseDate(b.from)).forEach((period) => {
-        body += `<tr>${[period.from, period.to, period.category, period.meal, period.drinks].map((value) => `<td ${cell}>${escape(value)}</td>`).join("")}</tr>`;
+        body += `<tr><td ${cell} colspan="2">${escape(period.from)} - ${escape(period.to)}</td><td ${cell}>${roomNights(period)}</td><td ${cell} colspan="2">${escape(period.category)}</td><td ${cell}>${escape(occupancy)}</td></tr>`;
       });
-      body += "</table>";
     });
-    const unassigned = draft.guests.filter((guest) => !rooms.includes(guest.room) && guest.name.trim());
-    if (unassigned.length) body += `<p><b>Guests - room assignment pending:</b><br>${unassigned.map((guest) => escape(guest.name)).join("<br>")}</p>`;
-    for (const [title, value] of [["Transfer", draft.transfer], ["Arrival flight", draft.arrival], ["Departure flight", draft.departure], ["Remarks", draft.remarks]]) {
-      if (value) body += `<p><b>${title}:</b> ${lines(value)}</p>`;
-    }
-    body += `<p><b>Calculation (USD)</b></p><div>${shareHtml(calculation).replace(/\n/g, "<br>")}</div><p>${lines(draft.closing)}</p>`;
-    return `<div style="font:10pt/1.45 Arial,sans-serif;color:#172338;">${body}</div>`;
+    body += "</table>";
+    body += `${tableStart}${band("Quotation summary (USD)", draft.spo ? `SPO: ${draft.spo}` : "")}<tr><th ${head} colspan="5">Item</th><th ${head} style="text-align:right;">Amount (USD)</th></tr>`;
+    calculated.rows.filter((row) => row.net > 0).forEach((row) => {
+      const period = row.from && row.to ? `${String(row.from).slice(0, 5)} - ${String(row.to).slice(0, 5)}: ` : "";
+      body += `<tr><td ${cell} colspan="5">${escape(`${period}${row.item}${row.nights ? ` (${row.nights} Nights)` : ""}`)}</td><td ${cell} style="text-align:right;">${escape(core.money(row.net))}</td></tr>`;
+    });
+    body += `<tr><td ${head} colspan="5" style="font-size:12pt;">TOTAL (USD)</td><td ${head} style="text-align:right;font-size:12pt;">${escape(core.money(calculated.total))}</td></tr></table>`;
+    body += `<p style="margin:8px 0 0;padding:8px;border:1px solid #9fc4e5;background:#edf7fd;">${lines(draft.closing)}</p>`;
+    return `<div style="width:100%;font:10pt/1.35 Arial,sans-serif;color:#172338;">${body}</div>`;
   }
   function mount({ getPayload, getSource, getDraft, saveDraft, core, shareHtml, toast }) {
     const dialog = document.getElementById("bookingModal");
@@ -102,6 +129,7 @@
     function persist() { saveDraft(JSON.parse(JSON.stringify({ draft, signature, accommodationSignature }))); }
     function field(parent, title, obj, key, type = "text") {
       const labelNode = document.createElement("label");
+      labelNode.className = `booking-field booking-field-${key}`;
       labelNode.textContent = title;
       const input = document.createElement(type === "textarea" ? "textarea" : "input");
       if (type !== "textarea") input.type = type;
@@ -122,6 +150,7 @@
     }
     function section(title) {
       const node = document.createElement("section");
+      node.className = "booking-section";
       const heading = document.createElement("h3");
       heading.textContent = title;
       node.append(heading);
@@ -132,16 +161,19 @@
       editor.replaceChildren();
       const header = section("Request");
       field(header, "Subject", draft, "subject");
-      field(header, "Hotel", draft, "hotel");
+      const overview = document.createElement("div"); overview.className = "booking-overview-grid";
+      field(overview, "Hotel", draft, "hotel"); field(overview, "Check-in", draft, "checkin"); field(overview, "Check-out", draft, "checkout");
+      field(overview, "Meal plan", draft, "meal"); field(overview, "Transfer", draft, "transfer"); field(overview, "SPO code", draft, "spo");
+      header.append(overview);
       field(header, "Opening", draft, "greeting", "textarea");
       const guests = section("Guests");
       draft.guests.forEach((guest, index) => {
         const row = document.createElement("div"); row.className = "booking-guest-row";
-        field(row, "Title / full name", guest, "name"); field(row, "Date of birth", guest, "dob"); field(row, "Room", guest, "room", "number");
+        field(row, "Title / full name", guest, "name"); field(row, "Date of birth", guest, "dob"); field(row, "Passport No.", guest, "passport"); field(row, "Valid till", guest, "validTill"); field(row, "Room", guest, "room", "number");
         button(row, "Remove", () => { draft.guests.splice(index, 1); persist(); render(); });
         guests.append(row);
       });
-      button(guests, "+ Guest", () => { draft.guests.push({ name: "", dob: "", room: "" }); persist(); render(); });
+      button(guests, "+ Guest", () => { draft.guests.push({ name: "", dob: "", passport: "", validTill: "", room: "" }); persist(); render(); });
       const stays = section("Accommodation");
       draft.periods.forEach((period, index) => {
         const row = document.createElement("div"); row.className = "booking-period-row";
@@ -151,7 +183,10 @@
       });
       button(stays, "+ Stay period", () => { draft.periods.push({ room: "1", from: "", to: "", category: "", meal: "", drinks: "" }); persist(); render(); });
       const details = section("Services & Notes");
-      for (const [title, key] of [["Transfer", "transfer"], ["Arrival flight", "arrival"], ["Departure flight", "departure"], ["Remarks", "remarks"], ["Closing", "closing"]]) field(details, title, draft, key, ["remarks", "closing"].includes(key) ? "textarea" : "text");
+      const services = document.createElement("div"); services.className = "booking-overview-grid";
+      for (const [title, key] of [["Arrival flight", "arrival"], ["Departure flight", "departure"]]) field(services, title, draft, key);
+      details.append(services);
+      for (const [title, key] of [["Remarks", "remarks"], ["Closing note", "closing"]]) field(details, title, draft, key, "textarea");
       show(false);
     }
     function content() {
@@ -163,7 +198,7 @@
       if (!calculation) issues.push("Calculation contains invalid values. Correct them before copying.");
       warningBox.textContent = issues.join("\n");
       warningBox.hidden = !issues.length;
-      return { calculation, issues, html: html(draft, calculation, shareHtml, core) };
+      return { calculation, issues, html: html(draft, calculation, shareHtml, core, payload) };
     }
     function show(isPreview) {
       preview.innerHTML = content().html;
