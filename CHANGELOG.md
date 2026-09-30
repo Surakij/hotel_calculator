@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.32
+
+- Add an editable Booking Request assembled from imported guest data and the current calculation.
+- Copy a compact, Outlook-compatible HTML reservation form with split stays, guest documents, services, SPO and quotation details.
+- Preserve request edits in the draft and warn when calculator or accommodation data has changed.
+
 ## 1.6.31
 
 - Group Short Share room periods by category, then by date, preserving extra assignments and totals.
