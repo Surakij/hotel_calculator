@@ -77,12 +77,12 @@
   function html(draft, calculation, shareHtml, core) {
     const payload = arguments[4] || { rows: [] };
     const calculated = core.calculateRows(payload.rows || []);
-    const cell = 'style="border:1px solid #9fc4e5;padding:6px 9px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:10pt Arial,sans-serif;text-transform:none;white-space:normal;"';
-    const head = 'style="border:1px solid #78add7;padding:6px 9px;text-align:left;background:#dceefa;color:#092e61;font:bold 10pt Arial,sans-serif;"';
-    const band = (title, right = "") => `<tr><td colspan="6" style="border:1px solid #397cae;padding:6px 9px;background:#397cae;color:#ffffff;font:bold 10pt Arial,sans-serif;">${escape(title)}${right ? `<span style="float:right;">${escape(right)}</span>` : ""}</td></tr>`;
-    const tableStart = '<table cellpadding="0" cellspacing="0" width="100%" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:10pt Arial,sans-serif;margin:0 0 9px;">';
+    const cell = 'style="border:1px solid #9fc4e5;padding:4px 7px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:9pt Arial,sans-serif;text-transform:none;white-space:normal;"';
+    const head = 'style="border:1px solid #78add7;padding:4px 7px;text-align:left;background:#dceefa;color:#092e61;font:bold 9pt Arial,sans-serif;"';
+    const band = (title, right = "") => `<tr><td colspan="6" style="border:1px solid #397cae;padding:4px 7px;background:#397cae;color:#ffffff;font:bold 9pt Arial,sans-serif;">${escape(title)}${right ? `<span style="float:right;">${escape(right)}</span>` : ""}</td></tr>`;
+    const tableStart = '<table cellpadding="0" cellspacing="0" width="100%" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:9pt Arial,sans-serif;margin:0 0 5px;">';
     const roomNights = (period) => core.nightsBetween(period.from, period.to);
-    let body = `<p style="margin:0 0 9px;">${lines(draft.greeting)}</p>`;
+    let body = `<p style="margin:0 0 5px;">${lines(draft.greeting)}</p>`;
     body += `${tableStart}<tr>${["Hotel", "Stay dates", "Nights", "Guests", "Meal plan", "Transfer"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
     body += `<tr>${[draft.hotel, `${draft.checkin} - ${draft.checkout}`, `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`, guestSummary(draft.guests), draft.meal, draft.transfer].map((value) => `<td ${cell}><b>${escape(value)}</b></td>`).join("")}</tr></table>`;
     body += `${tableStart}${band("Guest details")}<tr>${["#", "Name", "DOB", "Passport No.", "Valid till", "Room"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
@@ -112,9 +112,9 @@
       const period = row.from && row.to ? `${String(row.from).slice(0, 5)} - ${String(row.to).slice(0, 5)}: ` : "";
       body += `<tr><td ${cell} colspan="5">${escape(`${period}${row.item}${row.nights ? ` (${row.nights} Nights)` : ""}`)}</td><td ${cell} style="text-align:right;">${escape(core.money(row.net))}</td></tr>`;
     });
-    body += `<tr><td ${head} colspan="5" style="font-size:12pt;">TOTAL (USD)</td><td ${head} style="text-align:right;font-size:12pt;">${escape(core.money(calculated.total))}</td></tr></table>`;
-    body += `<p style="margin:8px 0 0;padding:8px;border:1px solid #9fc4e5;background:#edf7fd;">${lines(draft.closing)}</p>`;
-    return `<div style="width:100%;font:10pt/1.35 Arial,sans-serif;color:#172338;">${body}</div>`;
+    body += `<tr><td ${head} colspan="5" style="font-size:10pt;">TOTAL (USD)</td><td ${head} style="text-align:right;font-size:10pt;">${escape(core.money(calculated.total))}</td></tr></table>`;
+    body += `<p style="margin:5px 0 0;padding:5px 7px;border:1px solid #9fc4e5;background:#edf7fd;">${lines(draft.closing)}</p>`;
+    return `<div style="width:100%;font:9pt/1.25 Arial,sans-serif;color:#172338;">${body}</div>`;
   }
   function mount({ getPayload, getSource, getDraft, saveDraft, core, shareHtml, toast }) {
     const dialog = document.getElementById("bookingModal");
@@ -150,7 +150,7 @@
     }
     function section(title) {
       const node = document.createElement("section");
-      node.className = "booking-section";
+      node.className = `booking-section booking-section-${title.toLowerCase().replace(/[^a-z]+/g, "-")}`;
       const heading = document.createElement("h3");
       heading.textContent = title;
       node.append(heading);
