@@ -27,6 +27,7 @@
   <script src="assets/samoParser.js?v=1.6.31" defer></script>
   <script src="assets/updateManager.js?v=1.6.31" defer></script>
   <script src="assets/sharePresentation.js?v=1.6.31" defer></script>
+  <script src="assets/bookingRequest.js?v=1.6.31" defer></script>
   <script src="assets/app.js?v=1.6.31" defer></script>
   <script src="assets/hotelReselect.js?v=1.6.31" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -159,6 +160,18 @@
   <datalist id="hotelList"></datalist>
   <div id="hotelPicker" class="hotel-picker" role="dialog" aria-label="Choose hotel"></div>
   <div id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="bookingModal" class="modal booking-modal" aria-labelledby="bookingTitle">
+    <div class="modal-head"><h2 id="bookingTitle">Booking Request</h2><button id="closeBooking" class="close" type="button">Close</button></div>
+    <div class="booking-tools">
+      <div role="tablist" aria-label="Request view"><button id="bookingEditTab" role="tab" aria-selected="true" type="button">Edit</button><button id="bookingPreviewTab" role="tab" aria-selected="false" type="button">Email preview</button></div>
+      <button id="bookingReload" type="button">Reload calculator data</button>
+    </div>
+    <div id="bookingWarnings" class="samo-preview-warnings" role="status" hidden></div>
+    <div id="bookingEditor"></div>
+    <div id="bookingPreview" hidden></div>
+    <div class="booking-tools"><button id="bookingCopySubject" type="button">Copy subject</button><button id="bookingCopy" class="share" type="button">Copy for Outlook</button></div>
+  </dialog>
 
   <dialog id="shareModal" class="modal">
     <div class="modal-head">

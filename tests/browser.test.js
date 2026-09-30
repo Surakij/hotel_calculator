@@ -27,6 +27,64 @@ afterEach(async () => {
   assert.deepEqual(errors, []);
 });
 
+test("booking request receives import guests and clears them for a new calculation", async () => {
+  await page.locator("#showSamoImport").click();
+  await page.locator("#samoImportText").fill("Hotel: Anantara Dhigu Maldives 5*\nGuest name: MR TEST PERSON DOB 01.01.1980 PN 123456\nNumber of guest: 1 Adult\nArrival date: 28.10.2026\nDeparture date: 04.11.2026\nVilla category: Sunrise Beach Villa\nMeal Plan: HB\nTransfer: Speedboat\nRemarks:\nQuiet room please\nSPO code:");
+  await page.locator("#parseSamoImport").click();
+  await page.locator("#applySamoImport").click();
+  await page.locator("#showBooking").click();
+  assert.equal(await page.locator(".booking-guest-row input").first().inputValue(), "MR TEST PERSON");
+  assert.equal(await page.getByLabel("Remarks", { exact: true }).inputValue(), "Quiet room please");
+  await page.locator("#closeBooking").click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#clearAll").click();
+  await page.locator("#showBooking").click();
+  assert.equal(await page.locator(".booking-guest-row input").first().inputValue(), "");
+});
+
+test("booking request edits survive reload and copy rich Outlook HTML", async () => {
+  await page.evaluate(() => {
+    HotelCalculatorStorage.saveDraft({
+      hotel: "Example Maldives", checkin: "28.10.2026", checkout: "04.11.2026", guests: { adults: 2, children: 0, infants: 0 },
+      bookingSource: "MR ALEX TEST DOB 01.01.1980\nMRS MARIA TEST DOB 02.02.1985",
+      rows: [
+        { type: "ROOM", roomKey: "one", item: "Beach Villa With Pool", from: "28.10.2026", to: "01.11.2026", qty: 1, rate: 800, followGlobal: false },
+        { type: "ROOM", roomKey: "one", item: "Water Villa With Pool", from: "01.11.2026", to: "04.11.2026", qty: 1, rate: 900, followGlobal: false },
+        { type: "ROOM", roomKey: "two", item: "Deluxe Villa", from: "28.10.2026", to: "04.11.2026", qty: 1, rate: 500, followGlobal: false },
+      ],
+    });
+  });
+  await page.reload();
+  await page.locator("#showBooking").click();
+  await page.locator(".booking-guest-row").nth(0).locator('input[type="number"]').fill("1");
+  await page.locator(".booking-guest-row").nth(1).locator('input[type="number"]').fill("2");
+  await page.getByLabel("Subject", { exact: true }).fill("Booking request - test");
+  await page.waitForTimeout(400);
+  await page.reload();
+  await page.locator("#showBooking").click();
+  assert.equal(await page.getByLabel("Subject", { exact: true }).inputValue(), "Booking request - test");
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.locator("#bookingEditor").evaluate((element) => element.scrollWidth <= element.clientWidth + 1));
+    await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), `booking-editor-${width}.png`) });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#bookingPreviewTab").click();
+  assert.equal(await page.locator("#bookingWarnings").isVisible(), false);
+  assert.ok(await page.locator("#bookingPreview").evaluate((element) => element.scrollWidth <= element.clientWidth + 1));
+  const text = await page.locator("#bookingPreview").innerText();
+  assert.ok(text.indexOf("Beach Villa") < text.indexOf("Water Villa"));
+  assert.ok(text.includes("Room 2"));
+  assert.ok(text.includes("TOTAL:"));
+  await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), "booking-preview.png") });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { write: async (items) => { window.bookingCopiedHtml = await (await items[0].getType("text/html")).text(); } } });
+  });
+  await page.locator("#bookingCopy").click();
+  await page.waitForFunction(() => Boolean(window.bookingCopiedHtml));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("<table"));
+});
+
 test("history restores manual quantities, child ages and Days Before exactly", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);

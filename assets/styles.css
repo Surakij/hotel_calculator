@@ -2977,3 +2977,24 @@ select[aria-invalid="true"] {
     width: min(332px, calc(100vw - 16px));
   }
 }
+/* Booking request editor and Outlook preview. */
+.booking-modal { width: min(1120px, calc(100vw - 32px)); max-width: 1120px; }
+.booking-tools { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 0; }
+.booking-tools [aria-selected="true"] { background: #eaf3ff; border-color: #2670dc; }
+#bookingEditor section { padding: 16px 0; border-bottom: 1px solid #dbe4ed; }
+#bookingEditor h3 { font-size: 15px; margin: 0 0 12px; }
+#bookingEditor label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; min-width: 0; margin-bottom: 10px; }
+#bookingEditor input, #bookingEditor textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 9px; border: 1px solid var(--line); border-radius: 6px; font: 13px/1.4 Arial, sans-serif; color: var(--navy); background: white; }
+#bookingEditor input:focus, #bookingEditor textarea:focus { outline: 2px solid #b9d7fb; outline-offset: 1px; }
+.booking-modal button { border: 1px solid var(--line); border-radius: 6px; }
+.booking-modal .booking-remove { width: 34px; height: 34px; padding: 0; font-size: 22px; color: #d32738; background: #fff1f2; }
+#bookingEditor textarea { min-height: 72px; resize: vertical; }
+.booking-guest-row { display: grid; grid-template-columns: minmax(160px, 1fr) 150px 80px 90px; gap: 10px; align-items: center; }
+.booking-period-row { display: grid; grid-template-columns: 65px 110px 110px minmax(150px, 2fr) minmax(90px, 1fr) minmax(100px, 1fr) 85px; gap: 8px; align-items: center; }
+#bookingPreview { background: white; color: #172338; padding: 22px; overflow-wrap: anywhere; }
+#bookingWarnings { white-space: pre-line; }
+#bookingWarnings[hidden] { display: none; }
+@media (max-width: 850px) {
+  .booking-period-row, .booking-guest-row { grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid #dbe4ed; padding: 12px 0; }
+  #bookingPreview { padding: 10px; overflow-x: auto; }
+}
