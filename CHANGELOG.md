@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.37
+
+- Remember booking opening, closing, signature and text color independently of calculator drafts; preserve them through new requests and data reloads.
+- Reuse Short Share quotation text and emphasis inside booking emails, including sequential split extras.
+- Omit dates from Green Tax in the booking form.
+
 ## 1.6.36
 
 - Allocate unassigned person extras by nights across a single sequential split stay, keeping simultaneous-room assignments explicit.

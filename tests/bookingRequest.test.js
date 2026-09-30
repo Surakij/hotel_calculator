@@ -4,6 +4,20 @@ const booking = require("../assets/bookingRequest.js");
 const core = require("../assets/core.js");
 const { shareHtml } = require("../assets/sharePresentation.js");
 
+test("booking quotation reuses Short Share formatting and leaves Green Tax undated", () => {
+  const payload = { checkin: "21.10.2026", checkout: "01.11.2026", rows: [
+    { type: "ROOM", item: "Water", qty: 1, rate: 100, from: "21.10.2026", to: "27.10.2026" },
+    { type: "ROOM", item: "Beach", qty: 1, rate: 200, from: "27.10.2026", to: "01.11.2026" },
+    { type: "EXTRA", item: "Extra Adult", qty: 1, rate: 395, from: "21.10.2026", to: "01.11.2026" },
+    { type: "GREEN_TAX", item: "Green Tax", qty: 3, rate: 12, from: "21.10.2026", to: "01.11.2026" },
+  ] };
+  const text = core.buildShareText(payload).split("\n");
+  const output = booking.html(booking.create(payload), "", shareHtml, core, payload);
+  assert.ok(output.includes(shareHtml(text.slice(text.indexOf("") + 1).join("\n")).replaceAll("\n", "<br>")));
+  assert.ok(output.includes("<strong>Green Tax</strong> :"));
+  assert.ok(!output.includes("Maldives Green Tax ("));
+});
+
 test("empty remarks do not capture the following SPO label after repeated import", () => {
   const source = "Remarks\nSPO code:\nShoulder Season\nRoom quotation:\n100";
   assert.equal(booking.create({ rows: [] }, source).remarks, "");
@@ -35,7 +49,7 @@ test("booking email escapes user input and orders split periods within rooms", (
   assert.ok(html.indexOf("Beach") < html.indexOf("Water"));
   assert.ok(html.includes("Calibri,Arial,sans-serif"));
   assert.ok(html.includes("Room quotation"));
-  assert.ok(html.includes("300.00"));
+  assert.ok(html.includes("300 USD"));
   assert.ok(html.includes("<table"));
   assert.equal((html.match(/ONLY-ONCE/g) || []).length, 1);
   assert.ok(html.indexOf("SPO code") < html.indexOf("Room quotation"));

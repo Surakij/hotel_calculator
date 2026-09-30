@@ -7,8 +7,8 @@
   let bookingSource = "";
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.36";
-  const APP_BUILD = "1.6.36";
+  const APP_VERSION = "1.6.37";
+  const APP_BUILD = "1.6.37";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -3107,7 +3107,13 @@
     const bookingIcon = $("showSamoImport").querySelector("svg")?.cloneNode(true);
     if (bookingIcon) bookingButton.prepend(bookingIcon);
     $("showSamoImport").insertAdjacentElement("afterend", bookingButton);
+    if (!storage.bookingTemplate()) {
+      const previousRequest = storage.loadDraft()?.payload?.bookingRequest?.draft;
+      if (previousRequest) storage.saveBookingTemplate(previousRequest);
+    }
     window.HotelBookingRequest.mount({
+      getTemplate: () => storage.bookingTemplate(),
+      saveTemplate: (template) => storage.saveBookingTemplate(template),
       getPayload: sharePayload,
       getSource: () => bookingSource,
       getDraft: () => bookingRequest,

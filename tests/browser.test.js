@@ -57,6 +57,32 @@ test("booking request receives import guests and clears them for a new calculati
   assert.equal(await page.locator(".booking-guest-row input").first().inputValue(), "");
 });
 
+test("booking message template survives new calculations, reload and manual clearing", async () => {
+  await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
+  for (const [name, value] of [["Opening", "My opening"], ["Closing note", "My closing"], ["Signature", "My signature"]]) {
+    await page.locator("#bookingEditor").getByLabel(name, { exact: true }).fill(value);
+  }
+  await page.locator("#closeBooking").click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#clearAll").click();
+  await page.reload();
+  await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
+  for (const [name, value] of [["Opening", "My opening"], ["Closing note", "My closing"], ["Signature", "My signature"]]) {
+    assert.equal(await page.locator("#bookingEditor").getByLabel(name, { exact: true }).inputValue(), value);
+  }
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#bookingReload").click();
+  assert.equal(await page.locator("#bookingEditor").getByLabel("Signature", { exact: true }).inputValue(), "My signature");
+  await page.locator("#bookingEditor").getByLabel("Opening", { exact: true }).fill("");
+  await page.locator("#closeBooking").click();
+  await page.reload();
+  await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
+  assert.equal(await page.locator("#bookingEditor").getByLabel("Opening", { exact: true }).inputValue(), "");
+});
+
 test("booking request edits survive reload and copy rich Outlook HTML", async () => {
   await page.evaluate(() => {
     HotelCalculatorStorage.saveDraft({
@@ -123,7 +149,7 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("Kind regards,<br>Example Company"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("color:#123456"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("<b>Room 2:</b>"));
-  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("Beach Villa With Pool</b>: 800"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("Beach Villa With Pool</strong> : 800"));
 });
 
 test("history restores manual quantities, child ages and Days Before exactly", async () => {

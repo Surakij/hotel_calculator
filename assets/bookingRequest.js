@@ -111,11 +111,10 @@
         return `${rooms.length > 1 ? `<b>Room ${escape(room)}:</b> ` : ""}${field(`${path}.from`, period.from, "Stay from")} - ${field(`${path}.to`, period.to, "Stay to")} &middot; ${field(`${path}.category`, period.category, "Villa category")} &middot; ${roomNights(period)} Nights${period.meal && period.meal !== draft.meal ? ` &middot; ${escape(period.meal)}` : ""}${period.drinks ? ` + ${escape(period.drinks)}` : ""}`;
       })).join("<br>");
     const greenTax = calculated.rows.find((row) => core.isGreenTax(row));
-    const handling = greenTax ? `Maldives Green Tax (${draft.checkin} - ${draft.checkout})` : "";
-    const calculationRows = calculated.rows.filter((row) => Number.isFinite(row.net) && row.net !== 0).map((row) => {
-      const period = row.from && row.to ? `${escape(String(row.from).slice(0, 5))} - ${escape(String(row.to).slice(0, 5))}: ` : "";
-      return `<b>${period}${escape(row.item)}</b>: ${escape(core.expression(row))} = ${escape(core.money(row.net))}`;
-    }).join("<br>");
+    const handling = greenTax ? "Maldives Green Tax" : "";
+    const shortShare = core.buildShareText(payload).split("\n");
+    const quotation = shortShare.slice(shortShare.indexOf("") + 1).join("\n");
+    const calculationRows = shareHtml(quotation).replaceAll("\n", "<br>");
     let body = draft.greeting || editable ? `<div style="margin:0 0 4px;line-height:1.25;">${field("greeting", draft.greeting, "Opening")}</div>` : "";
     body += `${tableStart}<tr><td colspan="4" style="border:1px solid #bdd1e1;padding:5px 6px;background:#dceefa;${font}font-weight:bold;">${field("hotel", draft.hotel, "Hotel")}</td></tr>`;
     const row = (title, value, rightTitle = "", rightValue = "") => `<tr><th ${head}>${escape(title)}</th><td ${cell}${rightTitle ? "" : ' colspan="3"'}>${value || ""}</td>${rightTitle ? `<th ${head}>${escape(rightTitle)}</th><td ${cell}>${rightValue || ""}</td>` : ""}</tr>`;
@@ -129,13 +128,13 @@
     if (draft.transfer || editable) body += row("Transfer", field("transfer", draft.transfer, "Transfer"));
     if (draft.remarks || editable) body += row("Remarks", field("remarks", draft.remarks, "Remarks"));
     if (draft.spo || editable) body += row("SPO code", field("spo", draft.spo, "SPO code"));
-    body += row("Room quotation", `${calculationRows}<div style="margin-top:3px;padding-top:3px;border-top:1px solid #9fc4e5;"><b><u>TOTAL: ${escape(core.money(calculated.total))} USD</u></b></div>`);
+    body += row("Room quotation", calculationRows);
     body += "</table>";
     if (draft.closing || editable) body += `<table width="720" cellpadding="0" cellspacing="0" style="width:720px;max-width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;"><tr><td style="padding:4px 6px;background:#edf7fd;${font}">${field("closing", draft.closing, "Closing note")}</td></tr></table>`;
     if (draft.signature || editable) body += `<div style="margin-top:8px;${font}">${field("signature", draft.signature, "Signature")}</div>`;
     return `<div style="width:720px;max-width:100%;${font}">${body}</div>`;
   }
-  function mount({ getPayload, getSource, getDraft, saveDraft, core, shareHtml, toast }) {
+  function mount({ getPayload, getSource, getDraft, saveDraft, getTemplate, saveTemplate, core, shareHtml, toast }) {
     const dialog = document.getElementById("bookingModal");
     let draft;
     let payload;
@@ -145,6 +144,11 @@
     const editor = document.getElementById("bookingEditor");
     const preview = document.getElementById("bookingPreview");
     const warningBox = document.getElementById("bookingWarnings");
+    const templateKeys = ["greeting", "closing", "signature", "textColor"];
+    function rememberTemplate() {
+      const template = Object.fromEntries(templateKeys.map((key) => [key, draft[key] || ""]));
+      if (!saveTemplate(template)) toast("Could not save booking template in this browser");
+    }
     function persist() { saveDraft(JSON.parse(JSON.stringify({ draft, signature, accommodationSignature }))); }
     function field(parent, title, obj, key, type = "text") {
       const labelNode = document.createElement("label");
@@ -154,7 +158,7 @@
       if (type !== "textarea") input.type = type;
       if (type === "number") { input.min = "1"; input.step = "1"; }
       input.value = obj[key] || "";
-      input.addEventListener("input", () => { obj[key] = input.value; persist(); });
+      input.addEventListener("input", () => { obj[key] = input.value; if (obj === draft && templateKeys.includes(key)) rememberTemplate(); persist(); });
       labelNode.append(input);
       parent.append(labelNode);
     }
@@ -237,9 +241,9 @@
       draft.textColor ??= "#003366";
       delete draft.subject;
       draft.remarks = cleanRemarks(draft.remarks);
-      // Remove only the former built-in copy, preserving user-written messages.
-      if (draft.greeting === "Dear Reservation Team,\nGreetings from Maldiviana!\nPlease accept and confirm our new reservation:") draft.greeting = "";
-      if (draft.closing === "IMPORTANT - in case of non-availability of the exact request, please advise:\n- available villa categories for the requested dates;\n- availability for the requested villa for the closest dates.\n\nPLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION.") draft.closing = "";
+      const template = getTemplate();
+      if (template) Object.assign(draft, template);
+      else rememberTemplate();
       signature = saved?.signature || payloadSignature(payload);
       accommodationSignature = saved?.accommodationSignature || JSON.stringify(draft.periods.map(({ room, ...period }) => period));
       render(); show(true); dialog.showModal();
@@ -257,12 +261,14 @@
       const key = path.at(-1);
       if (!target || !Object.hasOwn(target, key) || typeof target[key] !== "string") return;
       target[key] = field.innerText.replace(/\r/g, "").trim();
+      if (target === draft && templateKeys.includes(key)) rememberTemplate();
       persist();
       content();
     });
     document.getElementById("bookingReload").addEventListener("click", () => {
       if (!window.confirm("Replace request edits with current calculator data?")) return;
-      payload = getPayload(); draft = create(payload, getSource()); signature = payloadSignature(payload); accommodationSignature = JSON.stringify(draft.periods.map(({ room, ...period }) => period)); persist(); render();
+      const template = Object.fromEntries(templateKeys.map((key) => [key, draft[key] || ""]));
+      payload = getPayload(); draft = { ...create(payload, getSource()), ...template }; signature = payloadSignature(payload); accommodationSignature = JSON.stringify(draft.periods.map(({ room, ...period }) => period)); persist(); render();
     });
     document.getElementById("bookingCopy").addEventListener("click", async () => {
       const result = content(); show(true);
