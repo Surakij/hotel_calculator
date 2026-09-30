@@ -61,12 +61,17 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   await page.locator("#bookingEditTab").click();
   await page.locator(".booking-guest-row").nth(0).locator('input[type="number"]').fill("1");
   await page.locator(".booking-guest-row").nth(1).locator('input[type="number"]').fill("2");
-  await page.getByLabel("Subject", { exact: true }).fill("Booking request - test");
+  assert.equal(await page.getByLabel("Subject", { exact: true }).count(), 0);
+  assert.equal(await page.locator("#bookingEditor").getByLabel("Opening", { exact: true }).inputValue(), "");
+  assert.equal(await page.locator("#bookingEditor").getByLabel("Closing note", { exact: true }).inputValue(), "");
+  await page.locator("#bookingEditor").getByLabel("Opening", { exact: true }).fill("Our own greeting");
+  await page.locator("#bookingEditor").getByLabel("Signature", { exact: true }).fill("Kind regards,\nExample Company");
+  await page.locator("#bookingEditor").getByLabel("Text color", { exact: true }).fill("#123456");
   await page.waitForTimeout(400);
   await page.reload();
   await page.locator("#showBooking").click();
   await page.locator("#bookingEditTab").click();
-  assert.equal(await page.getByLabel("Subject", { exact: true }).inputValue(), "Booking request - test");
+  assert.equal(await page.locator("#bookingEditor").getByLabel("Opening", { exact: true }).inputValue(), "Our own greeting");
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.locator("#bookingEditor").evaluate((element) => element.scrollWidth <= element.clientWidth + 1));
@@ -102,6 +107,8 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   assert.ok(!(await page.evaluate(() => window.bookingCopiedHtml)).includes("contenteditable"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("77 1234567"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("800 * 1 * 4"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("Kind regards,<br>Example Company"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("color:#123456"));
 });
 
 test("history restores manual quantities, child ages and Days Before exactly", async () => {

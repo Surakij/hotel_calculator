@@ -4,6 +4,12 @@ const booking = require("../assets/bookingRequest.js");
 const core = require("../assets/core.js");
 const { shareHtml } = require("../assets/sharePresentation.js");
 
+test("empty remarks do not capture the following SPO label after repeated import", () => {
+  const source = "Remarks\nSPO code:\nShoulder Season\nRoom quotation:\n100";
+  assert.equal(booking.create({ rows: [] }, source).remarks, "");
+  assert.equal(booking.create({ rows: [] }, booking.captureSource(source)).remarks, "");
+});
+
 test("booking separates room identities and expands quantities without guessing guest allocation", () => {
   const payload = { hotel: "Hotel", rows: [
     { type: "ROOM", roomKey: "a", item: "Beach", qty: 2, from: "01.11.2026", to: "04.11.2026" },
@@ -27,16 +33,49 @@ test("booking email escapes user input and orders split periods within rooms", (
   assert.ok(!html.includes("<img"));
   assert.ok(html.includes("&lt;img"));
   assert.ok(html.indexOf("Beach") < html.indexOf("Water"));
-  assert.ok(html.includes("RESERVATION REQUEST"));
+  assert.ok(html.includes("Calibri,Arial,sans-serif"));
   assert.ok(html.includes("Room quotation"));
   assert.ok(html.includes("300.00"));
   assert.ok(html.includes("<table"));
   assert.equal((html.match(/ONLY-ONCE/g) || []).length, 1);
+  assert.ok(html.indexOf("SPO code") < html.indexOf("Room quotation"));
+  assert.match(html, /ONLY-ONCE<\/td><\/tr><tr><th [^>]*>Room quotation/);
   assert.ok(html.includes("100 * 1 * 3"));
   assert.ok(!html.includes("contenteditable"));
   const editable = booking.html(draft, "", shareHtml, core, payload, true);
   assert.ok(editable.includes('data-booking-field="hotel"'));
   assert.ok(!editable.includes("<img"));
+});
+
+test("booking starts without company text or subject and omits empty message blocks", () => {
+  const draft = booking.create({ rows: [] });
+  assert.equal(draft.greeting, "");
+  assert.equal(draft.closing, "");
+  assert.equal(Object.hasOwn(draft, "subject"), false);
+  const output = booking.html(draft, "", shareHtml, core);
+  assert.ok(!output.includes("Maldiviana"));
+  assert.ok(!output.includes("border-left:3px"));
+  assert.ok(!output.includes("SPO code"));
+});
+
+test("booking guest details stay inline with a bold name and separated document fields", () => {
+  const draft = booking.create({ rows: [] }, "MR EXAMPLE PERSON DOB 01.01.1980 PN 77 1234567 TILL 01.01.2035");
+  const output = booking.html(draft, "", shareHtml, core);
+  assert.ok(output.includes("<b>MR EXAMPLE PERSON</b>"));
+  assert.equal((output.match(/&middot;/g) || []).length, 3);
+  assert.ok(output.includes("PN</span>&nbsp;77 1234567"));
+  assert.ok(output.includes("TILL</span>&nbsp;01.01.2035"));
+});
+
+test("booking signature and chosen color are included in copied email", () => {
+  const draft = booking.create({ rows: [] });
+  draft.signature = "Kind regards,\nExample <Company>";
+  draft.textColor = "#123456";
+  const output = booking.html(draft, "", shareHtml, core);
+  assert.ok(output.includes("Kind regards,<br>Example &lt;Company&gt;"));
+  assert.ok(output.includes("font:11pt/1.2 Calibri,Arial,sans-serif;color:#123456"));
+  draft.textColor = 'red;" onmouseover="bad()';
+  assert.ok(!booking.html(draft, "", shareHtml, core).includes("onmouseover"));
 });
 
 test("booking warns about missing assignments, overlaps and guest counts", () => {

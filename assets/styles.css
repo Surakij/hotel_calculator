@@ -3001,13 +3001,13 @@ select[aria-invalid="true"] {
 .booking-modal button { border: 1px solid var(--line); border-radius: 6px; }
 .booking-modal .booking-remove { width: 28px; height: 28px; padding: 0; font-size: 18px; color: #d32738; background: #fff1f2; }
 #bookingEditor textarea { min-height: 44px; max-height: 70px; resize: vertical; }
+#bookingEditor input[type="color"] { width: 44px; height: 28px; padding: 2px; cursor: pointer; }
 .booking-section-request { grid-area: request; }
 .booking-section-guests { grid-area: guests; }
 .booking-section-accommodation { grid-area: accommodation; }
 .booking-section-services-notes { grid-area: services; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 8px; }
 .booking-section-services-notes h3, .booking-section-services-notes .booking-overview-grid { grid-column: 1 / -1; }
 .booking-overview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 8px; }
-.booking-field-subject { grid-column: 1 / -1; }
 .booking-guest-row { display: grid; grid-template-columns: minmax(140px, 1.35fr) 92px minmax(105px, 1fr) 92px 54px 30px; gap: 5px; align-items: center; padding: 1px 0; }
 .booking-period-row { display: grid; grid-template-columns: 48px 88px 88px minmax(125px, 1.7fr) minmax(72px, .8fr) minmax(82px, .9fr) 30px; gap: 5px; align-items: center; padding: 1px 0; }
 #bookingPreview { min-height: 0; overflow: auto; background: white; color: #172338; padding: 12px; border: 1px solid #d8e4f2; border-radius: 7px; overflow-wrap: anywhere; box-shadow: 0 2px 8px rgba(8, 39, 88, .05); }

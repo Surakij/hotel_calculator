@@ -7,6 +7,7 @@
   const label = (value) => String(value || "").replace(/\s*-\s*(Adult|Child|Infant)$/i, "");
   const guestKind = (name) => /^\s*(CHD|INF)\b/i.test(name || "") ? (/^\s*INF\b/i.test(name || "") ? "Infant" : "Child") : "Adult";
   const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+  const cleanRemarks = (value) => String(value || "").split(/(?:^|\r?\n)[ \t]*(?:SPO code|Room quotation|Hotel)[ \t]*:/i)[0].trim();
   const guestSummary = (guests) => ["Adult", "Child", "Infant"].map((kind) => [guests.filter((guest) => guestKind(guest.name) === kind).length, kind]).filter(([count]) => count).map(([count, kind]) => plural(count, kind)).join(", ");
   function create(payload, source = "") {
     const rows = payload.rows || [];
@@ -36,14 +37,16 @@
     }
     if (!guests.length) guests.push({ name: "", dob: "", passport: "", validTill: "", room: "" });
     const flights = [...source.matchAll(/Flight details\s*:\s*([^\r\n]+)/gi)].map((match) => match[1].trim());
-    const remarks = /Remarks[ \t]*:?[ \t]*\r?\n([\s\S]*?)(?=\r?\n[ \t]*(?:SPO code|Room quotation|Hotel)[ \t]*:|$)/i.exec(source)?.[1]?.trim() || "";
+    const remarks = cleanRemarks(/Remarks[ \t]*:?[ \t]*\r?\n([\s\S]*?)(?=\r?\n[ \t]*(?:SPO code|Room quotation|Hotel)[ \t]*:|$)/i.exec(source)?.[1]);
     if (new Set(periods.map((period) => period.room)).size === 1) guests.forEach((guest) => { guest.room = periods[0]?.room || "1"; });
     return {
-      hotel: payload.hotel || "", subject: `Booking request | ${payload.hotel || "Hotel"} | ${payload.checkin || ""} - ${payload.checkout || ""}`,
+      hotel: payload.hotel || "",
       guests, periods, transfer: service("TRANSFER"), arrival: flights[0] || "", departure: flights[1] || "", remarks,
       meal: service("MEAL"), spo: payload.spo || "", checkin: payload.checkin || "", checkout: payload.checkout || "",
-      greeting: "Dear Reservation Team,\nGreetings from Maldiviana!\nPlease accept and confirm our new reservation:",
-      closing: "IMPORTANT - in case of non-availability of the exact request, please advise:\n- available villa categories for the requested dates;\n- availability for the requested villa for the closest dates.\n\nPLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION.",
+      greeting: "",
+      closing: "",
+      signature: "",
+      textColor: "#003366",
     };
   }
   function date(value) {
@@ -77,20 +80,24 @@
     return [...new Set(result)];
   }
   function html(draft, calculation, shareHtml, core, payload = { rows: [] }, editable = false) {
+    const color = /^#[0-9a-f]{6}$/i.test(draft.textColor || "") ? draft.textColor : "#003366";
+    const font = `font:11pt/1.2 Calibri,Arial,sans-serif;color:${color};`;
     const field = (path, value, title = path) => editable ? `<span contenteditable="plaintext-only" role="textbox" aria-label="${escape(title)}" data-booking-field="${escape(path)}" data-placeholder="${escape(title)}">${lines(value)}</span>` : lines(value);
     const calculated = core.calculateRows(payload.rows || []);
-    const cell = 'style="border:1px solid #bdd1e1;padding:3px 6px;height:auto;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:10pt/1.25 Arial,sans-serif;white-space:normal;overflow-wrap:anywhere;"';
-    const head = 'style="border:1px solid #bdd1e1;padding:3px 6px;height:auto;text-transform:none;text-align:left;vertical-align:top;background:#edf5fb;color:#092e61;font:bold 10pt/1.25 Arial,sans-serif;white-space:normal;"';
-    const tableStart = '<table cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:10pt Arial,sans-serif;margin:0 0 4px;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>';
+    const cell = `style="border:1px solid #bdd1e1;padding:3px 6px;height:auto;text-align:left;vertical-align:top;background:#ffffff;${font}white-space:normal;overflow-wrap:anywhere;"`;
+    const head = `style="border:1px solid #bdd1e1;padding:3px 6px;height:auto;text-transform:none;text-align:left;vertical-align:top;background:#edf5fb;${font}font-weight:bold;white-space:normal;"`;
+    const tableStart = `<table cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;${font}margin:0 0 4px;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>`;
     const roomNights = (period) => core.nightsBetween(period.from, period.to);
     const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
     const guestLine = (guest) => {
       const path = `guests.${draft.guests.indexOf(guest)}`;
-      return [field(`${path}.name`, guest.name, "Guest name"),
-        guest.dob || editable ? `DOB ${field(`${path}.dob`, guest.dob, "Date of birth")}` : "",
-        guest.passport || editable ? `PN ${field(`${path}.passport`, guest.passport, "Passport")}` : "",
-        guest.validTill || editable ? `TILL ${field(`${path}.validTill`, guest.validTill, "Valid till")}` : "",
-      ].filter(Boolean).join(" ");
+      const detail = (key, caption, title) => guest[key] || editable
+        ? `<span style="display:inline-block;white-space:nowrap;"><span>${caption}</span>&nbsp;${field(`${path}.${key}`, guest[key], title)}</span>` : "";
+      return [`<b>${field(`${path}.name`, guest.name, "Guest name")}</b>`,
+        detail("dob", "DOB", "Date of birth"),
+        detail("passport", "PN", "Passport"),
+        detail("validTill", "TILL", "Valid till"),
+      ].filter(Boolean).join(' <span>&middot;</span> ');
     };
     const guestGroups = rooms.length > 1 ? [...rooms, ...new Set(draft.guests.filter((guest) => !rooms.includes(guest.room)).map((guest) => guest.room))] : [null];
     const guestLines = guestGroups.map((room) => {
@@ -109,22 +116,24 @@
       const period = row.from && row.to ? `${escape(String(row.from).slice(0, 5))} - ${escape(String(row.to).slice(0, 5))}: ` : "";
       return `${period}${escape(row.item)}: ${escape(core.expression(row))} = <b>${escape(core.money(row.net))}</b>`;
     }).join("<br>");
-    let body = `<div style="margin:0 0 4px;line-height:1.25;">${field("greeting", draft.greeting, "Opening")}</div>`;
-    body += `${tableStart}<tr><td colspan="4" style="border:1px solid #2f719f;padding:6px;background:#397cae;color:#ffffff;font:bold 12pt Arial,sans-serif;">${field("hotel", draft.hotel, "Hotel")}<div style="font:8pt Arial,sans-serif;margin-top:2px;">RESERVATION REQUEST</div></td></tr>`;
+    let body = draft.greeting || editable ? `<div style="margin:0 0 4px;line-height:1.25;">${field("greeting", draft.greeting, "Opening")}</div>` : "";
+    body += `${tableStart}<tr><td colspan="4" style="border:1px solid #bdd1e1;padding:5px 6px;background:#dceefa;${font}font-weight:bold;">${field("hotel", draft.hotel, "Hotel")}</td></tr>`;
     const row = (title, value, rightTitle = "", rightValue = "") => `<tr><th ${head}>${escape(title)}</th><td ${cell}${rightTitle ? "" : ' colspan="3"'}>${value || ""}</td>${rightTitle ? `<th ${head}>${escape(rightTitle)}</th><td ${cell}>${rightValue || ""}</td>` : ""}</tr>`;
     body += row("Guest name", guestLines);
     body += row("Guests", escape(guestSummary(draft.guests.filter((guest) => guest.name.trim()))), "Length of stay", `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`);
     body += row("Arrival date", field("checkin", draft.checkin, "Check-in"), "Flight details", field("arrival", draft.arrival || "TBA", "Arrival flight"));
     body += row("Departure date", field("checkout", draft.checkout, "Check-out"), "Flight details", field("departure", draft.departure || "TBA", "Departure flight"));
     body += row("Villa category", draft.periods.length > 1 ? stayLines : `${field("periods.0.category", draft.periods[0]?.category || "", "Villa category")}${draft.periods[0]?.drinks ? ` + ${escape(draft.periods[0].drinks)}` : ""}`);
-    if (draft.meal || draft.spo || editable) body += row("Meal plan", field("meal", draft.meal, "Meal plan"), "SPO code", field("spo", draft.spo, "SPO code"));
+    if (draft.meal || editable) body += row("Meal plan", field("meal", draft.meal, "Meal plan"));
     if (handling) body += row("Handling fee", escape(handling));
     if (draft.transfer || editable) body += row("Transfer", field("transfer", draft.transfer, "Transfer"));
     if (draft.remarks || editable) body += row("Remarks", field("remarks", draft.remarks, "Remarks"));
+    if (draft.spo || editable) body += row("SPO code", field("spo", draft.spo, "SPO code"));
     body += row("Room quotation", `${calculationRows}<div style="margin-top:3px;padding-top:3px;border-top:1px solid #9fc4e5;"><b><u>TOTAL: ${escape(core.money(calculated.total))} USD</u></b></div>`);
     body += "</table>";
-    body += `<div style="margin:4px 0 0;padding:4px 6px;border-left:3px solid #397cae;background:#edf7fd;color:#092e61;line-height:1.25;">${field("closing", draft.closing, "Closing note")}</div>`;
-    return `<div style="width:720px;max-width:100%;font:10pt/1.25 Arial,sans-serif;color:#172338;">${body}</div>`;
+    if (draft.closing || editable) body += `<table width="720" cellpadding="0" cellspacing="0" style="width:720px;max-width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;"><tr><td style="padding:4px 6px;background:#edf7fd;${font}">${field("closing", draft.closing, "Closing note")}</td></tr></table>`;
+    if (draft.signature || editable) body += `<div style="margin-top:8px;${font}">${field("signature", draft.signature, "Signature")}</div>`;
+    return `<div style="width:720px;max-width:100%;${font}">${body}</div>`;
   }
   function mount({ getPayload, getSource, getDraft, saveDraft, core, shareHtml, toast }) {
     const dialog = document.getElementById("bookingModal");
@@ -170,7 +179,7 @@
     function render() {
       editor.replaceChildren();
       const header = section("Request");
-      field(header, "Subject", draft, "subject");
+      field(header, "Text color", draft, "textColor", "color");
       const overview = document.createElement("div"); overview.className = "booking-overview-grid";
       field(overview, "Hotel", draft, "hotel"); field(overview, "Check-in", draft, "checkin"); field(overview, "Check-out", draft, "checkout");
       field(overview, "Meal plan", draft, "meal"); field(overview, "Transfer", draft, "transfer"); field(overview, "SPO code", draft, "spo");
@@ -196,7 +205,7 @@
       const services = document.createElement("div"); services.className = "booking-overview-grid";
       for (const [title, key] of [["Arrival flight", "arrival"], ["Departure flight", "departure"]]) field(services, title, draft, key);
       details.append(services);
-      for (const [title, key] of [["Remarks", "remarks"], ["Closing note", "closing"]]) field(details, title, draft, key, "textarea");
+      for (const [title, key] of [["Remarks", "remarks"], ["Closing note", "closing"], ["Signature", "signature"]]) field(details, title, draft, key, "textarea");
       show(false);
     }
     function content() {
@@ -224,6 +233,13 @@
       payload = getPayload();
       const saved = getDraft();
       draft = saved?.draft ? JSON.parse(JSON.stringify(saved.draft)) : create(payload, getSource());
+      draft.signature ??= "";
+      draft.textColor ??= "#003366";
+      delete draft.subject;
+      draft.remarks = cleanRemarks(draft.remarks);
+      // Remove only the former built-in copy, preserving user-written messages.
+      if (draft.greeting === "Dear Reservation Team,\nGreetings from Maldiviana!\nPlease accept and confirm our new reservation:") draft.greeting = "";
+      if (draft.closing === "IMPORTANT - in case of non-availability of the exact request, please advise:\n- available villa categories for the requested dates;\n- availability for the requested villa for the closest dates.\n\nPLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION.") draft.closing = "";
       signature = saved?.signature || payloadSignature(payload);
       accommodationSignature = saved?.accommodationSignature || JSON.stringify(draft.periods.map(({ room, ...period }) => period));
       render(); show(true); dialog.showModal();

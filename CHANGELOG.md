@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.34
+
+- Use Calibri 11 and a selectable text color throughout booking emails; add a text signature copied with the request.
+- Remove Subject and company-specific default messages, including unchanged legacy boilerplate.
+- Place SPO directly above the quotation and prevent its label leaking into empty remarks.
+- Improve inline guest document readability and constrain the closing block to the email table width.
+
 ## 1.6.33
 
 - Edit booking request text directly in the compact email layout; retain all-fields editing for guest and stay management.
