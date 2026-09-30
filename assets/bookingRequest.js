@@ -42,7 +42,7 @@
       hotel: payload.hotel || "", subject: `Booking request | ${payload.hotel || "Hotel"} | ${payload.checkin || ""} - ${payload.checkout || ""}`,
       guests, periods, transfer: service("TRANSFER"), arrival: flights[0] || "", departure: flights[1] || "", remarks,
       meal: service("MEAL"), spo: payload.spo || "", checkin: payload.checkin || "", checkout: payload.checkout || "",
-      greeting: "Dear Reservation Team,\nGreetings from Maldiviana!\n\nPlease accept and confirm our new reservation:",
+      greeting: "Dear Reservation Team,\nGreetings from Maldiviana!\nPlease accept and confirm our new reservation:",
       closing: "IMPORTANT - in case of non-availability of the exact request, please advise:\n- available villa categories for the requested dates;\n- availability for the requested villa for the closest dates.\n\nPLEASE SHARE AN INVOICE AT THE TIME OF BOOKING CONFIRMATION.",
     };
   }
@@ -78,9 +78,9 @@
   function html(draft, calculation, shareHtml, core) {
     const payload = arguments[4] || { rows: [] };
     const calculated = core.calculateRows(payload.rows || []);
-    const cell = 'style="border:1px solid #9fc4e5;padding:4px 7px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:9pt Arial,sans-serif;white-space:normal;"';
-    const head = 'style="width:122px;border:1px solid #78add7;padding:4px 7px;text-align:left;vertical-align:top;background:#dceefa;color:#092e61;font:bold 9pt Arial,sans-serif;white-space:nowrap;"';
-    const tableStart = '<table cellpadding="0" cellspacing="0" width="780" style="width:780px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:9pt Arial,sans-serif;margin:0 0 5px;">';
+    const cell = 'style="border:1px solid #9fc4e5;padding:3px 6px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:9pt/1.2 Arial,sans-serif;white-space:normal;"';
+    const head = 'style="width:108px;border:1px solid #78add7;padding:3px 6px;text-align:left;vertical-align:top;background:#dceefa;color:#092e61;font:bold 9pt/1.2 Arial,sans-serif;white-space:nowrap;"';
+    const tableStart = '<table cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:9pt Arial,sans-serif;margin:0 0 4px;">';
     const roomNights = (period) => core.nightsBetween(period.from, period.to);
     const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
     const guestLines = draft.guests.filter((guest) => guest.name).map((guest) => [
@@ -99,25 +99,22 @@
       const period = row.from && row.to ? `${escape(String(row.from).slice(0, 5))} - ${escape(String(row.to).slice(0, 5))}: ` : "";
       return `${period}${escape(row.item)}${row.nights ? ` (${row.nights} Nights)` : ""} = <b>${escape(core.money(row.net))} USD</b>`;
     }).join("<br>");
-    let body = `<div style="margin:0 0 6px;">${lines(draft.greeting)}</div>`;
-    body += `${tableStart}<tr><td colspan="4" style="border:1px solid #397cae;padding:5px 7px;background:#397cae;color:#ffffff;font:bold 10pt Arial,sans-serif;">RESERVATION REQUEST</td></tr>`;
+    let body = `<div style="margin:0 0 4px;line-height:1.2;">${lines(draft.greeting)}</div>`;
+    body += `${tableStart}<tr><td colspan="4" style="border:1px solid #2f719f;padding:4px 6px;background:#397cae;color:#ffffff;font:bold 10pt Arial,sans-serif;">RESERVATION REQUEST <span style="float:right;font-size:9pt;">${escape(draft.hotel)}</span></td></tr>`;
     const row = (title, value, rightTitle = "", rightValue = "") => `<tr><th ${head}>${escape(title)}</th><td ${cell}${rightTitle ? "" : ' colspan="3"'}>${value || ""}</td>${rightTitle ? `<th ${head}>${escape(rightTitle)}</th><td ${cell}>${rightValue || ""}</td>` : ""}</tr>`;
-    body += row("Hotel", `<b>${escape(draft.hotel)}</b>`);
     body += row("Guest name", guestLines);
-    body += row("Number of guests", escape(guestSummary(draft.guests)));
+    body += row("Number of guests", escape(guestSummary(draft.guests)), "Length of stay", `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`);
     body += row("Arrival date", escape(draft.checkin), "Flight details", escape(draft.arrival || "TBA"));
     body += row("Departure date", escape(draft.checkout), "Flight details", escape(draft.departure || "TBA"));
-    body += row("Length of stay", `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`);
     body += row("Villa category", draft.periods.length > 1 ? stayLines : escape(draft.periods[0]?.category || ""));
-    if (draft.meal) body += row("Meal plan", escape(draft.meal));
+    if (draft.meal || draft.spo) body += row("Meal plan", escape(draft.meal), "SPO code", escape(draft.spo));
     if (handling) body += row("Handling fee", escape(handling));
     if (draft.transfer) body += row("Transfer", escape(draft.transfer));
     if (draft.remarks) body += row("Remarks", lines(draft.remarks));
-    if (draft.spo) body += row("SPO code", escape(draft.spo));
     body += row("Room quotation", `${calculationRows}<div style="margin-top:3px;padding-top:3px;border-top:1px solid #9fc4e5;"><b>TOTAL: ${escape(core.money(calculated.total))} USD</b></div>`);
     body += "</table>";
-    body += `<div style="margin:6px 0 0;padding:6px 7px;border-left:3px solid #397cae;background:#edf7fd;color:#092e61;">${lines(draft.closing)}</div>`;
-    return `<div style="width:780px;max-width:100%;font:9pt/1.25 Arial,sans-serif;color:#172338;">${body}</div>`;
+    body += `<div style="margin:4px 0 0;padding:4px 6px;border-left:3px solid #397cae;background:#edf7fd;color:#092e61;line-height:1.2;">${lines(draft.closing)}</div>`;
+    return `<div style="width:720px;max-width:100%;font:9pt/1.2 Arial,sans-serif;color:#172338;">${body}</div>`;
   }
   function mount({ getPayload, getSource, getDraft, saveDraft, core, shareHtml, toast }) {
     const dialog = document.getElementById("bookingModal");

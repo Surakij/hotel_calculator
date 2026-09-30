@@ -2979,7 +2979,7 @@ select[aria-invalid="true"] {
 }
 /* Booking request editor and Outlook preview. */
 .booking-modal { width: min(1240px, calc(100vw - 24px)); max-width: 1240px; background: #f4f8fd; }
-.booking-modal.booking-preview-mode { width: min(830px, calc(100vw - 24px)); }
+.booking-modal.booking-preview-mode { width: min(770px, calc(100vw - 24px)); }
 .booking-modal[open] { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto; max-height: calc(100vh - 24px); overflow: hidden; box-sizing: border-box; }
 .booking-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 7px 0; }
 .booking-tools:last-child { min-height: 38px; padding-bottom: 0; }
