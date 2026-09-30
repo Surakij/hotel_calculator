@@ -33,12 +33,14 @@ test("booking request receives import guests and clears them for a new calculati
   await page.locator("#parseSamoImport").click();
   await page.locator("#applySamoImport").click();
   await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
   assert.equal(await page.locator(".booking-guest-row input").first().inputValue(), "MR TEST PERSON");
-  assert.equal(await page.getByLabel("Remarks", { exact: true }).inputValue(), "Quiet room please");
+  assert.equal(await page.locator("#bookingEditor").getByLabel("Remarks", { exact: true }).inputValue(), "Quiet room please");
   await page.locator("#closeBooking").click();
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#clearAll").click();
   await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
   assert.equal(await page.locator(".booking-guest-row input").first().inputValue(), "");
 });
 
@@ -56,21 +58,34 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   });
   await page.reload();
   await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
   await page.locator(".booking-guest-row").nth(0).locator('input[type="number"]').fill("1");
   await page.locator(".booking-guest-row").nth(1).locator('input[type="number"]').fill("2");
   await page.getByLabel("Subject", { exact: true }).fill("Booking request - test");
   await page.waitForTimeout(400);
   await page.reload();
   await page.locator("#showBooking").click();
+  await page.locator("#bookingEditTab").click();
   assert.equal(await page.getByLabel("Subject", { exact: true }).inputValue(), "Booking request - test");
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.locator("#bookingEditor").evaluate((element) => element.scrollWidth <= element.clientWidth + 1));
+    assert.ok(await page.locator("#bookingCopy").evaluate((element) => element.getBoundingClientRect().bottom <= innerHeight));
     await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), `booking-editor-${width}.png`) });
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator("#bookingPreviewTab").click();
+  await page.locator('[data-booking-field="guests.0.name"]').fill("MR ALEXANDER LONG-SURNAME TEST");
+  await page.locator('[data-booking-field="guests.0.passport"]').fill("77 1234567");
+  await page.locator('[data-booking-field="guests.0.validTill"]').fill("01.12.2035");
+  await page.locator("#bookingEditTab").click();
+  assert.equal(await page.locator(".booking-guest-row input").first().inputValue(), "MR ALEXANDER LONG-SURNAME TEST");
+  await page.locator("#bookingPreviewTab").click();
   assert.equal(await page.locator("#bookingWarnings").isVisible(), false);
+  await page.waitForTimeout(400);
+  await page.reload();
+  await page.locator("#showBooking").click();
+  assert.equal(await page.locator('[data-booking-field="guests.0.passport"]').innerText(), "77 1234567");
   const previewSize = await page.locator("#bookingPreview").evaluate((element) => ({ scroll: element.scrollWidth, client: element.clientWidth }));
   assert.ok(previewSize.scroll <= previewSize.client + 1, JSON.stringify(previewSize));
   const text = await page.locator("#bookingPreview").innerText();
@@ -84,6 +99,9 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   await page.locator("#bookingCopy").click();
   await page.waitForFunction(() => Boolean(window.bookingCopiedHtml));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("<table"));
+  assert.ok(!(await page.evaluate(() => window.bookingCopiedHtml)).includes("contenteditable"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("77 1234567"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("800 * 1 * 4"));
 });
 
 test("history restores manual quantities, child ages and Days Before exactly", async () => {

@@ -2981,6 +2981,11 @@ select[aria-invalid="true"] {
 .booking-modal { width: min(1240px, calc(100vw - 24px)); max-width: 1240px; background: #f4f8fd; }
 .booking-modal.booking-preview-mode { width: min(770px, calc(100vw - 24px)); }
 .booking-modal[open] { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto; max-height: calc(100vh - 24px); overflow: hidden; box-sizing: border-box; }
+.booking-modal .modal-head { grid-row: 1; }
+.booking-modal > .booking-tools { grid-row: 2; }
+.booking-modal > .booking-copy-tools { grid-row: 5; }
+#bookingWarnings { grid-row: 3; max-height: 110px; overflow: auto; }
+#bookingEditor, #bookingPreview { grid-row: 4; }
 .booking-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 7px 0; }
 .booking-tools:last-child { min-height: 38px; padding-bottom: 0; }
 .booking-tools:last-child button { height: 38px; }
@@ -3008,6 +3013,10 @@ select[aria-invalid="true"] {
 #bookingPreview { min-height: 0; overflow: auto; background: white; color: #172338; padding: 12px; border: 1px solid #d8e4f2; border-radius: 7px; overflow-wrap: anywhere; box-shadow: 0 2px 8px rgba(8, 39, 88, .05); }
 #bookingWarnings { white-space: pre-line; }
 #bookingWarnings[hidden] { display: none; }
+#bookingPreview [contenteditable] { border-radius: 2px; cursor: text; outline: 1px solid transparent; }
+#bookingPreview [contenteditable]:hover { outline-color: #9fc4e5; }
+#bookingPreview [contenteditable]:focus { outline: 2px solid #74a6d3; background: #eef7ff; color: #172338; }
+#bookingPreview [contenteditable]:empty::before { content: attr(data-placeholder); opacity: .55; }
 @media (max-width: 850px) {
   .booking-modal[open] { height: calc(100vh - 12px); max-height: calc(100vh - 12px); padding: 12px; }
   #bookingEditor { grid-template-columns: 1fr; grid-template-areas: "request" "guests" "accommodation" "services"; }

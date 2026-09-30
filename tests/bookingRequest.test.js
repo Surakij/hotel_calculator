@@ -32,6 +32,11 @@ test("booking email escapes user input and orders split periods within rooms", (
   assert.ok(html.includes("300.00"));
   assert.ok(html.includes("<table"));
   assert.equal((html.match(/ONLY-ONCE/g) || []).length, 1);
+  assert.ok(html.includes("100 * 1 * 3"));
+  assert.ok(!html.includes("contenteditable"));
+  const editable = booking.html(draft, "", shareHtml, core, payload, true);
+  assert.ok(editable.includes('data-booking-field="hotel"'));
+  assert.ok(!editable.includes("<img"));
 });
 
 test("booking warns about missing assignments, overlaps and guest counts", () => {

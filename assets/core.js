@@ -545,6 +545,7 @@
     buildStaySummaries,
     calculateRow,
     calculateRows,
+    expression,
     formatDate,
     formatShort,
     isFuelSurcharge,

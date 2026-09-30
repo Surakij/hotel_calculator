@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.33
+
+- Edit booking request text directly in the compact email layout; retain all-fields editing for guest and stay management.
+- Group guests and split stays by room, emphasize the hotel, and improve email readability with Arial 10.
+- Restore quotation formulas from the shared calculator logic and keep editor placeholders out of copied emails.
+- Validate edited request dates and preserve inline edits across reloads.
+
 ## 1.6.32
 
 - Add an editable Booking Request assembled from imported guest data and the current calculation.
