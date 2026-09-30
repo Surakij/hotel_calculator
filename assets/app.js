@@ -7,8 +7,8 @@
   let bookingSource = "";
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.34";
-  const APP_BUILD = "1.6.34";
+  const APP_VERSION = "1.6.35";
+  const APP_BUILD = "1.6.35";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",

@@ -161,6 +161,20 @@ test("service table fits desktop widths with compact rates", async () => {
   await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), "hotel-compact-table.png"), fullPage: true });
 });
 
+test("toolbar keeps share actions together without horizontal overflow", async () => {
+  for (const width of [1769, 1440, 1100, 768, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const layout = await page.locator(".toolbar").evaluate((toolbar) => {
+      const copy = document.getElementById("showShare").getBoundingClientRect();
+      const download = document.getElementById("downloadShare").getBoundingClientRect();
+      return { overflow: toolbar.scrollWidth - toolbar.clientWidth, sameRow: Math.abs(copy.top - download.top) < 1 };
+    });
+    assert.ok(layout.overflow <= 1, `${width}: toolbar overflows`);
+    assert.ok(layout.sameRow, `${width}: share actions separated`);
+    await page.locator(".toolbar").screenshot({ path: require("node:path").join(require("node:os").tmpdir(), `toolbar-${width}.png`) });
+  }
+});
+
 test("a published version update reloads once and restores the current draft", async () => {
   const parts = require("../version.json").version.split(".").map(Number);
   parts[parts.length - 1] += 1;

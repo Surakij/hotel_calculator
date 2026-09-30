@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.35
+
+- Compact and group toolbar actions, keeping copy and download together across screen sizes.
+
 ## 1.6.34
 
 - Use Calibri 11 and a selectable text color throughout booking emails; add a text signature copied with the request.

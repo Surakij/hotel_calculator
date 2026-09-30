@@ -457,8 +457,19 @@ input[type="number"]::-webkit-outer-spin-button {
   width: 100%;
 }
 
-.toolbar .share {
-  margin-left: auto;
+.toolbar .actions { align-items: center; gap: 10px 16px; }
+.toolbar-group { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.toolbar .toolbar-group button { height: 38px; padding: 7px 10px; white-space: nowrap; flex: 0 0 auto; }
+.toolbar .toolbar-share-group { margin-left: auto; }
+.toolbar .share { margin-left: 0; }
+.toolbar .rate-toggle { height: 38px; box-sizing: border-box; }
+@media (max-width: 1100px) {
+  .toolbar .toolbar-share-group { margin-left: 0; }
+}
+@media (max-width: 600px) {
+  .toolbar .actions { flex-direction: column; align-items: stretch; }
+  .toolbar-group { flex-wrap: wrap; }
+  .toolbar .toolbar-group button { flex: 1 1 auto; }
 }
 
 .rate-toggle {
