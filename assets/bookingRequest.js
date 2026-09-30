@@ -36,7 +36,8 @@
     }
     if (!guests.length) guests.push({ name: "", dob: "", passport: "", validTill: "", room: "" });
     const flights = [...source.matchAll(/Flight details\s*:\s*([^\r\n]+)/gi)].map((match) => match[1].trim());
-    const remarks = /Remarks\s*:?\s*\r?\n([\s\S]*?)(?=\r?\n\s*(?:SPO code|Room quotation|Hotel)\s*:|$)/i.exec(source)?.[1]?.trim() || "";
+    const remarks = /Remarks[ \t]*:?[ \t]*\r?\n([\s\S]*?)(?=\r?\n[ \t]*(?:SPO code|Room quotation|Hotel)[ \t]*:|$)/i.exec(source)?.[1]?.trim() || "";
+    if (new Set(periods.map((period) => period.room)).size === 1) guests.forEach((guest) => { guest.room = periods[0]?.room || "1"; });
     return {
       hotel: payload.hotel || "", subject: `Booking request | ${payload.hotel || "Hotel"} | ${payload.checkin || ""} - ${payload.checkout || ""}`,
       guests, periods, transfer: service("TRANSFER"), arrival: flights[0] || "", departure: flights[1] || "", remarks,
@@ -79,42 +80,50 @@
     const calculated = core.calculateRows(payload.rows || []);
     const cell = 'style="border:1px solid #9fc4e5;padding:4px 7px;text-align:left;vertical-align:top;background:#ffffff;color:#172338;font:9pt Arial,sans-serif;text-transform:none;white-space:normal;"';
     const head = 'style="border:1px solid #78add7;padding:4px 7px;text-align:left;background:#dceefa;color:#092e61;font:bold 9pt Arial,sans-serif;"';
-    const band = (title, right = "") => `<tr><td colspan="6" style="border:1px solid #397cae;padding:4px 7px;background:#397cae;color:#ffffff;font:bold 9pt Arial,sans-serif;">${escape(title)}${right ? `<span style="float:right;">${escape(right)}</span>` : ""}</td></tr>`;
-    const tableStart = '<table cellpadding="0" cellspacing="0" width="100%" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:9pt Arial,sans-serif;margin:0 0 5px;">';
+    const band = (title, right = "", colspan = 6) => `<tr><td colspan="${colspan}" style="border:1px solid #397cae;padding:4px 7px;background:#397cae;color:#ffffff;font:bold 9pt Arial,sans-serif;">${escape(title)}${right ? `<span style="float:right;">${escape(right)}</span>` : ""}</td></tr>`;
+    const tableStart = '<table cellpadding="0" cellspacing="0" width="780" style="width:780px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:9pt Arial,sans-serif;margin:0 0 5px;">';
     const roomNights = (period) => core.nightsBetween(period.from, period.to);
     let body = `<p style="margin:0 0 5px;">${lines(draft.greeting)}</p>`;
-    body += `${tableStart}<tr>${["Hotel", "Stay dates", "Nights", "Guests", "Meal plan", "Transfer"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
-    body += `<tr>${[draft.hotel, `${draft.checkin} - ${draft.checkout}`, `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`, guestSummary(draft.guests), draft.meal, draft.transfer].map((value) => `<td ${cell}><b>${escape(value)}</b></td>`).join("")}</tr></table>`;
-    body += `${tableStart}${band("Guest details")}<tr>${["#", "Name", "DOB", "Passport No.", "Valid till", "Room"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
+    body += `${tableStart}<tr>${["Hotel", "Stay dates", "Nights", "Guests"].map((title) => `<th ${head}>${title}</th>`).join("")}</tr>`;
+    body += `<tr>${[draft.hotel, `${draft.checkin} - ${draft.checkout}`, `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`, guestSummary(draft.guests)].map((value) => `<td ${cell}><b>${escape(value)}</b></td>`).join("")}</tr></table>`;
+    const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
+    const showPassport = draft.guests.some((guest) => guest.passport || guest.validTill);
+    const showRoom = rooms.length > 1;
+    const guestColumns = [["#", (_, index) => index + 1], ["Name", (guest) => guest.name], ["DOB", (guest) => guest.dob]];
+    if (showPassport) guestColumns.push(["Passport No.", (guest) => guest.passport], ["Valid till", (guest) => guest.validTill]);
+    if (showRoom) guestColumns.push(["Room", (guest) => guest.room]);
+    body += `${tableStart}${band("Guest details", "", guestColumns.length)}<tr>${guestColumns.map(([title]) => `<th ${head}>${title}</th>`).join("")}</tr>`;
     draft.guests.filter((guest) => guest.name).forEach((guest, index) => {
-      body += `<tr>${[index + 1, guest.name, guest.dob, guest.passport, guest.validTill, guest.room].map((value) => `<td ${cell}>${escape(value)}</td>`).join("")}</tr>`;
+      body += `<tr>${guestColumns.map(([, getter]) => `<td ${cell}>${escape(getter(guest, index))}</td>`).join("")}</tr>`;
     });
     body += "</table>";
-    body += `${tableStart}${band("Reservation details")}`;
-    for (const [leftTitle, leftValue, rightTitle, rightValue] of [
+    body += `${tableStart}${band("Reservation details", "", 4)}`;
+    const detailRows = [
       ["Villa category", draft.periods.length > 1 ? "Split stay (see below)" : draft.periods[0]?.category || "", "Arrival flight", draft.arrival],
       ["Meal plan", draft.meal, "Departure flight", draft.departure],
       ["Transfer", draft.transfer, "SPO code", draft.spo],
       ["Remarks", draft.remarks, "", ""],
-    ]) body += `<tr><th ${head}>${escape(leftTitle)}</th><td ${cell} colspan="2">${lines(leftValue)}</td><th ${head}>${escape(rightTitle)}</th><td ${cell} colspan="2">${lines(rightValue)}</td></tr>`;
+    ].filter((values) => values.slice(1).some(Boolean));
+    for (const [leftTitle, leftValue, rightTitle, rightValue] of detailRows) body += `<tr><th ${head}>${escape(leftTitle)}</th><td ${cell}>${lines(leftValue)}</td><th ${head}>${escape(rightTitle)}</th><td ${cell}>${lines(rightValue)}</td></tr>`;
     body += "</table>";
-    body += `${tableStart}${band(draft.periods.length > 1 ? "Split stay details" : "Stay details")}<tr><th ${head} colspan="2">Period</th><th ${head}>Nights</th><th ${head} colspan="2">Room / Villa category</th><th ${head}>Occupancy</th></tr>`;
-    const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
-    rooms.forEach((room) => {
-      const occupancy = guestSummary(draft.guests.filter((guest) => guest.room === room));
-      draft.periods.filter((period) => period.room === room).sort((a, b) => core.parseDate(a.from) - core.parseDate(b.from)).forEach((period) => {
-        body += `<tr><td ${cell} colspan="2">${escape(period.from)} - ${escape(period.to)}</td><td ${cell}>${roomNights(period)}</td><td ${cell} colspan="2">${escape(period.category)}</td><td ${cell}>${escape(occupancy)}</td></tr>`;
+    if (draft.periods.length > 1) {
+      body += `${tableStart}${band("Split stay details", "", 4)}<tr><th ${head}>Period</th><th ${head}>Nights</th><th ${head}>Room / Villa category</th><th ${head}>Occupancy</th></tr>`;
+      rooms.forEach((room) => {
+        const occupancy = guestSummary(draft.guests.filter((guest) => guest.room === room));
+        draft.periods.filter((period) => period.room === room).sort((a, b) => core.parseDate(a.from) - core.parseDate(b.from)).forEach((period) => {
+          body += `<tr><td ${cell}>${escape(period.from)} - ${escape(period.to)}</td><td ${cell}>${roomNights(period)}</td><td ${cell}>${escape(period.category)}</td><td ${cell}>${escape(occupancy)}</td></tr>`;
+        });
       });
-    });
-    body += "</table>";
-    body += `${tableStart}${band("Quotation summary (USD)", draft.spo ? `SPO: ${draft.spo}` : "")}<tr><th ${head} colspan="5">Item</th><th ${head} style="text-align:right;">Amount (USD)</th></tr>`;
+      body += "</table>";
+    }
+    body += `${tableStart}${band("Quotation summary (USD)", draft.spo ? `SPO: ${draft.spo}` : "", 2)}<tr><th ${head}>Item</th><th ${head} style="width:125px;text-align:right;">Amount (USD)</th></tr>`;
     calculated.rows.filter((row) => row.net > 0).forEach((row) => {
       const period = row.from && row.to ? `${String(row.from).slice(0, 5)} - ${String(row.to).slice(0, 5)}: ` : "";
-      body += `<tr><td ${cell} colspan="5">${escape(`${period}${row.item}${row.nights ? ` (${row.nights} Nights)` : ""}`)}</td><td ${cell} style="text-align:right;">${escape(core.money(row.net))}</td></tr>`;
+      body += `<tr><td ${cell}>${escape(`${period}${row.item}${row.nights ? ` (${row.nights} Nights)` : ""}`)}</td><td ${cell} style="width:125px;text-align:right;">${escape(core.money(row.net))}</td></tr>`;
     });
-    body += `<tr><td ${head} colspan="5" style="font-size:10pt;">TOTAL (USD)</td><td ${head} style="text-align:right;font-size:10pt;">${escape(core.money(calculated.total))}</td></tr></table>`;
+    body += `<tr><td ${head} style="font-size:10pt;">TOTAL (USD)</td><td ${head} style="width:125px;text-align:right;font-size:10pt;">${escape(core.money(calculated.total))}</td></tr></table>`;
     body += `<p style="margin:5px 0 0;padding:5px 7px;border:1px solid #9fc4e5;background:#edf7fd;">${lines(draft.closing)}</p>`;
-    return `<div style="width:100%;font:9pt/1.25 Arial,sans-serif;color:#172338;">${body}</div>`;
+    return `<div style="width:780px;max-width:100%;font:9pt/1.25 Arial,sans-serif;color:#172338;">${body}</div>`;
   }
   function mount({ getPayload, getSource, getDraft, saveDraft, core, shareHtml, toast }) {
     const dialog = document.getElementById("bookingModal");
@@ -202,6 +211,7 @@
     }
     function show(isPreview) {
       preview.innerHTML = content().html;
+      dialog.classList.toggle("booking-preview-mode", isPreview);
       editor.hidden = isPreview;
       preview.hidden = !isPreview;
       document.getElementById("bookingEditTab").setAttribute("aria-selected", String(!isPreview));
@@ -221,9 +231,6 @@
     document.getElementById("bookingReload").addEventListener("click", () => {
       if (!window.confirm("Replace request edits with current calculator data?")) return;
       payload = getPayload(); draft = create(payload, getSource()); signature = payloadSignature(payload); accommodationSignature = JSON.stringify(draft.periods.map(({ room, ...period }) => period)); persist(); render();
-    });
-    document.getElementById("bookingCopySubject").addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(draft.subject); toast("Subject copied"); } catch { toast("Clipboard unavailable. Select and copy the subject field."); }
     });
     document.getElementById("bookingCopy").addEventListener("click", async () => {
       const result = content(); show(true);

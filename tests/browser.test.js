@@ -71,7 +71,8 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator("#bookingPreviewTab").click();
   assert.equal(await page.locator("#bookingWarnings").isVisible(), false);
-  assert.ok(await page.locator("#bookingPreview").evaluate((element) => element.scrollWidth <= element.clientWidth + 1));
+  const previewSize = await page.locator("#bookingPreview").evaluate((element) => ({ scroll: element.scrollWidth, client: element.clientWidth }));
+  assert.ok(previewSize.scroll <= previewSize.client + 1, JSON.stringify(previewSize));
   const text = await page.locator("#bookingPreview").innerText();
   assert.ok(text.indexOf("Beach Villa") < text.indexOf("Water Villa"));
   assert.ok(text.includes("Deluxe Villa"));
