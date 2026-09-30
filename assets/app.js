@@ -7,8 +7,8 @@
   let bookingSource = "";
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.35";
-  const APP_BUILD = "1.6.35";
+  const APP_VERSION = "1.6.36";
+  const APP_BUILD = "1.6.36";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -1659,12 +1659,16 @@
 
     const numberInputsValid = [...document.querySelectorAll('input[type="number"]')]
       .every((input) => input.disabled || input.validity.valid);
+    const assignmentValid = (select) => Boolean(select.value) || core.splitExtraPeriods(rowData(select.closest("tr")), calculated.rows).length > 0;
     const roomAssignmentsValid = [...rowsEl.querySelectorAll(".extra-assignment:not([hidden]) .assigned-room")]
-      .every((select) => Boolean(select.value));
+      .every(assignmentValid);
     const valid = calculated.total !== null && numberInputsValid && roomAssignmentsValid;
     document.querySelectorAll('input[type="number"]').forEach((input) => input.setAttribute("aria-invalid", String(!input.disabled && !input.validity.valid)));
     rowsEl.querySelectorAll(".assigned-room").forEach((select) => {
-      select.setAttribute("aria-invalid", String(!select.closest(".extra-assignment").hidden && !select.value));
+      const split = core.splitExtraPeriods(rowData(select.closest("tr")), calculated.rows).length > 0;
+      const emptyOption = select.querySelector('option[value=""]');
+      if (emptyOption) emptyOption.textContent = split ? "Split stay (by dates)" : "Choose room";
+      select.setAttribute("aria-invalid", String(!select.closest(".extra-assignment").hidden && !assignmentValid(select)));
       syncRoomAssignmentButton(select);
     });
     $("grandTotal").textContent = valid ? `$${core.money(calculated.total)}` : "Check inputs";

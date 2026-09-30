@@ -9,6 +9,19 @@ let browser;
 let context;
 let page;
 let errors;
+test("sequential split extra restores total and room summary without manual assignment", async () => {
+  await page.evaluate(() => {
+    HotelCalculatorStorage.saveDraft({ checkin: "21.10.2026", checkout: "01.11.2026", guests: { adults: 3, children: 0, infants: 0 }, rows: [
+      { type: "ROOM", roomKey: "a", item: "Water", qty: 1, rate: 1029, from: "21.10.2026", to: "27.10.2026", followGlobal: false },
+      { type: "ROOM", roomKey: "b", item: "Beach", qty: 1, rate: 100, from: "27.10.2026", to: "01.11.2026", followGlobal: false },
+      { type: "EXTRA", item: "Extra Adult", qty: 1, rate: 395, from: "21.10.2026", to: "01.11.2026", followGlobal: false },
+    ] });
+  });
+  await page.reload();
+  assert.equal(await page.locator("#grandTotal").innerText(), "$11,019.00");
+  assert.ok((await page.locator("#staySummary").innerText()).includes("2,370.00"));
+  assert.ok((await page.locator("#staySummary").innerText()).includes("1,975.00"));
+});
 before(async () => {
   browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || "msedge", headless: true });
 });
@@ -109,6 +122,8 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("800 * 1 * 4"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("Kind regards,<br>Example Company"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("color:#123456"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("<b>Room 2:</b>"));
+  assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("Beach Villa With Pool</b>: 800"));
 });
 
 test("history restores manual quantities, child ages and Days Before exactly", async () => {

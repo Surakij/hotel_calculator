@@ -3,6 +3,23 @@ const assert = require("node:assert/strict");
 const core = require("../assets/core.js");
 const storage = require("../assets/storage.js");
 
+test("unassigned person extra follows an unambiguous sequential split only", () => {
+  const rooms = [
+    { type: "ROOM", roomKey: "a", item: "Water", qty: 1, rate: 1029, from: "21.10.2026", to: "27.10.2026" },
+    { type: "ROOM", roomKey: "b", item: "Beach", qty: 1, rate: 100, from: "27.10.2026", to: "01.11.2026" },
+  ];
+  const extra = { type: "EXTRA", item: "Extra Adult", qty: 1, rate: 395, from: "21.10.2026", to: "01.11.2026" };
+  const rows = [...rooms, extra];
+  assert.deepEqual(core.buildStaySummaries(rows).map((row) => row.extraNet), [2370, 1975]);
+  const share = core.buildShareText({ rows });
+  assert.ok(share.includes("395 * 1 * 6 = 2,370"));
+  assert.ok(share.includes("395 * 1 * 5 = 1,975"));
+  assert.deepEqual(core.splitExtraPeriods(extra, [rooms[0], { ...rooms[1], from: "26.10.2026" }]), []);
+  assert.deepEqual(core.splitExtraPeriods(extra, [rooms[0], { ...rooms[1], from: "28.10.2026" }]), []);
+  assert.deepEqual(core.splitExtraPeriods(extra, [rooms[0], { ...rooms[1], qty: 2 }]), []);
+  assert.deepEqual(core.splitExtraPeriods({ ...extra, assignedRoomKey: "a" }, rooms), []);
+});
+
 test("short share groups room categories before sorting their date periods", () => {
   for (const withKeys of [false, true]) {
     const rows = [

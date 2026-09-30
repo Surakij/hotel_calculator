@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.36
+
+- Allocate unassigned person extras by nights across a single sequential split stay, keeping simultaneous-room assignments explicit.
+- Restore totals and room, meal and extra summaries for those split stays; show split extra periods in Short Share.
+- Keep Room labels inline with stay dates in booking requests and emphasize quotation dates and service names.
+
 ## 1.6.35
 
 - Compact and group toolbar actions, keeping copy and download together across screen sizes.

@@ -325,6 +325,25 @@
     return formula;
   }
 
+  function splitExtraPeriods(extra, rows) {
+    if (extra.assignedRoomKey || extra.type !== "EXTRA" || !/(adult|child)/i.test(extra.item || "")) return [];
+    const start = parseDate(extra.from), end = parseDate(extra.to);
+    if (!start || !end || end <= start) return [];
+    const periods = rows.filter((room) => room.type === "ROOM" && overlapNights(room.from, room.to, extra.from, extra.to) > 0)
+      .map((room) => ({ room, from: Math.max(+start, +parseDate(room.from)), to: Math.min(+end, +parseDate(room.to)) }))
+      .sort((a, b) => a.from - b.from);
+    let cursor = +start;
+    for (const period of periods) {
+      if (Number(period.room.qty) !== 1 || period.from !== cursor) return [];
+      cursor = period.to;
+    }
+    if (cursor !== +end || periods.length < 2) return [];
+    return periods.map((period) => {
+      const from = formatDate(new Date(period.from)), to = formatDate(new Date(period.to));
+      return { room: period.room, from, to, nights: nightsBetween(from, to) };
+    });
+  }
+
   function buildStaySummaries(inputRows, { calculated = false } = {}) {
     const rows = (calculated ? inputRows : calculateRows(inputRows || []).rows)
       .filter((row) => row.type || row.item || row.rate);
@@ -380,7 +399,13 @@
       })).filter((allocation) => allocation.roomWeight > 0);
 
       if (row.type === "EXTRA") {
-        if (groups.length === 1) {
+        const split = splitExtraPeriods(row, rooms);
+        if (split.length) {
+          split.forEach((period) => {
+            const group = groups.find((item) => item.rooms.includes(period.room));
+            if (group) group.extraNet += row.net * period.nights / row.nights;
+          });
+        } else if (groups.length === 1) {
           allocations.forEach(({ group }) => { group.extraNet += row.net; });
         } else if (row.assignedRoomKey) {
           allocations = allocations.filter(({ group }) => group.roomKeys.has(row.assignedRoomKey));
@@ -494,6 +519,14 @@
       block.rows.forEach((room) => {
         out.push(`${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${shareMoney(room.net)}`);
       });
+      personExtras.forEach((extra) => {
+        const periods = splitExtraPeriods(extra, rooms).filter((period) => block.rows.includes(period.room));
+        periods.forEach((period) => {
+          const part = calculateRow({ ...extra, from: period.from, to: period.to });
+          out.push(`${formatShort(part.from)} - ${formatShort(part.to)} : ${baseLabel(part.item)} : ${expression(part)} = ${shareMoney(part.net)}`);
+          usedExtras.add(extra);
+        });
+      });
       personExtras
         .filter((row) => !usedExtras.has(row) && extraBelongsToBlock(row, block))
         .sort((a, b) => Number(/child/i.test(a.item)) - Number(/child/i.test(b.item)))
@@ -543,6 +576,7 @@
     applyDiscounts,
     buildShareText,
     buildStaySummaries,
+    splitExtraPeriods,
     calculateRow,
     calculateRows,
     expression,

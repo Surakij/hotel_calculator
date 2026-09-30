@@ -106,15 +106,15 @@
     }).filter(Boolean).join("<br>");
     const stayLines = rooms.flatMap((room) => draft.periods.filter((period) => period.room === room)
       .sort((a, b) => core.parseDate(a.from) - core.parseDate(b.from))
-      .map((period, index) => {
+      .map((period) => {
         const path = `periods.${draft.periods.indexOf(period)}`;
-        return `${rooms.length > 1 && index === 0 ? `<b>Room ${escape(room)}</b><br>` : ""}${field(`${path}.from`, period.from, "Stay from")} - ${field(`${path}.to`, period.to, "Stay to")} &middot; ${field(`${path}.category`, period.category, "Villa category")} &middot; ${roomNights(period)} Nights${period.meal && period.meal !== draft.meal ? ` &middot; ${escape(period.meal)}` : ""}${period.drinks ? ` + ${escape(period.drinks)}` : ""}`;
+        return `${rooms.length > 1 ? `<b>Room ${escape(room)}:</b> ` : ""}${field(`${path}.from`, period.from, "Stay from")} - ${field(`${path}.to`, period.to, "Stay to")} &middot; ${field(`${path}.category`, period.category, "Villa category")} &middot; ${roomNights(period)} Nights${period.meal && period.meal !== draft.meal ? ` &middot; ${escape(period.meal)}` : ""}${period.drinks ? ` + ${escape(period.drinks)}` : ""}`;
       })).join("<br>");
     const greenTax = calculated.rows.find((row) => core.isGreenTax(row));
     const handling = greenTax ? `Maldives Green Tax (${draft.checkin} - ${draft.checkout})` : "";
     const calculationRows = calculated.rows.filter((row) => Number.isFinite(row.net) && row.net !== 0).map((row) => {
       const period = row.from && row.to ? `${escape(String(row.from).slice(0, 5))} - ${escape(String(row.to).slice(0, 5))}: ` : "";
-      return `${period}${escape(row.item)}: ${escape(core.expression(row))} = <b>${escape(core.money(row.net))}</b>`;
+      return `<b>${period}${escape(row.item)}</b>: ${escape(core.expression(row))} = ${escape(core.money(row.net))}`;
     }).join("<br>");
     let body = draft.greeting || editable ? `<div style="margin:0 0 4px;line-height:1.25;">${field("greeting", draft.greeting, "Opening")}</div>` : "";
     body += `${tableStart}<tr><td colspan="4" style="border:1px solid #bdd1e1;padding:5px 6px;background:#dceefa;${font}font-weight:bold;">${field("hotel", draft.hotel, "Hotel")}</td></tr>`;
