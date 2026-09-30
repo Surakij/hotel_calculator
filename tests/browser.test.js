@@ -76,7 +76,7 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   const text = await page.locator("#bookingPreview").innerText();
   assert.ok(text.indexOf("Beach Villa") < text.indexOf("Water Villa"));
   assert.ok(text.includes("Deluxe Villa"));
-  assert.ok(text.includes("TOTAL (USD)"));
+  assert.ok(text.includes("TOTAL:"));
   await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), "booking-preview.png") });
   await page.evaluate(() => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { write: async (items) => { window.bookingCopiedHtml = await (await items[0].getType("text/html")).text(); } } });

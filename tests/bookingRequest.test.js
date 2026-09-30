@@ -27,7 +27,8 @@ test("booking email escapes user input and orders split periods within rooms", (
   assert.ok(!html.includes("<img"));
   assert.ok(html.includes("&lt;img"));
   assert.ok(html.indexOf("Beach") < html.indexOf("Water"));
-  assert.ok(html.includes("Quotation summary (USD)"));
+  assert.ok(html.includes("RESERVATION REQUEST"));
+  assert.ok(html.includes("Room quotation"));
   assert.ok(html.includes("300.00"));
   assert.ok(html.includes("<table"));
   assert.equal((html.match(/ONLY-ONCE/g) || []).length, 1);
