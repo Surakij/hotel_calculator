@@ -4,6 +4,56 @@ const booking = require("../assets/bookingRequest.js");
 const core = require("../assets/core.js");
 const { shareHtml } = require("../assets/sharePresentation.js");
 
+test("sequential stays share guests across every period, including saved unassigned drafts", () => {
+  const payload = { hotel: "Example Maldives", checkin: "19.10.2026", checkout: "28.10.2026", guests: { adults: 2 }, rows: [
+    { type: "ROOM", roomKey: "water", item: "Sunset Water Villa", from: "19.10.2026", to: "24.10.2026", qty: 1, rate: 529 },
+    { type: "ROOM", roomKey: "beach", item: "Pool Beach Villa", from: "24.10.2026", to: "28.10.2026", qty: 1, rate: 469 },
+    { type: "MEAL", item: "AI - Adult", qty: 2, rate: 0 },
+  ] };
+  const original = booking.create(payload, "MRS FIRST PERSON DOB 01.01.1980\nMRS SECOND PERSON DOB 02.02.1981");
+  for (const assignment of ["", "1"]) {
+    const draft = JSON.parse(JSON.stringify(original));
+    draft.guests.forEach((guest) => { guest.room = assignment; });
+    draft.periods.reverse();
+    const warnings = booking.warnings(draft, payload, core);
+    assert.ok(!warnings.some((warning) => /assign/i.test(warning)));
+    assert.ok(warnings.some((warning) => /rates are empty/i.test(warning)));
+    const output = booking.html(draft, "", shareHtml, core, payload);
+    const guests = output.match(/<table class="booking-guest-table"[\s\S]*?<\/table>/)[0];
+    assert.ok(!guests.includes("Unassigned guests"));
+    assert.equal((guests.match(/<td /g) || []).length, 8);
+    assert.ok(output.includes("Room 1:"));
+    assert.ok(output.includes("Room 2:"));
+  }
+  original.guests[0].name = "";
+  assert.ok(booking.warnings(original, payload, core).includes("Check guest names."));
+  assert.ok(booking.warnings(original, payload, core).includes("Guest count differs from the calculator."));
+});
+
+test("guest assignments stay mandatory for overlaps, gaps, incomplete stays and multiple units", () => {
+  const payload = { hotel: "Example", checkin: "19.10.2026", checkout: "28.10.2026", guests: { adults: 1 }, rows: [
+    { type: "ROOM", item: "Water", qty: 1, rate: 100, from: "19.10.2026", to: "24.10.2026" },
+    { type: "ROOM", item: "Beach", qty: 1, rate: 100, from: "24.10.2026", to: "28.10.2026" },
+  ] };
+  const cases = [
+    (draft) => { draft.periods[1].from = "23.10.2026"; },
+    (draft) => { draft.periods[1].from = "25.10.2026"; },
+    (draft) => { draft.periods[0].from = "20.10.2026"; },
+    (draft) => { draft.periods[1].to = "27.10.2026"; },
+    (draft) => { draft.periods[0].from = "invalid"; },
+    (draft) => { draft.periods.forEach((period) => { period.from = payload.checkin; period.to = payload.checkout; }); },
+    (draft) => { draft.periods.push({ ...draft.periods[0], room: "3" }); },
+  ];
+  for (const change of cases) {
+    const draft = booking.create(payload, "MR EXAMPLE PERSON");
+    change(draft);
+    assert.ok(booking.warnings(draft, payload, core).some((warning) => /assign every guest/i.test(warning)));
+    assert.ok(booking.html(draft, "", shareHtml, core, payload).includes("Unassigned guests"));
+  }
+  const multipleUnits = { ...payload, rows: payload.rows.map((row) => ({ ...row, qty: 2 })) };
+  assert.ok(booking.warnings(booking.create(multipleUnits, "MR EXAMPLE PERSON"), multipleUnits, core).some((warning) => /assign every guest/i.test(warning)));
+});
+
 test("booking quotation reuses Short Share formatting and leaves Green Tax undated", () => {
   const payload = { checkin: "21.10.2026", checkout: "01.11.2026", rows: [
     { type: "ROOM", item: "Water", qty: 1, rate: 100, from: "21.10.2026", to: "27.10.2026" },

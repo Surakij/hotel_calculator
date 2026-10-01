@@ -62,19 +62,33 @@
       `Remarks:\n${imported.remarks}\nSPO code:`,
     ].join("\n");
   }
+  function isSequentialStay(draft, core) {
+    if (draft.periods.length < 2) return false;
+    const start = core.parseDate(draft.checkin);
+    const end = core.parseDate(draft.checkout);
+    if (!start || !end || end <= start) return false;
+    const periods = draft.periods.map((period) => ({ from: core.parseDate(period.from), to: core.parseDate(period.to) }));
+    if (periods.some((period) => !period.from || !period.to || period.to <= period.from)) return false;
+    periods.sort((a, b) => a.from - b.from);
+    return +periods[0].from === +start && +periods.at(-1).to === +end
+      && periods.every((period, index) => !index || +period.from === +periods[index - 1].to);
+  }
   function warnings(draft, payload, core) {
     const result = [];
+    const sharedStay = isSequentialStay(draft, core);
     if (!draft.hotel.trim()) result.push("Hotel is missing.");
     if (!core.parseDate(draft.checkin) || !core.parseDate(draft.checkout) || core.nightsBetween(draft.checkin, draft.checkout) <= 0) result.push("Check arrival and departure dates.");
     if (!draft.periods.length) result.push("No accommodation periods.");
-    if (draft.guests.some((guest) => !guest.name.trim() || !draft.periods.some((period) => period.room === guest.room))) result.push("Check guest names and assign every guest to a room.");
+    if (sharedStay) {
+      if (draft.guests.some((guest) => !guest.name.trim())) result.push("Check guest names.");
+    } else if (draft.guests.some((guest) => !guest.name.trim() || !draft.periods.some((period) => period.room === guest.room))) result.push("Check guest names and assign every guest to a room.");
     const expected = ["adults", "children", "infants"].reduce((sum, key) => sum + Number(payload.guests?.[key] || 0), 0);
     if (draft.guests.filter((guest) => guest.name.trim()).length !== expected) result.push("Guest count differs from the calculator.");
     if (draft.periods.some((period) => !period.category.trim() || !period.room || !core.parseDate(period.from) || !core.parseDate(period.to) || core.nightsBetween(period.from, period.to) <= 0)) result.push("Check room numbers, categories and stay dates.");
     for (const room of new Set(draft.periods.map((period) => period.room))) {
       const periods = draft.periods.filter((period) => period.room === room).sort((a, b) => core.parseDate(a.from) - core.parseDate(b.from));
       if (periods.some((period, index) => index && core.parseDate(period.from) < core.parseDate(periods[index - 1].to))) result.push(`Room ${room}: stay periods overlap.`);
-      if (!draft.guests.some((guest) => guest.room === room && guest.name.trim())) result.push(`Room ${room}: no guests assigned.`);
+      if (!sharedStay && !draft.guests.some((guest) => guest.room === room && guest.name.trim())) result.push(`Room ${room}: no guests assigned.`);
     }
     if ((payload.rows || []).some((row) => !Number(row.rate) && !row.rateFormula && row.type !== "GREEN_TAX")) result.push("Some calculator rates are empty or zero. Check the calculation.");
     return [...new Set(result)];
@@ -93,7 +107,7 @@
       const path = `guests.${draft.guests.indexOf(guest)}`;
       return `<tr><td ${cell}><b>${field(`${path}.name`, guest.name, "Guest name")}</b></td><td ${cell}>${field(`${path}.dob`, guest.dob, "Date of birth")}</td><td ${cell}>${field(`${path}.passport`, guest.passport, "Passport")}</td><td ${cell}>${field(`${path}.validTill`, guest.validTill, "Valid till")}</td></tr>`;
     };
-    const guestGroups = rooms.length > 1 ? [...rooms, ...new Set(draft.guests.filter((guest) => !rooms.includes(guest.room)).map((guest) => guest.room))] : [null];
+    const guestGroups = rooms.length > 1 && !isSequentialStay(draft, core) ? [...rooms, ...new Set(draft.guests.filter((guest) => !rooms.includes(guest.room)).map((guest) => guest.room))] : [null];
     const guestRows = guestGroups.map((room) => {
       const guests = draft.guests.filter((guest) => (guest.name || editable) && (room === null || guest.room === room));
       return guests.length ? `${room !== null ? `<tr><th colspan="4" ${head}>${room ? `Room ${escape(room)}` : "Unassigned guests"}</th></tr>` : ""}${guests.map(guestRow).join("")}` : "";
@@ -184,9 +198,11 @@
       header.append(overview);
       field(header, "Opening", draft, "greeting", "textarea");
       const guests = section("Guests");
+      const sharedStay = isSequentialStay(draft, core);
       draft.guests.forEach((guest, index) => {
-        const row = document.createElement("div"); row.className = "booking-guest-row";
-        field(row, "Title / full name", guest, "name"); field(row, "Date of birth", guest, "dob"); field(row, "Passport No.", guest, "passport"); field(row, "Valid till", guest, "validTill"); field(row, "Room", guest, "room", "number");
+        const row = document.createElement("div"); row.className = `booking-guest-row${sharedStay ? " booking-shared-guest-row" : ""}`;
+        field(row, "Title / full name", guest, "name"); field(row, "Date of birth", guest, "dob"); field(row, "Passport No.", guest, "passport"); field(row, "Valid till", guest, "validTill");
+        if (!sharedStay) field(row, "Room", guest, "room", "number");
         button(row, "Remove", () => { draft.guests.splice(index, 1); persist(); render(); });
         guests.append(row);
       });

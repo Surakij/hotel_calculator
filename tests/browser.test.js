@@ -40,6 +40,51 @@ afterEach(async () => {
   assert.deepEqual(errors, []);
 });
 
+test("booking sequential split shares guests without room assignment or copy confirmation", async () => {
+  await page.waitForFunction(() => Boolean(HotelCalculatorStorage.loadDraft()));
+  await page.evaluate(() => {
+    HotelCalculatorStorage.saveDraft({
+      hotel: "Example Maldives", checkin: "19.10.2026", checkout: "28.10.2026", guests: { adults: 2, children: 0, infants: 0 },
+      bookingSource: "MRS FIRST PERSON DOB 01.01.1980 PN 77 1234567 TILL 01.01.2035\nMRS SECOND PERSON DOB 02.02.1981",
+      rows: [
+        { type: "ROOM", roomKey: "water", item: "Sunset Water Villa", qty: 1, rate: 529, from: "19.10.2026", to: "24.10.2026", followGlobal: false },
+        { type: "ROOM", roomKey: "beach", item: "Pool Beach Villa", qty: 1, rate: 469, from: "24.10.2026", to: "28.10.2026", followGlobal: false },
+        { type: "TRANSFER", item: "Seaplane - Adult", qty: 2, rate: 475 },
+      ],
+    });
+  });
+  await page.reload();
+  await page.locator("#showBooking").click();
+  assert.equal(await page.locator("#bookingWarnings").isVisible(), false, await page.locator("#bookingWarnings").textContent());
+  assert.doesNotMatch(await page.locator("#bookingPreview").innerText(), /Unassigned guests/);
+  assert.equal(await page.locator(".booking-guest-table tbody td b").count(), 2);
+  await page.locator("#bookingEditTab").click();
+  assert.equal(await page.locator(".booking-guest-row .booking-field-room").count(), 0);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.locator("#bookingEditor").evaluate((element) => element.scrollWidth <= element.clientWidth + 1));
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#bookingPreviewTab").click();
+  await page.locator('[data-booking-field="guests.0.passport"]').fill("77 7654321");
+  await page.waitForFunction(() => HotelCalculatorStorage.loadDraft()?.payload?.bookingRequest?.draft?.guests[0]?.passport === "77 7654321");
+  await page.screenshot({ path: require("node:path").join(require("node:os").tmpdir(), "booking-shared-split.png") });
+  await page.locator("#closeBooking").click();
+  await page.reload();
+  await page.locator("#showBooking").click();
+  assert.equal(await page.locator("#bookingWarnings").isVisible(), false);
+  assert.equal(await page.locator('[data-booking-field="guests.0.passport"]').innerText(), "77 7654321");
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { write: async (items) => { window.bookingCopiedHtml = await (await items[0].getType("text/html")).text(); } } });
+  });
+  await page.locator("#bookingCopy").click();
+  await page.waitForFunction(() => Boolean(window.bookingCopiedHtml));
+  const copied = await page.evaluate(() => window.bookingCopiedHtml);
+  assert.doesNotMatch(copied, /Unassigned guests/);
+  assert.match(copied, /Room 1:/);
+  assert.match(copied, /Room 2:/);
+});
+
 test("booking request receives import guests and clears them for a new calculation", async () => {
   await page.locator("#showSamoImport").click();
   await page.locator("#samoImportText").fill("Hotel: Anantara Dhigu Maldives 5*\nGuest name: MR TEST PERSON DOB 01.01.1980 PN 123456\nNumber of guest: 1 Adult\nArrival date: 28.10.2026\nDeparture date: 04.11.2026\nVilla category: Sunrise Beach Villa\nMeal Plan: HB\nTransfer: Speedboat\nRemarks:\nQuiet room please\nSPO code:");

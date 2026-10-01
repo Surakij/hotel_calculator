@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.39
+
+- Treat guests as shared across continuous single-room split stays covering the full trip, including saved booking requests.
+- Omit guest room assignment controls and warnings for those stays; retain assignments for simultaneous rooms, gaps and incomplete periods.
+
 ## 1.6.38
 
 - Show booking guests in compact name, DOB, passport and valid-till columns, retaining room grouping and editable fields.
