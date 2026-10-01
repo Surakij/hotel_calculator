@@ -2,6 +2,47 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("maps Le Meridien with plain, accented and decomposed spelling", () => {
+  const hotel = "Le M\u00e9ridien Maldives Resort and Spa";
+  for (const name of ["Le Meridien Maldives Resort & Spa 5*", "Le M\u00e9ridien Maldives Resort and Spa 5*", "Le Me\u0301ridien Maldives Resort & Spa 5*"]) {
+    const parsed = parser.parseSamoRequest(`Hotel: ${name}
+Number of guest: 2 Adult, 0 Child
+Arrival date: 01.11.2026
+Departure date: 07.11.2026
+Length of stay: 6 Nights
+Villa category: Overwater Sunrise Villa 2 Adl
+Meal Plan: FB
+Transfer: Seaplane Airport - Hotel - Airport
+SPO code: LM26-016RU
+Room quotation: 6*770.00[6630/Std/LM26-016RU]`, { hotelNames: [hotel] });
+    assert.equal(parsed.mappedHotel, hotel);
+    assert.equal(parsed.hotelStatus, "mapped");
+    assert.equal(parsed.rooms[0].item, "Overwater Sunrise Villa");
+    assert.equal(parsed.mealPlan, "FB");
+    assert.equal(parsed.nights, 6);
+    assert.equal(parsed.spo, "LM26-016RU");
+    assert.deepEqual(parsed.warnings, []);
+  }
+});
+
+test("maps a compact Le Meridien request without accent marks", () => {
+  const hotel = "Le M\u00e9ridien Maldives Resort and Spa";
+  const parsed = parser.parseSamoRequest("Le Meridien Maldives Resort & Spa, Overwater Sunrise Villa (6 nights), 2 adl, FB, seaplane", {
+    hotelNames: [hotel], fallbackCheckin: "01.11.2026",
+  });
+  assert.equal(parsed.mappedHotel, hotel);
+  assert.equal(parsed.rooms[0].item, "Overwater Sunrise Villa");
+  assert.equal(parsed.nights, 6);
+});
+
+test("leaves hotel matching unresolved when accent normalization is ambiguous", () => {
+  const parsed = parser.parseSamoRequest("Hotel: Le Meridien Maldives Resort & Spa 5*\nArrival date: 01.11.2026", {
+    hotelNames: ["Le M\u00e9ridien Maldives Resort and Spa", "Le Meridien Maldives Resort and Spa"],
+  });
+  assert.equal(parsed.mappedHotel, "");
+  assert.equal(parsed.hotelStatus, "unresolved");
+});
+
 test("detects Fuel Surcharge separately from Green Tax", () => {
   const result = parser.parseSamoRequest(`
     Hotel: Pullman Maldives Maamutaa 5*

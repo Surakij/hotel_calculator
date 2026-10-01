@@ -143,6 +143,13 @@ test("booking request edits survive reload and copy rich Outlook HTML", async ()
   await page.locator("#bookingCopy").click();
   await page.waitForFunction(() => Boolean(window.bookingCopiedHtml));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("<table"));
+  const guestCells = await page.evaluate(() => {
+    const copied = new DOMParser().parseFromString(window.bookingCopiedHtml, "text/html");
+    const table = copied.querySelector(".booking-guest-table");
+    return { headers: [...table.querySelectorAll("thead th")].map((cell) => cell.textContent), guests: [...table.querySelectorAll("tbody tr")].filter((row) => row.cells.length === 4).map((row) => [...row.cells].map((cell) => cell.textContent)) };
+  });
+  assert.deepEqual(guestCells.headers, ["Guest name", "DOB", "Passport", "Valid till"]);
+  assert.deepEqual(guestCells.guests[0], ["MR ALEXANDER LONG-SURNAME TEST", "01.01.1980", "77 1234567", "01.12.2035"]);
   assert.ok(!(await page.evaluate(() => window.bookingCopiedHtml)).includes("contenteditable"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("77 1234567"));
   assert.ok((await page.evaluate(() => window.bookingCopiedHtml)).includes("800 * 1 * 4"));
@@ -943,6 +950,45 @@ Transfer: Speedboat Airport - Hotel - Airport`;
   assert.deepEqual(result.meals, [["HB - Adult", "2"], ["HB - Child", "1"]]);
   assert.deepEqual(result.transfers, ["Speedboat - Adult", "Speedboat - Child"]);
   assert.match(result.preview, /Anantara Dhigu MaldivesMapped/);
+});
+
+test("SAMO maps Le Meridien with its canonical villa and FB meal", async () => {
+  await page.locator("#showSamoImport").click();
+  await page.locator("#samoImportText").fill(`Hotel: Le Meridien Maldives Resort & Spa 5*
+Number of guest: 2 Adult, 0 Child
+Arrival date: 01.11.2026
+Departure date: 07.11.2026
+Length of stay: 6 Nights
+Villa category: Overwater Sunrise Villa 2 Adl
+Meal Plan: FB
+Transfer: Seaplane Airport - Hotel - Airport
+Handling fee: Maldives Green Tax
+SPO code: LM26-016RU
+Room quotation: 6*770.00[6630/Std/LM26-016RU]`);
+  await page.locator("#parseSamoImport").click();
+  const preview = await page.locator("#samoImportPreview").innerText();
+  assert.doesNotMatch(preview, /Unresolved|not safely matched|not safely mapped/i);
+  await page.locator("#applySamoImport").click();
+  const result = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const ofType = (type) => rows.filter((row) => row.querySelector(".type")?.value === type);
+    return {
+      hotel: document.getElementById("hotel").value,
+      rooms: ofType("ROOM").map((row) => row.querySelector(".item").value),
+      meals: ofType("MEAL").map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      transfers: ofType("TRANSFER").map((row) => row.querySelector(".item").value),
+      spo: document.getElementById("spo").value,
+      checkin: document.getElementById("checkin").value,
+      checkout: document.getElementById("checkout").value,
+    };
+  });
+  assert.equal(result.hotel, "Le M\u00e9ridien Maldives Resort and Spa");
+  assert.deepEqual(result.rooms, ["Sunrise Overwater Villa"]);
+  assert.deepEqual(result.meals, [["FB - Adult", "2"]]);
+  assert.deepEqual(result.transfers, ["Seaplane - Adult"]);
+  assert.equal(result.spo, "LM26-016RU");
+  assert.equal(result.checkin, "01.11.2026");
+  assert.equal(result.checkout, "07.11.2026");
 });
 
 test("SAMO maps Anantara Veli separately with its canonical room, adult meal and clean SPO", async () => {

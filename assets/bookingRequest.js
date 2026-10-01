@@ -86,24 +86,18 @@
     const calculated = core.calculateRows(payload.rows || []);
     const cell = `style="border:1px solid #bdd1e1;padding:3px 6px;height:auto;text-align:left;vertical-align:top;background:#ffffff;${font}white-space:normal;overflow-wrap:anywhere;"`;
     const head = `style="border:1px solid #bdd1e1;padding:3px 6px;height:auto;text-transform:none;text-align:left;vertical-align:top;background:#edf5fb;${font}font-weight:bold;white-space:normal;"`;
-    const tableStart = `<table cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;${font}margin:0 0 4px;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>`;
+    const tableStart = (widths = [18, 32, 18, 32], className = "") => `<table${className ? ` class="${className}"` : ""} cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;${font}margin:0;"><colgroup>${widths.map((width) => `<col style="width:${width}%">`).join("")}</colgroup>`;
     const roomNights = (period) => core.nightsBetween(period.from, period.to);
     const rooms = [...new Set(draft.periods.map((period) => period.room))].sort((a, b) => Number(a) - Number(b));
-    const guestLine = (guest) => {
+    const guestRow = (guest) => {
       const path = `guests.${draft.guests.indexOf(guest)}`;
-      const detail = (key, caption, title) => guest[key] || editable
-        ? `<span style="display:inline-block;white-space:nowrap;"><span>${caption}</span>&nbsp;${field(`${path}.${key}`, guest[key], title)}</span>` : "";
-      return [`<b>${field(`${path}.name`, guest.name, "Guest name")}</b>`,
-        detail("dob", "DOB", "Date of birth"),
-        detail("passport", "PN", "Passport"),
-        detail("validTill", "TILL", "Valid till"),
-      ].filter(Boolean).join(' <span>&middot;</span> ');
+      return `<tr><td ${cell}><b>${field(`${path}.name`, guest.name, "Guest name")}</b></td><td ${cell}>${field(`${path}.dob`, guest.dob, "Date of birth")}</td><td ${cell}>${field(`${path}.passport`, guest.passport, "Passport")}</td><td ${cell}>${field(`${path}.validTill`, guest.validTill, "Valid till")}</td></tr>`;
     };
     const guestGroups = rooms.length > 1 ? [...rooms, ...new Set(draft.guests.filter((guest) => !rooms.includes(guest.room)).map((guest) => guest.room))] : [null];
-    const guestLines = guestGroups.map((room) => {
+    const guestRows = guestGroups.map((room) => {
       const guests = draft.guests.filter((guest) => (guest.name || editable) && (room === null || guest.room === room));
-      return guests.length ? `${room !== null ? `<b>${room ? `Room ${escape(room)}` : "Unassigned guests"}</b><br>` : ""}${guests.map(guestLine).join("<br>")}` : "";
-    }).filter(Boolean).join("<br>");
+      return guests.length ? `${room !== null ? `<tr><th colspan="4" ${head}>${room ? `Room ${escape(room)}` : "Unassigned guests"}</th></tr>` : ""}${guests.map(guestRow).join("")}` : "";
+    }).join("");
     const stayLines = rooms.flatMap((room) => draft.periods.filter((period) => period.room === room)
       .sort((a, b) => core.parseDate(a.from) - core.parseDate(b.from))
       .map((period) => {
@@ -116,9 +110,9 @@
     const quotation = shortShare.slice(shortShare.indexOf("") + 1).join("\n");
     const calculationRows = shareHtml(quotation).replaceAll("\n", "<br>");
     let body = draft.greeting || editable ? `<div style="margin:0 0 4px;line-height:1.25;">${field("greeting", draft.greeting, "Opening")}</div>` : "";
-    body += `${tableStart}<tr><td colspan="4" style="border:1px solid #bdd1e1;padding:5px 6px;background:#dceefa;${font}font-weight:bold;">${field("hotel", draft.hotel, "Hotel")}</td></tr>`;
+    body += `${tableStart()}<tr><td colspan="4" style="border:1px solid #bdd1e1;padding:5px 6px;background:#dceefa;${font}font-weight:bold;">${field("hotel", draft.hotel, "Hotel")}</td></tr></table>`;
+    body += `${tableStart([40, 20, 20, 20], "booking-guest-table")}<thead><tr>${["Guest name", "DOB", "Passport", "Valid till"].map((title) => `<th scope="col" ${head}>${title}</th>`).join("")}</tr></thead><tbody>${guestRows}</tbody></table>${tableStart()}`;
     const row = (title, value, rightTitle = "", rightValue = "") => `<tr><th ${head}>${escape(title)}</th><td ${cell}${rightTitle ? "" : ' colspan="3"'}>${value || ""}</td>${rightTitle ? `<th ${head}>${escape(rightTitle)}</th><td ${cell}>${rightValue || ""}</td>` : ""}</tr>`;
-    body += row("Guest name", guestLines);
     body += row("Guests", escape(guestSummary(draft.guests.filter((guest) => guest.name.trim()))), "Length of stay", `${core.nightsBetween(draft.checkin, draft.checkout)} Nights`);
     body += row("Arrival date", field("checkin", draft.checkin, "Check-in"), "Flight details", field("arrival", draft.arrival || "TBA", "Arrival flight"));
     body += row("Departure date", field("checkout", draft.checkout, "Check-out"), "Flight details", field("departure", draft.departure || "TBA", "Departure flight"));

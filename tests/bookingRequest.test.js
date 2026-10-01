@@ -72,13 +72,33 @@ test("booking starts without company text or subject and omits empty message blo
   assert.ok(!output.includes("SPO code"));
 });
 
-test("booking guest details stay inline with a bold name and separated document fields", () => {
+test("booking guests use four compact columns with editable document fields", () => {
   const draft = booking.create({ rows: [] }, "MR EXAMPLE PERSON DOB 01.01.1980 PN 77 1234567 TILL 01.01.2035");
   const output = booking.html(draft, "", shareHtml, core);
   assert.ok(output.includes("<b>MR EXAMPLE PERSON</b>"));
-  assert.equal((output.match(/&middot;/g) || []).length, 3);
-  assert.ok(output.includes("PN</span>&nbsp;77 1234567"));
-  assert.ok(output.includes("TILL</span>&nbsp;01.01.2035"));
+  const guests = output.match(/<table class="booking-guest-table"[\s\S]*?<\/table>/)[0];
+  assert.deepEqual([...guests.matchAll(/<th scope="col" [^>]+>([^<]+)<\/th>/g)].map((match) => match[1]), ["Guest name", "DOB", "Passport", "Valid till"]);
+  assert.deepEqual([...guests.matchAll(/<td [^>]+>(.*?)<\/td>/g)].map((match) => match[1]), ["<b>MR EXAMPLE PERSON</b>", "01.01.1980", "77 1234567", "01.01.2035"]);
+  const editable = booking.html(draft, "", shareHtml, core, { rows: [] }, true);
+  for (const key of ["name", "dob", "passport", "validTill"]) assert.ok(editable.includes(`data-booking-field="guests.0.${key}"`));
+});
+
+test("booking guest tables retain room grouping and empty passport cells", () => {
+  const draft = booking.create({ rows: [] });
+  draft.periods = [{ room: "1" }, { room: "2" }];
+  draft.guests = [
+    { name: "MR SECOND", dob: "", passport: "", validTill: "", room: "2" },
+    { name: "MRS FIRST & OTHER", dob: "", passport: "<passport>", validTill: "", room: "1" },
+    { name: "CHD UNASSIGNED", dob: "", passport: "", validTill: "", room: "" },
+  ];
+  const output = booking.html(draft, "", shareHtml, core);
+  const guests = output.match(/<table class="booking-guest-table"[\s\S]*?<\/table>/)[0];
+  assert.ok(guests.indexOf("Room 1") < guests.indexOf("MRS FIRST &amp; OTHER"));
+  assert.ok(guests.indexOf("MRS FIRST &amp; OTHER") < guests.indexOf("Room 2"));
+  assert.ok(guests.indexOf("Room 2") < guests.indexOf("MR SECOND"));
+  assert.ok(guests.indexOf("Unassigned guests") < guests.indexOf("CHD UNASSIGNED"));
+  assert.ok(guests.includes("&lt;passport&gt;"));
+  assert.equal((guests.match(/<td /g) || []).length, 12);
 });
 
 test("booking signature and chosen color are included in copied email", () => {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.38
+
+- Show booking guests in compact name, DOB, passport and valid-till columns, retaining room grouping and editable fields.
+- Match accented and plain hotel spellings during import, including Le Meridien, without guessing between ambiguous names.
+
 ## 1.6.37
 
 - Remember booking opening, closing, signature and text color independently of calculator drafts; preserve them through new requests and data reloads.

@@ -158,6 +158,8 @@
 
   function normalizeHotelName(value) {
     return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
       .replace(/[★☆]/g, "*")
       .replace(/\b[1-7]\s*\*+\s*(?:deluxe)?\s*$/i, "")
       .replace(/\binter\s+continental\b/gi, "Intercontinental")
@@ -178,8 +180,8 @@
     const candidates = hotelNames
       .map((name) => ({ name, normalized: normalizeHotelName(name) }))
       .filter((item) => item.normalized);
-    const exact = candidates.find((item) => item.normalized === normalized);
-    if (exact) return { mappedHotel: exact.name, status: "mapped" };
+    const exact = candidates.filter((item) => item.normalized === normalized);
+    if (exact.length === 1) return { mappedHotel: exact[0].name, status: "mapped" };
     const soft = candidates.filter((item) => item.normalized.includes(normalized));
     return soft.length === 1 ? { mappedHotel: soft[0].name, status: "mapped" } : { mappedHotel: "", status: "unresolved" };
   }
