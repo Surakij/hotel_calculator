@@ -3,6 +3,24 @@ const assert = require("node:assert/strict");
 const core = require("../assets/core.js");
 const storage = require("../assets/storage.js");
 
+test("renamed Niva Kurumba retains remembered room and meal rates", () => {
+  const key = "hotelCalculator.rateMemory.v1";
+  const before = localStorage.getItem(key);
+  try {
+    localStorage.setItem(key, JSON.stringify([
+      { hotel: "Kurumba Maldives", type: "ROOM", item: "Deluxe Bungalow", from: "22.10.2026", to: "29.10.2026", rateFormula: "282.75" },
+      { hotel: "Kurumba Maldives", type: "MEAL", item: "HB - Adult", from: "22.10.2026", to: "29.10.2026", rateFormula: "90" },
+    ]));
+    assert.equal(storage.canonicalHotelName("Kurumba Maldives"), "Niva Kurumba Maldives");
+    for (const [type, item, rate] of [["ROOM", "Deluxe Bungalow", "282.75"], ["MEAL", "HB - Adult", "90"]]) {
+      assert.equal(storage.findRateMemory({ hotel: "Niva Kurumba Maldives", type, item, from: "22.10.2026", to: "29.10.2026" }).rateFormula, rate);
+    }
+  } finally {
+    if (before === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, before);
+  }
+});
+
 test("unassigned person extra follows an unambiguous sequential split only", () => {
   const rooms = [
     { type: "ROOM", roomKey: "a", item: "Water", qty: 1, rate: 1029, from: "21.10.2026", to: "27.10.2026" },

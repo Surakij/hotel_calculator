@@ -101,6 +101,7 @@
     ["coco palm dhunikolhu", "Coco Palm Dhuni Kolhu"],
     ["heritance aarah", "Heritance Aarah Maldives"],
     ["lily beach resort", "Lily Beach Resort & Spa"],
+    ["kurumba maldives", "Niva Kurumba Maldives"],
     ["the ritz carlton maldives fari islands", "The Ritz-Carlton Maldives, Fari Islands"],
     ["fihaalhohi maldives", "Fihalhohi Maldives"],
     ["inter continental maldives maamunagau", "Intercontinental Maldives Maamunagau Resort"],

@@ -2,6 +2,41 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("maps new and legacy Kurumba names and preserves combined SPO suffixes", () => {
+  for (const name of ["Niva Kurumba Maldives 5*", "Kurumba Maldives 5*"]) {
+    const parsed = parser.parseSamoRequest(`Hotel: ${name}
+Guest name: MR FIRST PERSON DOB 01.01.1980
+MRS SECOND PERSON DOB 02.02.1981
+CHD THIRD PERSON DOB 01.01.2016
+Number of guest: 2 Adult, 1 Child
+Arrival date: 22.10.2026
+Departure date: 29.10.2026
+Length of stay: 7 Nights
+Villa category: Deluxe Bungalow 2 Adl + 1 Chd
+Meal Plan: BB
+Transfer: Speedboat
+SPO code:
+Room quotation: 7*282.75[7701/Std/KM-2026/43+KM-2026/62+KM-2026/63]`, { hotelNames: ["Niva Kurumba Maldives"] });
+    assert.equal(parsed.mappedHotel, "Niva Kurumba Maldives");
+    assert.equal(parsed.rooms[0].item, "Deluxe Bungalow");
+    assert.equal(parsed.mealPlan, "BB");
+    assert.equal(parsed.spo, "KM-2026/43 + KM-2026/62 + KM-2026/63");
+    assert.deepEqual([parsed.adults, parsed.children, parsed.infants], [2, 1, 0]);
+    assert.deepEqual(parsed.childAges, [10]);
+    assert.deepEqual(parsed.warnings, []);
+  }
+});
+
+test("deduplicates complete combined SPO values across quotation periods", () => {
+  const parsed = parser.parseSamoRequest(`Hotel: Niva Kurumba Maldives
+Arrival date: 22.10.2026
+Departure date: 29.10.2026
+Room quotation: 3*282.75[7701/Std/KM-2026/43+KM-2026/62]+4*282.75[7701/Std/KM-2026/62+KM-2026/63]`, { hotelNames: ["Niva Kurumba Maldives"] });
+  assert.equal(parsed.spo, "KM-2026/43 + KM-2026/62 + KM-2026/63");
+  const explicit = parser.parseSamoRequest("Hotel: Niva Kurumba Maldives\nArrival date: 22.10.2026\nSPO code: MY-OFFER\nRoom quotation: 7*282.75[7701/Std/KM-2026/43+KM-2026/62]", { hotelNames: ["Niva Kurumba Maldives"] });
+  assert.equal(explicit.spo, "MY-OFFER");
+});
+
 test("maps Le Meridien with plain, accented and decomposed spelling", () => {
   const hotel = "Le M\u00e9ridien Maldives Resort and Spa";
   for (const name of ["Le Meridien Maldives Resort & Spa 5*", "Le M\u00e9ridien Maldives Resort and Spa 5*", "Le Me\u0301ridien Maldives Resort & Spa 5*"]) {

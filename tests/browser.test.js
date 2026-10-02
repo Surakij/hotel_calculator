@@ -997,6 +997,41 @@ Transfer: Speedboat Airport - Hotel - Airport`;
   assert.match(result.preview, /Anantara Dhigu MaldivesMapped/);
 });
 
+test("SAMO maps Niva Kurumba, BB adult and child meals, and a complete composite SPO", async () => {
+  await page.locator("#showSamoImport").click();
+  await page.locator("#samoImportText").fill(`Hotel: Niva Kurumba Maldives 5*
+Guest name: MR FIRST PERSON DOB 01.01.1980
+MRS SECOND PERSON DOB 02.02.1981
+CHD THIRD PERSON DOB 01.01.2016
+Number of guest: 2 Adult, 1 Child
+Arrival date: 22.10.2026
+Departure date: 29.10.2026
+Villa category: Deluxe Bungalow 2 Adl + 1 Chd
+Meal Plan: BB
+Transfer: Speedboat
+SPO code:
+Room quotation: 7*282.75[7701/Std/KM-2026/43+KM-2026/62+KM-2026/63]`);
+  await page.locator("#parseSamoImport").click();
+  assert.doesNotMatch(await page.locator("#samoImportPreview").innerText(), /Unresolved|not safely mapped|not safely matched/i);
+  await page.locator("#applySamoImport").click();
+  const result = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const ofType = (type) => rows.filter((row) => row.querySelector(".type")?.value === type);
+    return {
+      hotel: document.getElementById("hotel").value,
+      rooms: ofType("ROOM").map((row) => row.querySelector(".item").value),
+      meals: ofType("MEAL").map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]),
+      spo: document.getElementById("spo").value,
+      infants: document.getElementById("infants").value,
+    };
+  });
+  assert.equal(result.hotel, "Niva Kurumba Maldives");
+  assert.deepEqual(result.rooms, ["Deluxe Bungalow"]);
+  assert.deepEqual(result.meals, [["BB - Adult", "2"], ["BB - Child", "1"]]);
+  assert.equal(result.spo, "KM-2026/43 + KM-2026/62 + KM-2026/63");
+  assert.equal(result.infants, "0");
+});
+
 test("SAMO maps Le Meridien with its canonical villa and FB meal", async () => {
   await page.locator("#showSamoImport").click();
   await page.locator("#samoImportText").fill(`Hotel: Le Meridien Maldives Resort & Spa 5*

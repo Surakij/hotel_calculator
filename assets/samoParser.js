@@ -414,6 +414,14 @@
     const bracketParts = [...raw.matchAll(/\[([^\]]+)\]/g)].map((match) => match[1]);
     const codes = [];
     for (const part of bracketParts) {
+      const offerText = /^(?:\d+\s*[;/]\s*)?std\s*[;/]\s*(.+)$/i.exec(part.trim())?.[1];
+      if (offerText?.includes("+")) {
+        for (const value of offerText.split("+")) {
+          const code = value.replace(/\s+\?{2,}.*$/, "").trim();
+          if (code && !/^\d+$/.test(code) && !codes.includes(code)) codes.push(code);
+        }
+        continue;
+      }
       const pieces = part.split(/[;/]/).map((item) => item.trim()).filter(Boolean);
       const code = [...pieces].reverse()
         .map((item) => item.replace(/\s+\?{2,}.*$/, "").trim())

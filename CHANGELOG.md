@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.40
+
+- Recognize Niva Kurumba Maldives and its legacy name while preserving saved rates.
+- Add BB adult and child meal plans for Niva Kurumba.
+- Preserve complete composite SPO codes from imported room quotations.
+
 ## 1.6.39
 
 - Treat guests as shared across continuous single-room split stays covering the full trip, including saved booking requests.

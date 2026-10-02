@@ -1884,7 +1884,7 @@
       "AI Plus - Child"
     ]
   },
-  "Kurumba Maldives": {
+  "Niva Kurumba Maldives": {
     "rooms": [
       "Beach Villa",
       "Beachfront Deluxe Bungalow",
@@ -1897,6 +1897,8 @@
       "Two Bedroom Superior Room"
     ],
     "meals": [
+      "BB - Adult",
+      "BB - Child",
       "HB - Adult",
       "HB - Child",
       "FB AI - Adult",
