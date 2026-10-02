@@ -3,12 +3,10 @@
   const storage = window.HotelCalculatorStorage;
   const googleDrive = window.HotelCalculatorGoogleDrive;
   const samoParser = window.HotelCalculatorSamoParser;
-  let bookingRequest = null;
-  let bookingSource = "";
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.40";
-  const APP_BUILD = "1.6.40";
+  const APP_VERSION = "1.6.41";
+  const APP_BUILD = "1.6.41";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -2040,8 +2038,6 @@
 
   function sharePayload() {
     return {
-      bookingRequest,
-      bookingSource,
       hotel: value("hotel"),
       checkin: value("checkin"),
       checkout: value("checkout"),
@@ -2088,8 +2084,6 @@
 
   function applyPayload(payload) {
     if (!payload) return false;
-    bookingRequest = payload.bookingRequest || null;
-    bookingSource = payload.bookingSource || "";
     activeStepperStop?.();
     clearTimeout(rateMemoryTimer);
     pendingRates.clear();
@@ -2496,7 +2490,6 @@
     if (!samoImportData) return;
     if (hasMeaningfulCalculation() && !window.confirm("Replace current calculation with imported request?")) return;
     const { payload } = buildSamoPayload(samoImportData);
-    payload.bookingSource = window.HotelBookingRequest.captureSource($("samoImportText").value);
     const savedDatePayload = payload.checkin
       ? storage.history().find((entry) => {
         const saved = entry?.payload;
@@ -2813,8 +2806,6 @@
   function clearAll() {
     if (!window.confirm("Clear the current calculation and start a new one?")) return;
     flushUndoSnapshot();
-    bookingRequest = null;
-    bookingSource = "";
     clearTimeout(rateMemoryTimer);
     pendingRates.clear();
     ["hotel", "checkin", "checkout", "ages", "spo", "eboDays"].forEach((id) => {
@@ -3099,27 +3090,6 @@
     $("copyShare").addEventListener("click", copyShare);
     $("downloadShare").addEventListener("click", downloadShare);
     $("downloadShareModal").addEventListener("click", downloadShare);
-    const bookingButton = document.createElement("button");
-    bookingButton.id = "showBooking";
-    bookingButton.type = "button";
-    bookingButton.className = "history";
-    bookingButton.textContent = "Booking Request";
-    const bookingIcon = $("showSamoImport").querySelector("svg")?.cloneNode(true);
-    if (bookingIcon) bookingButton.prepend(bookingIcon);
-    $("showSamoImport").insertAdjacentElement("afterend", bookingButton);
-    if (!storage.bookingTemplate()) {
-      const previousRequest = storage.loadDraft()?.payload?.bookingRequest?.draft;
-      if (previousRequest) storage.saveBookingTemplate(previousRequest);
-    }
-    window.HotelBookingRequest.mount({
-      getTemplate: () => storage.bookingTemplate(),
-      saveTemplate: (template) => storage.saveBookingTemplate(template),
-      getPayload: sharePayload,
-      getSource: () => bookingSource,
-      getDraft: () => bookingRequest,
-      saveDraft: (draft) => { bookingRequest = draft; clearSaveStatus(); scheduleDraftSave(); },
-      core, shareHtml, toast,
-    });
     $("closeShare").addEventListener("click", () => $("shareModal").close());
     $("closeHistory").addEventListener("click", () => $("historyModal").close());
     $("closeSettings").addEventListener("click", () => $("settingsModal").close());

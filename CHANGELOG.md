@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.41
+
+- Remove the reservation editor, Outlook booking-request output and their runtime code from the public edition.
+- Retain calculator, SAMO import, Short Share, history, Google Drive and rate autofill behavior.
+- Add public-edition regression checks to prevent reservation code being shipped again.
+
 ## 1.6.40
 
 - Recognize Niva Kurumba Maldives and its legacy name while preserving saved rates.

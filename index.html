@@ -8,35 +8,34 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Maldives Hotel Quotation & Reservation Calculator">
   <meta property="og:description" content="A browser-based workflow automation tool designed for Maldives resort quotation and reservation pricing.">
-  <meta property="og:image" content="https://surakij.github.io/hotel_calculator/assets/social-preview.png?v=1.6.40">
+  <meta property="og:image" content="https://surakij.github.io/hotel_calculator/assets/social-preview.png?v=1.6.41">
   <meta property="og:url" content="https://surakij.github.io/hotel_calculator/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Maldives Hotel Quotation & Reservation Calculator">
   <meta name="twitter:description" content="A browser-based workflow automation tool designed for Maldives resort quotation and reservation pricing.">
-  <meta name="twitter:image" content="https://surakij.github.io/hotel_calculator/assets/social-preview.png?v=1.6.40">
-  <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png?v=1.6.40">
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=1.6.40">
-  <script src="assets/initialLayout.js?v=1.6.40"></script>
-  <script src="assets/appearanceInit.js?v=1.6.40"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=1.6.40">
-  <script src="assets/core.js?v=1.6.40" defer></script>
-  <script src="assets/hotelData.js?v=1.6.40" defer></script>
-  <script src="assets/storage.js?v=1.6.40" defer></script>
-  <script src="assets/googleConfig.js?v=1.6.40" defer></script>
-  <script src="assets/googleDrive.js?v=1.6.40" defer></script>
-  <script src="assets/samoParser.js?v=1.6.40" defer></script>
-  <script src="assets/updateManager.js?v=1.6.40" defer></script>
-  <script src="assets/sharePresentation.js?v=1.6.40" defer></script>
-  <script src="assets/bookingRequest.js?v=1.6.40" defer></script>
-  <script src="assets/app.js?v=1.6.40" defer></script>
-  <script src="assets/hotelReselect.js?v=1.6.40" defer></script>
+  <meta name="twitter:image" content="https://surakij.github.io/hotel_calculator/assets/social-preview.png?v=1.6.41">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png?v=1.6.41">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=1.6.41">
+  <script src="assets/initialLayout.js?v=1.6.41"></script>
+  <script src="assets/appearanceInit.js?v=1.6.41"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=1.6.41">
+  <script src="assets/core.js?v=1.6.41" defer></script>
+  <script src="assets/hotelData.js?v=1.6.41" defer></script>
+  <script src="assets/storage.js?v=1.6.41" defer></script>
+  <script src="assets/googleConfig.js?v=1.6.41" defer></script>
+  <script src="assets/googleDrive.js?v=1.6.41" defer></script>
+  <script src="assets/samoParser.js?v=1.6.41" defer></script>
+  <script src="assets/updateManager.js?v=1.6.41" defer></script>
+  <script src="assets/sharePresentation.js?v=1.6.41" defer></script>
+  <script src="assets/app.js?v=1.6.41" defer></script>
+  <script src="assets/hotelReselect.js?v=1.6.41" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <main class="app">
     <header class="title">
       <div class="brand">
-        <img class="brand-icon" src="assets/brand-mark-transparent.png?v=1.6.40" alt="">
+        <img class="brand-icon" src="assets/brand-mark-transparent.png?v=1.6.41" alt="">
         <span class="brand-copy">
           <strong>Maldives</strong>
           <span>Quote Calculator</span>
@@ -155,7 +154,7 @@
     <section id="staySummary" class="summary-wrap" aria-label="Stay and meal summary"></section>
 
     <footer class="footer">
-      <div class="version" id="appVersion">v1.6.40</div>
+      <div class="version" id="appVersion">v1.6.41</div>
       <div class="app-credit">
         <span>Maldives Quote Calculator · © 2026 <a href="https://www.linkedin.com/in/sergei-kazhaev/" target="_blank" rel="noopener noreferrer">Sergei Kazhaev</a></span>
       </div>
@@ -166,18 +165,6 @@
   <datalist id="hotelList"></datalist>
   <div id="hotelPicker" class="hotel-picker" role="dialog" aria-label="Choose hotel"></div>
   <div id="toast" role="status" aria-live="polite"></div>
-
-  <dialog id="bookingModal" class="modal booking-modal" aria-labelledby="bookingTitle">
-    <div class="modal-head"><h2 id="bookingTitle">Booking Request</h2><button id="closeBooking" class="close" type="button">Close</button></div>
-    <div class="booking-tools">
-      <div role="tablist" aria-label="Request view"><button id="bookingPreviewTab" role="tab" aria-selected="true" type="button">Email</button><button id="bookingEditTab" role="tab" aria-selected="false" type="button">All fields</button></div>
-      <button id="bookingReload" type="button">Reload calculator data</button>
-    </div>
-    <div id="bookingWarnings" class="samo-preview-warnings" role="status" hidden></div>
-    <div id="bookingEditor"></div>
-    <div id="bookingPreview" hidden></div>
-    <div class="booking-tools booking-copy-tools"><button id="bookingCopy" class="share" type="button">Copy for Outlook</button></div>
-  </dialog>
 
   <dialog id="shareModal" class="modal">
     <div class="modal-head">

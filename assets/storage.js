@@ -8,7 +8,6 @@
   const RATE_MEMORY_KEY = "hotelCalculator.rateMemory.v1";
   const RATE_AUTOFILL_KEY = "hotelCalculator.rateAutofill.v1";
   const APPEARANCE_KEY = "hotelCalculator.appearance.v1";
-  const BOOKING_TEMPLATE_KEY = "hotelCalculator.bookingTemplate.v1";
   const DEFAULT_APPEARANCE = {
     theme: "light",
     colors: {
@@ -78,16 +77,6 @@
 
   function clearDraft() {
     try { localStorage.removeItem(namespace + DRAFT_KEY); } catch { /* Storage may be unavailable. */ }
-  }
-
-  function bookingTemplate() {
-    const saved = readJson(BOOKING_TEMPLATE_KEY, null);
-    if (!saved || typeof saved !== "object" || Array.isArray(saved)) return null;
-    return Object.fromEntries(["greeting", "closing", "signature", "textColor"].filter((key) => typeof saved[key] === "string").map((key) => [key, saved[key]]));
-  }
-
-  function saveBookingTemplate(template) {
-    return writeJson(BOOKING_TEMPLATE_KEY, Object.fromEntries(["greeting", "closing", "signature", "textColor"].map((key) => [key, String(template[key] ?? "")])));
   }
 
   function rateMemory() {
@@ -265,8 +254,6 @@
     canonicalHotelName,
     canonicalItemName,
     appearanceSettings,
-    bookingTemplate,
-    saveBookingTemplate,
     clearDraft,
     createId,
     deleteHistory,

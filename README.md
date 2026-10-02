@@ -4,6 +4,17 @@ A browser-based workflow automation tool designed for Maldives resort quotation 
 
 **Live app:** https://surakij.github.io/hotel_calculator/
 
+## Public Edition
+
+This repository publishes the calculator, SAMO import, Short Share, history,
+Google Drive integration and rate autofill. It does not ship a reservation editor
+or Outlook booking-request generator. Historical commits are retained unchanged.
+
+The calculation and share logic in `assets/core.js` and
+`assets/sharePresentation.js` remain the canonical shared business logic.
+Private reservation development consumes that logic without maintaining a
+separate pricing implementation.
+
 ## Overview
 
 The Maldives Hotel Quotation & Reservation Calculator is a browser-based workflow automation tool created specifically for Maldives resort reservations.
