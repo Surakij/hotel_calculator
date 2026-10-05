@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.42
+
+- Map SAMO's AI - Premium to Furaveri's Island Wide Premium AI for adult and child meals, including split stays.
+- Keep other hotels and unknown premium variants unchanged; add import regression coverage.
+
 ## 1.6.41
 
 - Remove the reservation editor, Outlook booking-request output and their runtime code from the public edition.

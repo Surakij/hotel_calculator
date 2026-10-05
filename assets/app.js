@@ -5,8 +5,8 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.41";
-  const APP_BUILD = "1.6.41";
+  const APP_VERSION = "1.6.42";
+  const APP_BUILD = "1.6.42";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -2150,6 +2150,9 @@
   }
 
   function findMealValue(record, plan, guest) {
+    if (record === HOTEL_DATA["Furaveri Maldives"] && mealPlanTokens(plan) === "ai premium") {
+      plan = "Island Wide Premium AI";
+    }
     const wanted = normalizedMealPlan(plan);
     if (!record || !wanted) return "";
     const suffix = guest === "child" ? "Child" : "Adult";

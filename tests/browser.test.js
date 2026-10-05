@@ -993,6 +993,79 @@ Transfer: Speedboat Airport - Hotel - Airport`;
   assert.match(result.preview, /Naladhu Private Island MaldivesMapped/);
 });
 
+test("SAMO maps Furaveri Premium AI across split stays for adults and children", async () => {
+  for (const children of [0, 1]) {
+    const result = await page.evaluate((children) => {
+      const $ = (id) => document.getElementById(id);
+      $("showSamoImport").click();
+      $("samoImportText").value = `Hotel: Furaveri Maldives
+Number of guest: 2 Adult, ${children} Child
+Arrival date: 05.11.2026
+Departure date: 09.11.2026
+Length of stay: 4 Nights
+Villa category: Beach Villa Jacuzzi With Pool 2 Adl
+Arrival date: 09.11.2026
+Departure date: 12.11.2026
+Length of stay: 3 Nights
+Villa category: Ocean Villa Horizon With Jacuzzi 2 Adl
+Meal Plan: AI - Premium
+Transfer: Seaplane
+Handling fee: Maldives Green Tax
+SPO code: FUR26-053
+Room quotation: 4*786.50[8970/Std/FUR26-053] + 3*867.00[8970/Std/FUR26-053]`;
+      $("parseSamoImport").click();
+      const preview = $("samoImportPreview").textContent;
+      $("applySamoImport").click();
+      const rows = [...document.querySelectorAll("#rows tr")];
+      return {
+        hotel: $("hotel").value,
+        stay: [$("checkin").value, $("checkout").value],
+        rooms: rows.filter((row) => row.querySelector(".type")?.value === "ROOM")
+          .map((row) => [row.querySelector(".from").value, row.querySelector(".to").value]),
+        meals: rows.filter((row) => row.querySelector(".type")?.value === "MEAL")
+          .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value,
+            row.querySelector(".from").value, row.querySelector(".to").value]),
+        spo: $("spo").value,
+        preview,
+      };
+    }, children);
+    assert.equal(result.hotel, "Furaveri Maldives");
+    assert.deepEqual(result.stay, ["05.11.2026", "12.11.2026"]);
+    assert.deepEqual(result.rooms, [["05.11.2026", "09.11.2026"], ["09.11.2026", "12.11.2026"]]);
+    const meals = [["Island Wide Premium AI - Adult", "2", "05.11.2026", "12.11.2026"]];
+    if (children) meals.push(["Island Wide Premium AI - Child", "1", "05.11.2026", "12.11.2026"]);
+    assert.deepEqual(result.meals, meals);
+    assert.equal(result.spo, "FUR26-053");
+    assert.doesNotMatch(result.preview, /not safely mapped/i);
+    await page.reload();
+  }
+});
+
+test("Furaveri meal alias preserves HB and rejects unknown premium variants", async () => {
+  for (const [plan, expected] of [["HB", "HB - Adult"], ["AI - Ultra Premium", ""]]) {
+    const result = await page.evaluate((plan) => {
+      const $ = (id) => document.getElementById(id);
+      $("showSamoImport").click();
+      $("samoImportText").value = `Hotel: Furaveri Maldives
+Number of guest: 2 Adult, 0 Child
+Arrival date: 05.11.2026
+Departure date: 12.11.2026
+Villa category: Beach Villa 2 Adl
+Meal Plan: ${plan}
+Transfer: Seaplane`;
+      $("parseSamoImport").click();
+      const preview = $("samoImportPreview").textContent;
+      $("applySamoImport").click();
+      const meal = [...document.querySelectorAll("#rows tr")].find((row) => row.querySelector(".type")?.value === "MEAL");
+      return { preview, meal: meal?.querySelector(".item").value || "" };
+    }, plan);
+    assert.equal(result.meal, expected);
+    if (expected) assert.doesNotMatch(result.preview, /not safely mapped/i);
+    else assert.match(result.preview, /not safely mapped/i);
+    await page.reload();
+  }
+});
+
 test("SAMO maps Heritance Aarah and its Premium AI meal", async () => {
   const result = await page.evaluate(() => {
     const $ = (id) => document.getElementById(id);
