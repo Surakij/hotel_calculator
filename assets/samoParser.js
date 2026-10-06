@@ -453,7 +453,7 @@
   }
 
   function splitMealSelection(value) {
-    const raw = String(value || "").trim();
+    const raw = String(value || "").trim().replace(/\s*\+\s*transfer\s*$/i, "").trim();
     const match = /\b(standard|premium)\s+beverage(?:\s+package)?\b/i.exec(raw);
     if (!match) return { mealPlan: raw, beveragePackage: "" };
     const beveragePackage = `${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()} Beverage Package`;

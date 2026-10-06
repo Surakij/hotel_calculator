@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.43
+
+- Import meal names ending in + Transfer as the base meal plan while preserving the explicit transfer service.
+- Cover Hideaway HB adult and child meals, beverage combinations and missing transfer details.
+
 ## 1.6.42
 
 - Map SAMO's AI - Premium to Furaveri's Island Wide Premium AI for adult and child meals, including split stays.

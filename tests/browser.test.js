@@ -993,6 +993,41 @@ Transfer: Speedboat Airport - Hotel - Airport`;
   assert.match(result.preview, /Naladhu Private Island MaldivesMapped/);
 });
 
+test("SAMO separates Hideaway HB plus Transfer into adult and child meals and one transfer per guest type", async () => {
+  const result = await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    $("showSamoImport").click();
+    $("samoImportText").value = `Hotel: Hideaway Beach Resort & Spa
+Number of guest: 2 Adult, 1 Child
+Guest name: CHD TEST CHILD DOB 01.08.2020
+Arrival date: 21.08.2027
+Departure date: 29.08.2027
+Length of stay: 8 Nights
+Villa category: Sunset Beach Villa 2 Adl + 1 Chd(6-11.99)
+Meal Plan: HB + Transfer
+Handling fee: Maldives Green Tax (21.08.2027 - 29.08.2027)
+Transfer: Seaplane Airport - Hotel - Airport (21.08.2027 - 29.08.2027)
+Remarks: Rooms next to each other`;
+    $("parseSamoImport").click();
+    const preview = $("samoImportPreview").textContent;
+    $("applySamoImport").click();
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const services = (type) => rows.filter((row) => row.querySelector(".type")?.value === type)
+      .map((row) => [row.querySelector(".item").value, row.querySelector(".qty").value]);
+    return {
+      preview, hotel: $("hotel").value, meals: services("MEAL"), transfers: services("TRANSFER"),
+      dates: [$("checkin").value, $("checkout").value],
+      nights: $("nights").value,
+    };
+  });
+  assert.equal(result.hotel, "Hideaway Beach Resort & Spa");
+  assert.deepEqual(result.dates, ["21.08.2027", "29.08.2027"]);
+  assert.equal(result.nights, "8");
+  assert.deepEqual(result.meals, [["HB - Adult", "2"], ["HB - Child", "1"]]);
+  assert.deepEqual(result.transfers, [["Seaplane - Adult", "2"], ["Seaplane - Child", "1"]]);
+  assert.doesNotMatch(result.preview, /not safely mapped/i);
+});
+
 test("SAMO maps Furaveri Premium AI across split stays for adults and children", async () => {
   for (const children of [0, 1]) {
     const result = await page.evaluate((children) => {

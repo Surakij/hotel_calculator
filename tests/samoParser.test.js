@@ -2,6 +2,33 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const parser = require("../assets/samoParser.js");
 
+test("meal transfer suffix is separate from the explicit transfer service", () => {
+  const request = (meal, transfer = "Transfer: Seaplane Airport - Hotel - Airport") => `Hotel: Hideaway Beach Resort & Spa
+Number of guest: 2 Adult, 1 Child
+Guest name: CHD TEST CHILD DOB 01.08.2020
+Arrival date: 21.08.2027
+Departure date: 29.08.2027
+Length of stay: 8 Nights
+Villa category: Sunset Beach Villa 2 Adl + 1 Chd(6-11.99)
+Meal Plan: ${meal}
+${transfer}`;
+  for (const [raw, meal] of [["HB + Transfer", "HB"], ["FB+Transfer", "FB"], ["AI - Premium + Transfer", "AI - Premium"]]) {
+    const result = parser.parseSamoRequest(request(raw), { hotelNames: ["Hideaway Beach Resort & Spa"] });
+    assert.equal(result.mealPlan, meal);
+    assert.equal(result.transfer.mode, "SEAPLANE");
+    assert.deepEqual([result.adults, result.children], [2, 1]);
+    assert.deepEqual(result.childAges, [7]);
+  }
+  const combined = parser.parseSamoRequest(request("FB + Premium Beverage Package + Transfer"));
+  assert.equal(combined.mealPlan, "FB");
+  assert.equal(combined.beveragePackage, "Premium Beverage Package");
+  const missing = parser.parseSamoRequest(request("HB + Transfer", ""));
+  assert.equal(missing.mealPlan, "HB");
+  assert.ok(!missing.transfer.mode);
+  const unknown = parser.parseSamoRequest(request("HB + Unknown Package"));
+  assert.equal(unknown.mealPlan, "HB + Unknown Package");
+});
+
 test("maps new and legacy Kurumba names and preserves combined SPO suffixes", () => {
   for (const name of ["Niva Kurumba Maldives 5*", "Kurumba Maldives 5*"]) {
     const parsed = parser.parseSamoRequest(`Hotel: ${name}
