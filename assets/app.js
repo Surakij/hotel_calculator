@@ -5,8 +5,8 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.58";
-  const APP_BUILD = "1.6.58";
+  const APP_VERSION = "1.6.59";
+  const APP_BUILD = "1.6.59";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -90,6 +90,9 @@
   let savedPayloadSignature = "";
   let samoImportData = null;
   let activeStepperStop = null;
+  let discountOptions = null;
+  let discountOptionsButton = null;
+  let discountOptionsRow = null;
   const autoRates = new WeakMap();
   const autoBeverageRates = new WeakMap();
   const pendingRates = new Set();
@@ -1123,6 +1126,123 @@
     container.appendChild(wrap);
   }
 
+  function closeDiscountOptions(restoreFocus = false) {
+    activeStepperStop?.();
+    const button = discountOptionsButton;
+    button?.setAttribute("aria-expanded", "false");
+    discountOptions?.remove();
+    discountOptions = null;
+    discountOptionsButton = null;
+    discountOptionsRow = null;
+    if (restoreFocus && button?.isConnected) button.focus();
+  }
+
+  function positionDiscountOptions() {
+    if (!discountOptions || !discountOptionsButton?.isConnected) return closeDiscountOptions();
+    const rect = discountOptionsButton.getBoundingClientRect();
+    const width = Math.min(228, window.innerWidth - 16);
+    discountOptions.style.width = `${width}px`;
+    const height = discountOptions.getBoundingClientRect().height;
+    const top = rect.bottom + height + 8 <= window.innerHeight ? rect.bottom + 6 : rect.top - height - 6;
+    discountOptions.style.left = `${Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))}px`;
+    discountOptions.style.top = `${Math.max(8, top)}px`;
+  }
+
+  function openDiscountOptions(container) {
+    const tr = container.closest("tr");
+    const button = container.querySelector(".discount-add");
+    if (discountOptionsButton === button) return closeDiscountOptions();
+    closeDiscountOptions();
+    closeTypePickers();
+    closeItemPicker();
+    closePicker();
+    closeRoomAssignmentPicker();
+    closeBeveragePackagePicker();
+    discountOptions = el("div", { className: "discount-options", role: "dialog", "aria-label": "Room discounts" });
+    discountOptionsButton = button;
+    discountOptionsRow = tr;
+    button.setAttribute("aria-expanded", "true");
+    button.setAttribute("aria-haspopup", "dialog");
+    document.body.appendChild(discountOptions);
+
+    function editor() {
+      const data = rowData(tr);
+      const nights = core.nightsBetween(data.from, data.to);
+      discountOptions.replaceChildren();
+      const heading = el("div", { className: "free-nights-heading" });
+      const input = el("input", { className: "free-nights-input", type: "number", min: "0", max: String(nights), step: "1", "aria-label": "Free nights" });
+      input.value = Math.min(nights, data.freeNights || 1);
+      const cancel = el("button", { type: "button", className: "free-nights-close", textContent: "×", "aria-label": "Close free nights" });
+      cancel.addEventListener("click", () => closeDiscountOptions(true));
+      heading.append(el("strong", { textContent: "Free nights" }), cancel);
+      const counter = numberStepper(input, true);
+      const detail = el("div", { className: "free-nights-detail", "aria-live": "polite" });
+      function update() {
+        input.value = Math.min(nights, Math.max(0, Math.trunc(Number(input.value) || 0)));
+        detail.textContent = `${nights} nights stay · ${nights - Number(input.value)} paid`;
+      }
+      input.addEventListener("input", update);
+      update();
+      const footer = el("div", { className: "free-nights-footer" });
+      function apply(count) {
+        if (!tr.isConnected || rowData(tr).type !== "ROOM") return closeDiscountOptions();
+        flushUndoSnapshot();
+        tr.dataset.freeNights = String(count);
+        recalc();
+        closeDiscountOptions(true);
+      }
+      const remove = el("button", { type: "button", className: "free-nights-remove", textContent: "Remove" });
+      remove.addEventListener("click", () => apply(0));
+      const confirm = el("button", { type: "button", className: "primary free-nights-apply", textContent: "Apply" });
+      confirm.addEventListener("click", () => { update(); apply(Number(input.value)); });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") { event.preventDefault(); update(); apply(Number(input.value)); }
+      });
+      footer.append(remove, confirm);
+      discountOptions.append(heading, counter, detail, footer);
+      discountOptions.setAttribute("aria-label", "Free nights");
+      positionDiscountOptions();
+      input.focus();
+    }
+
+    const another = el("button", { type: "button", className: "discount-option discount-option-add", textContent: "Another discount" });
+    another.disabled = container.querySelectorAll(".discount").length >= 4;
+    another.addEventListener("click", () => {
+      addDiscount(container, 0, true);
+      recalc();
+      closeDiscountOptions();
+      container.querySelector(".discount-item:last-child .discount")?.focus();
+    });
+    const free = el("button", { type: "button", className: "discount-option discount-option-free", textContent: "Free nights…" });
+    if (rowData(tr).freeNights > 0) free.textContent = `Edit free nights (${rowData(tr).freeNights})…`;
+    free.disabled = core.nightsBetween(rowData(tr).from, rowData(tr).to) === 0;
+    if (free.disabled) free.title = "Set room stay dates first";
+    free.addEventListener("click", editor);
+    discountOptions.append(another, free);
+    positionDiscountOptions();
+    (another.disabled ? free : another).focus();
+  }
+
+  function syncFreeNights(tr) {
+    const type = tr.querySelector(".type").value;
+    const nights = core.nightsBetween(tr.querySelector(".from").value, tr.querySelector(".to").value);
+    const count = type === "ROOM" ? Math.min(nights, Math.max(0, Math.trunc(Number(tr.dataset.freeNights) || 0))) : 0;
+    tr.dataset.freeNights = String(count);
+    const button = tr.querySelector(".discount-add");
+    button.textContent = count ? (count < 100 ? `${count} free` : `${count}N`) : "+";
+    button.title = count ? `${count} free nights — edit` : type === "ROOM" ? "Discount options" : "Add another discount";
+    button.setAttribute("aria-label", button.title);
+    if (type === "ROOM") {
+      button.setAttribute("aria-haspopup", "dialog");
+      button.setAttribute("aria-expanded", String(discountOptionsButton === button));
+    } else {
+      button.removeAttribute("aria-haspopup");
+      button.removeAttribute("aria-expanded");
+    }
+    button.classList.toggle("has-free-nights", count > 0);
+    button.closest(".discounts").classList.toggle("has-free-nights", count > 0);
+  }
+
   function setupDiscounts(container, data = {}) {
     const values = Array.isArray(data.discounts) && data.discounts.length
       ? data.discounts
@@ -1133,6 +1253,7 @@
 
     const add = el("button", { className: "discount-add", type: "button", title: "Add another discount", textContent: "+" });
     add.addEventListener("click", () => {
+      if (container.closest("tr").querySelector(".type").value === "ROOM") return openDiscountOptions(container);
       if (container.querySelectorAll(".discount").length < 4) {
         addDiscount(container, 0, true);
         recalc();
@@ -1171,6 +1292,7 @@
     }
     if (type === "ROOM") {
       data.roomKey = tr.dataset.roomKey;
+      if (Number(tr.dataset.freeNights) > 0) data.freeNights = Number(tr.dataset.freeNights);
     } else if (isPersonExtra(data)) {
       data.assignedRoomKey = tr.querySelector(".assigned-room")?.value || "";
     }
@@ -1653,6 +1775,8 @@
     $("nights").value = core.nightsBetween(value("checkin"), value("checkout"));
 
     const rowElements = [...rowsEl.querySelectorAll("tr")];
+    if (discountOptionsRow && !discountOptionsRow.isConnected) closeDiscountOptions();
+    rowElements.forEach(syncFreeNights);
     const rowValues = rowElements.map(rowData);
     const calculated = core.calculateRows(rowValues.filter((row) => row.type));
     let rowIndex = 0;
@@ -1745,6 +1869,7 @@
     const tr = el("tr");
     tr.dataset.followGlobal = data.followGlobal === true ? "1" : "0";
     tr.dataset.roomKey = data.roomKey || storage.createId();
+    tr.dataset.freeNights = String(data.freeNights ?? 0);
 
     const typeCell = el("td", { className: "type-cell" });
     typeCell.appendChild(createTypeSelect(data.type || ""));
@@ -1840,6 +1965,8 @@
 
     const type = tr.querySelector(".type");
     type.addEventListener("change", () => {
+      closeDiscountOptions();
+      tr.dataset.freeNights = "0";
       included.checked = false;
       item.value = "";
       beveragePackage.value = "";
@@ -3169,6 +3296,7 @@
       }
     });
     document.addEventListener("click", (event) => {
+      if (discountOptions && !event.composedPath().includes(discountOptions) && !discountOptionsButton?.contains(event.target)) closeDiscountOptions();
       if (picker && !picker.contains(event.target) && event.target !== pickerInput) closePicker();
       if (itemPicker && !itemPicker.contains(event.target) && event.target !== itemPickerInput) closeItemPicker();
       if (roomAssignmentMenu && !roomAssignmentMenu.contains(event.target) && !roomAssignmentButton?.contains(event.target)) closeRoomAssignmentPicker();
@@ -3178,6 +3306,7 @@
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        closeDiscountOptions(true);
         closeAddServiceMenu();
         closeItemPicker();
         closeRoomAssignmentPicker();
@@ -3190,6 +3319,7 @@
       if (choice && itemPicker?.contains(choice)) chooseItemPickerValue(choice.dataset.value || "");
     });
     window.addEventListener("resize", () => {
+      closeDiscountOptions();
       closePicker();
       closeItemPicker();
       closeRoomAssignmentPicker();
@@ -3198,6 +3328,12 @@
       closeAddServiceMenu();
     });
     window.addEventListener("scroll", (event) => {
+      if (discountOptions?.contains(event.target)) return;
+      if (discountOptions && discountOptionsButton) {
+        const rect = discountOptionsButton.getBoundingClientRect();
+        if (rect.bottom <= 0 || rect.top >= window.innerHeight || rect.right <= 0 || rect.left >= window.innerWidth) closeDiscountOptions();
+        else positionDiscountOptions();
+      }
       if (isInsideFloatingPanel(event.target)) return;
       closePicker();
       closeItemPicker();

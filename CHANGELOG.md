@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.59
+
+- Add optional Free nights through the existing ROOM discount plus, with a compact editable badge and no additional table row or column.
+- Deduct complimentary nights inside the room formula in Short Share and copied HTML; keep percentage discounts, full stay dates, meals, extras and Green Tax consistent.
+- Preserve free nights in drafts, saved calculations, JSON history, Google Drive payloads and Undo/Redo; validate counts against the selected room period.
+- Keep the public edition free of private document workflows.
+
 ## 1.6.58
 
 - Bring the public calculator up to date with explicit Included pricing, compact table/toolbar layout, three-digit quantity limits, corrected Short Share ordering and safer automatic updates.

@@ -1379,6 +1379,75 @@ td button:disabled {
   color: var(--red);
 }
 
+/* Complimentary ROOM nights reuse the existing discount cell. */
+.discount-add.has-free-nights {
+  width: 40px;
+  border-radius: 6px;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.discounts.has-free-nights .number-stepper {
+  width: 92px;
+  min-width: 92px;
+  grid-template-columns: 24px 44px 24px;
+}
+
+.discounts.has-free-nights .number-stepper .step-button {
+  width: 24px;
+  min-width: 24px;
+  max-width: 24px;
+}
+
+.discounts.has-free-nights .discount { width: 44px; min-width: 44px; }
+
+.discount-options {
+  position: fixed;
+  z-index: 1200;
+  width: 228px;
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+}
+
+.discount-option {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-weight: 600;
+}
+
+.discount-option:hover:not(:disabled) { background: var(--line-soft); }
+.discount-option:disabled { opacity: .5; }
+.free-nights-heading, .free-nights-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.free-nights-heading { margin: 0 3px 8px; }
+.free-nights-close, .free-nights-remove { border: 0; background: transparent; color: var(--muted); padding: 3px 6px; }
+.free-nights-close { font-size: 18px; }
+.discount-options .number-stepper { display: grid; width: 100%; grid-template-columns: 34px minmax(0, 1fr) 34px; }
+.discount-options .free-nights-input { width: 100%; min-width: 0; text-align: center; background: var(--field); color: var(--text); }
+.discount-options .step-button { width: 34px; min-width: 34px; }
+.free-nights-detail { margin: 8px 3px 12px; color: var(--muted); font-size: 12px; }
+.free-nights-apply { padding: 7px 12px; }
+
+@media (pointer: coarse) {
+  .discount-option, .free-nights-footer button { min-height: 44px; }
+  .discount-options .number-stepper { height: 44px; grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .discount-options .step-button { width: 44px; min-width: 44px; height: 44px; }
+  .discount-options .free-nights-input { height: 44px; font-size: 16px; }
+}
+
 .net {
   font-weight: 700;
   text-align: right;

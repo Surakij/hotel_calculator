@@ -17,6 +17,7 @@
    * @property {string} [rateFormula] Arithmetic expression; takes precedence over rate.
    * @property {boolean} [included] Entire service (including MEAL drinks) is included in room rate.
    * @property {Array<number|string>} [discounts] Sequential percentage discounts.
+   * @property {number|string} [freeNights] ROOM-only complimentary nights; stay dates are unchanged.
    * @property {string} [roomKey] Shared by periods belonging to the same room.
    * @property {string} [assignedRoomKey] Explicit room assignment for person extras.
    * @property {string} [beveragePackage] Optional MEAL add-on, using the same qty/dates.
@@ -201,17 +202,20 @@
     const nights = nightsBetween(row.from, row.to);
     const qty = Number(row.qty || 0);
     const included = row.included === true;
+    const freeNights = row.type === "ROOM" ? Number(row.freeNights ?? 0) : 0;
+    const paidNights = row.type === "ROOM" ? nights - freeNights : nights;
     const rate = parseRateExpression(row.rateFormula || row.rate);
     const beverageRate = row.type === "MEAL" && row.beveragePackage
       ? parseRateExpression(row.beverageRateFormula || row.beverageRate)
       : 0;
     const valid = Number.isFinite(qty) && qty >= 0 && Number.isInteger(qty)
+      && Number.isInteger(freeNights) && freeNights >= 0 && freeNights <= nights
       && (included || !isDiscountable(row) || (row.discounts || []).every((discount) => Number.isFinite(Number(discount)) && Number(discount) >= 0 && Number(discount) <= 100));
     let mealBase = included ? 0 : qty * rate;
     let beverageBase = included ? 0 : qty * beverageRate;
 
     if (isStayBased(row)) {
-      mealBase *= nights;
+      mealBase *= paidNights;
       beverageBase *= nights;
     } else if (row.type === "EXTRA" && !isFuelSurcharge(row) && row.from && row.to) {
       mealBase *= nights;
@@ -230,6 +234,8 @@
       beverageRateFormula: normalizeRateFormula(row.beverageRateFormula || row.beverageRate),
       discounts,
       nights,
+      freeNights,
+      paidNights,
       valid,
       mealNet,
       beverageNet,
@@ -290,6 +296,7 @@
   function hasMissingRate(row) {
     if (!row.type || row.included === true || Number(row.qty ?? 1) === 0) return false;
     const calculated = calculateRow(row);
+    if (calculated.valid && row.type === "ROOM" && calculated.freeNights > 0 && calculated.paidNights === 0) return false;
     return calculated.rate <= 0 || (row.type === "MEAL" && Boolean(row.beveragePackage) && calculated.beverageRate <= 0);
   }
 
@@ -301,7 +308,9 @@
       ? `${/[+\-*/()]/.test(normalizeRateFormula(row.beverageRateFormula)) ? `(${shareRateFormula(row.beverageRateFormula)})` : shareMoney(row.beverageRate).replaceAll(",", "")} * ${row.qty}`
       : "";
     let formula = beverageRate ? `(${mealRate} + ${beverageRate})` : mealRate;
-    if ((isStayBased(row) || (row.type === "EXTRA" && !isFuelSurcharge(row))) && row.nights > 0) formula += ` * ${row.nights}`;
+    if ((isStayBased(row) || (row.type === "EXTRA" && !isFuelSurcharge(row))) && row.nights > 0) {
+      formula += row.type === "ROOM" && row.freeNights > 0 ? ` * (${row.nights} - ${row.freeNights})` : ` * ${row.nights}`;
+    }
     row.discounts.forEach((discount) => {
       formula += ` - ${discount}%`;
     });
@@ -478,7 +487,7 @@
     if (calculated.total === null) return "";
     const rows = calculated.rows.filter((row) => row.included
       ? row.type && row.qty > 0
-      : (row.type || row.item || row.rate) && (row.rate > 0 || row.beverageRate > 0));
+      : (row.type || row.item || row.rate) && (row.rate > 0 || row.beverageRate > 0 || row.freeNights > 0));
     const hotel = String(input.hotel || "Hotel").toUpperCase();
     const guests = input.guests || {};
     const ages = String(guests.ages || "").replace(/\s+/g, "");

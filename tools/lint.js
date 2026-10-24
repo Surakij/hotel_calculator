@@ -15,6 +15,8 @@ const filesToCheck = [
   "assets/requestRemarks.js",
   "tests/calculatorFeatures.test.js",
   "tests/calculatorFeatures.browser.test.js",
+  "tests/freeNights.test.js",
+  "tests/freeNights.browser.test.js",
   "assets/app.js",
   "assets/updateManager.js",
   "assets/sharePresentation.js",
