@@ -457,7 +457,7 @@ test("shows only one date for a one-way transfer in short share", () => {
     ],
   });
 
-  assert.match(text, /20\.06 : Seaplane OW : 100 \* 2 = 200/);
+  assert.match(text, /20\.06 : Seaplane OW - Adult : 100 \* 2 = 200/);
   assert.doesNotMatch(text, /20\.06\s+-\s+24\.06\s+:\s+Seaplane OW/);
 });
 
@@ -474,7 +474,7 @@ test("short share removes only zero decimal parts", () => {
   });
 
   assert.match(text, /Villa : 2410 \* 1 \* 1 - 25% = 1,807\.50/);
-  assert.match(text, /Seaplane : 365\.50 \* 1 = 365\.50/);
+  assert.match(text, /Seaplane - Adult : 365\.50 \* 1 = 365\.50/);
   assert.match(text, /TOTAL: 2,173 USD/);
   assert.doesNotMatch(text, /\.00/);
 });

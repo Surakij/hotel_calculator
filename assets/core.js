@@ -15,6 +15,7 @@
    * @property {number|string} [qty]
    * @property {number|string} [rate] Fallback when rateFormula is empty.
    * @property {string} [rateFormula] Arithmetic expression; takes precedence over rate.
+   * @property {boolean} [included] Entire service (including MEAL drinks) is included in room rate.
    * @property {Array<number|string>} [discounts] Sequential percentage discounts.
    * @property {string} [roomKey] Shared by periods belonging to the same room.
    * @property {string} [assignedRoomKey] Explicit room assignment for person extras.
@@ -199,14 +200,15 @@
   function calculateRow(row) {
     const nights = nightsBetween(row.from, row.to);
     const qty = Number(row.qty || 0);
+    const included = row.included === true;
     const rate = parseRateExpression(row.rateFormula || row.rate);
     const beverageRate = row.type === "MEAL" && row.beveragePackage
       ? parseRateExpression(row.beverageRateFormula || row.beverageRate)
       : 0;
     const valid = Number.isFinite(qty) && qty >= 0 && Number.isInteger(qty)
-      && (!isDiscountable(row) || (row.discounts || []).every((discount) => Number.isFinite(Number(discount)) && Number(discount) >= 0 && Number(discount) <= 100));
-    let mealBase = qty * rate;
-    let beverageBase = qty * beverageRate;
+      && (included || !isDiscountable(row) || (row.discounts || []).every((discount) => Number.isFinite(Number(discount)) && Number(discount) >= 0 && Number(discount) <= 100));
+    let mealBase = included ? 0 : qty * rate;
+    let beverageBase = included ? 0 : qty * beverageRate;
 
     if (isStayBased(row)) {
       mealBase *= nights;
@@ -216,10 +218,11 @@
     }
 
     const discounts = isDiscountable(row) ? (row.discounts || []).map(Number).filter((item) => item > 0) : [];
-    const mealNet = valid ? applyDiscounts(mealBase, discounts) : null;
-    const beverageNet = valid ? applyDiscounts(beverageBase, discounts) : null;
+    const mealNet = valid ? (included ? 0 : applyDiscounts(mealBase, discounts)) : null;
+    const beverageNet = valid ? (included ? 0 : applyDiscounts(beverageBase, discounts)) : null;
     return {
       ...row,
+      included,
       qty,
       rate,
       beverageRate,
@@ -275,6 +278,21 @@
     return String(item || "").replace(/\s*-\s*(Adult|Child|Infant)\s*$/i, "").trim();
   }
 
+  function serviceLabel(row, key = "item", { showIncluded = true } = {}) {
+    const value = baseLabel(row[key]);
+    return value && showIncluded && row.included === true ? `${value} (Included)` : value;
+  }
+
+  function quotationLabel(row) {
+    return row.type === "TRANSFER" ? String(row.item || row.type).trim() : baseLabel(row.item || row.type);
+  }
+
+  function hasMissingRate(row) {
+    if (!row.type || row.included === true || Number(row.qty ?? 1) === 0) return false;
+    const calculated = calculateRow(row);
+    return calculated.rate <= 0 || (row.type === "MEAL" && Boolean(row.beveragePackage) && calculated.beverageRate <= 0);
+  }
+
   function expression(row) {
     const mealRate = hasRateFormula(row)
       ? `(${shareRateFormula(row.rateFormula)})${row.qty === 1 ? "" : ` * ${row.qty}`}`
@@ -294,10 +312,10 @@
     const groups = [];
     rows.filter((row) => row.type === type).forEach((row) => {
       const beverageLabel = type === "MEAL" ? baseLabel(row.beveragePackage) : "";
-      const key = [baseLabel(row.item), beverageLabel, row.from, row.to, row.discounts.join(",")].join("|");
+      const key = [quotationLabel(row), beverageLabel, row.from, row.to, row.included ? "included" : row.discounts.join(",")].join("|");
       let group = groups.find((item) => item.key === key);
       if (!group) {
-        group = { key, label: [baseLabel(row.item), beverageLabel].filter(Boolean).join(" + "), rows: [] };
+        group = { key, label: [quotationLabel(row), beverageLabel].filter(Boolean).join(" + "), rows: [] };
         groups.push(group);
       }
       group.rows.push(row);
@@ -376,6 +394,8 @@
           mealNet: 0,
           mealBaseNet: 0,
           beverageNet: 0,
+          includedMeals: false,
+          separateMeals: false,
           extraNet: 0,
           total: 0,
         };
@@ -424,6 +444,7 @@
       allocations.forEach(({ group, weight }) => {
         const amount = row.net * weight / allocationBase;
         if (row.type === "MEAL") {
+          if (row.qty > 0) group[row.included ? "includedMeals" : "separateMeals"] = true;
           group.mealNet += amount;
           group.mealBaseNet += row.mealNet * weight / allocationBase;
           group.beverageNet += row.beverageNet * weight / allocationBase;
@@ -444,6 +465,7 @@
         room: group.room,
         roomNet: group.roomNet,
         mealNet: group.mealNet,
+        ...(group.includedMeals ? { mealIncluded: !group.separateMeals } : {}),
         ...(group.beverageNet > 0 ? { mealBaseNet: group.mealBaseNet, beverageNet: group.beverageNet } : {}),
         extraNet: group.extraNet,
         total,
@@ -454,7 +476,9 @@
   function buildShareText(input) {
     const calculated = calculateRows(input.rows || []);
     if (calculated.total === null) return "";
-    const rows = calculated.rows.filter((row) => (row.type || row.item || row.rate) && row.rate > 0);
+    const rows = calculated.rows.filter((row) => row.included
+      ? row.type && row.qty > 0
+      : (row.type || row.item || row.rate) && (row.rate > 0 || row.beverageRate > 0));
     const hotel = String(input.hotel || "Hotel").toUpperCase();
     const guests = input.guests || {};
     const ages = String(guests.ages || "").replace(/\s+/g, "");
@@ -475,6 +499,14 @@
     }
     if (spo) out.push(`SPO: ${spo}`);
     out.push("");
+
+    function pushService(row, monetaryLine, prefix) {
+      if (!row.included) { out.push(monetaryLine); return; }
+      const period = prefix ?? (row.from && row.to && !isGreenTax(row) ? `${dateRangeLabel(row.from, row.to)} : ` : "");
+      const label = [quotationLabel(row), baseLabel(row.beveragePackage)].filter(Boolean).join(" + ");
+      const line = `${period}${label} : Included`;
+      out.push(line);
+    }
 
     const rooms = rows.filter((row) => row.type === "ROOM").sort(compareDateRows);
     const categoryKey = (row) => String(row.item || "").trim().replace(/\s+/g, " ").toLowerCase();
@@ -517,13 +549,13 @@
 
     roomBlocks.forEach((block) => {
       block.rows.forEach((room) => {
-        out.push(`${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${shareMoney(room.net)}`);
+        pushService(room, `${formatShort(room.from)} - ${formatShort(room.to)} : ${room.item} : ${expression(room)} = ${shareMoney(room.net)}`);
       });
       personExtras.forEach((extra) => {
         const periods = splitExtraPeriods(extra, rooms).filter((period) => block.rows.includes(period.room));
         periods.forEach((period) => {
           const part = calculateRow({ ...extra, from: period.from, to: period.to });
-          out.push(`${formatShort(part.from)} - ${formatShort(part.to)} : ${baseLabel(part.item)} : ${expression(part)} = ${shareMoney(part.net)}`);
+          pushService(part, `${formatShort(part.from)} - ${formatShort(part.to)} : ${baseLabel(part.item)} : ${expression(part)} = ${shareMoney(part.net)}`);
           usedExtras.add(extra);
         });
       });
@@ -531,15 +563,15 @@
         .filter((row) => !usedExtras.has(row) && extraBelongsToBlock(row, block))
         .sort((a, b) => Number(/child/i.test(a.item)) - Number(/child/i.test(b.item)))
         .forEach((row) => {
-          out.push(`${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
+          pushService(row, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
           usedExtras.add(row);
         });
     });
 
-    [...personExtras.filter((row) => !usedExtras.has(row)), ...otherExtras]
+    personExtras.filter((row) => !usedExtras.has(row))
       .sort(compareDateRows)
       .forEach((row) => {
-        out.push(`${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
+        pushService(row, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
       });
 
     const exactMealGroups = mealGroups.filter((group) => rooms.some((room) => (
@@ -548,25 +580,28 @@
     const otherMealGroups = mealGroups.filter((group) => !exactMealGroups.includes(group));
     [...exactMealGroups, ...otherMealGroups].forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      out.push(`${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
+      pushService(group.rows[0], `${formatShort(group.rows[0].from)} - ${formatShort(group.rows[0].to)} : ${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 
     groupedRows(rows, "DINNER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
-      out.push(`${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
+      pushService(group.rows[0], `${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
     });
 
     groupedRows(rows, "TRANSFER").sort((a, b) => compareDateRows(a.rows[0], b.rows[0])).forEach((group) => {
       const total = group.rows.reduce((sum, row) => sum + row.net, 0);
       const transferDate = formatShort(group.rows[0].from || group.rows[0].to);
       const prefix = /\bOW\b/i.test(group.label) && transferDate ? `${transferDate} : ` : "";
-      out.push(`${prefix}${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`);
+      pushService(group.rows[0], `${prefix}${group.label} : ${groupExpression(group)} = ${shareMoney(total)}`, prefix);
+    });
+
+    otherExtras.sort(compareDateRows).forEach((row) => {
+      pushService(row, `${baseLabel(row.item)} : ${expression(row)} = ${shareMoney(row.net)}`);
     });
 
     greenTax.forEach((row) => {
-      out.push(`Green Tax : ${expression(row)} = ${shareMoney(row.net)}`);
+      pushService(row, `Green Tax : ${expression(row)} = ${shareMoney(row.net)}`, "");
     });
-
     out.push("", `TOTAL: ${shareMoney(calculated.total)} USD`);
     return out.join("\n");
   }
@@ -586,6 +621,8 @@
     isGreenTax,
     isDiscountable,
     isStayBased,
+    hasMissingRate,
+    serviceLabel,
     money,
     nightsBetween,
     parseDate,

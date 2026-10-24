@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.58
+
+- Bring the public calculator up to date with explicit Included pricing, compact table/toolbar layout, three-digit quantity limits, corrected Short Share ordering and safer automatic updates.
+- Identify Adult and Child transfers explicitly, recognize OZEN LIFE Maadhoo, and use WOW! All Inclusive at Siyam World.
+- Add Dhigurah Standard AI, Cora Cora meal mapping and shared remarks parsing without including private editors or document workflows.
+- Preserve saved calculations, remembered rates, legacy hotel/meal aliases, SAMO Import, Google Drive and split calculations.
+- Booking Request, Rooming List and their code remain absent from this public edition. Free nights are not implemented.
+
 ## 1.6.43
 
 - Import meal names ending in + Transfer as the base meal plan while preserving the explicit transfer service.

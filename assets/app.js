@@ -5,8 +5,8 @@
   const samoParser = window.HotelCalculatorSamoParser;
   const HOTEL_DATA = window.HotelCalculatorHotelData || {};
   const HOTEL_NAMES = Object.keys(HOTEL_DATA);
-  const APP_VERSION = "1.6.43";
-  const APP_BUILD = "1.6.43";
+  const APP_VERSION = "1.6.58";
+  const APP_BUILD = "1.6.58";
   const DEFAULT_HOTELS = ["Ozen Bolifushi", "Ozen Life Maadhoo"];
   const DEFAULT_BEVERAGES = [
     "Standard Beverage Package - Adult",
@@ -648,6 +648,10 @@
     return match ? match[1].length : 0;
   }
 
+  function capCounterValue(input) {
+    if (input.max !== "" && Number(input.value) > Number(input.max)) input.value = input.max;
+  }
+
   function stepNumber(input, direction) {
     const step = Number(input.step || 1) || 1;
     const min = input.min === "" ? -Infinity : Number(input.min);
@@ -813,7 +817,7 @@
       guests: payload.guests,
       spo: payload.spo,
       eboDays: payload.eboDays || "",
-      rows: payload.rows,
+      rows: (payload.rows || []).map(({ included, ...row }) => included === true ? { ...row, included: true } : row),
     });
   }
 
@@ -1157,6 +1161,7 @@
       to: tr.querySelector(".to").value,
       qty: Number(tr.querySelector(".qty").value || 0),
       rateFormula: tr.querySelector(".rate").value.trim(),
+      included: Boolean(type && type !== "ROOM" && tr.querySelector(".included").checked),
       discounts: [...tr.querySelectorAll(".discount")].map((input) => Number(input.value || 0)).filter((item) => item !== 0),
       followGlobal: tr.dataset.followGlobal === "1",
     };
@@ -1203,6 +1208,7 @@
   }
 
   function rememberBeverageRate(tr) {
+    if (rowData(tr).included) return;
     const query = beverageRateMemoryQuery(tr);
     if (!query || !query.hotel) return;
     const data = rowData(tr);
@@ -1217,6 +1223,7 @@
   }
 
   function rememberRowRate(tr) {
+    if (rowData(tr).included) return;
     rememberBeverageRate(tr);
     const query = rateMemoryQuery(tr);
     if (!query || !query.hotel) return;
@@ -1251,6 +1258,7 @@
   }
 
   function applyRememberedRate(tr, { force = false, replaceExisting = false } = {}) {
+    if (rowData(tr).included) return false;
     const beverageFilled = applyRememberedBeverageRate(tr, { force, replaceExisting });
     const rate = tr.querySelector(".rate");
     if (!rate) return beverageFilled;
@@ -1278,6 +1286,7 @@
   }
 
   function applyRememberedBeverageRate(tr, { force = false, replaceExisting = false } = {}) {
+    if (rowData(tr).included) return false;
     const rate = tr.querySelector(".beverage-rate");
     const query = beverageRateMemoryQuery(tr);
     if (!rate || !query) return false;
@@ -1592,7 +1601,9 @@
     const lockDates = data.type === "DINNER" || hideAllDates;
     const isDinner = data.type === "DINNER";
     const hideToDate = data.type === "TRANSFER" || isDinner || isFuelSurcharge;
-    const allowDiscounts = hasType && core.isDiscountable(data);
+    const showDiscounts = hasType && core.isDiscountable(data);
+    const allowDiscounts = showDiscounts && !data.included;
+    const allowIncluded = hasType && data.type !== "ROOM";
 
     tr.querySelector(".extra-assignment").hidden = !isPersonExtra(data);
 
@@ -1606,10 +1617,16 @@
     to.hidden = hideToDate;
     nights.disabled = !hasType || hideNights;
     qty.disabled = !hasType;
-    rate.disabled = !hasType;
+    const included = tr.querySelector(".included");
+    included.hidden = !allowIncluded;
+    included.disabled = !allowIncluded;
+    if (!allowIncluded) included.checked = false;
+    included.closest(".rate-layout").classList.toggle("has-included", allowIncluded);
+    included.title = data.type === "MEAL" && data.beveragePackage ? "Included in rate (meal + drinks)" : "Included in rate";
+    rate.disabled = !hasType || data.included;
     rate.placeholder = data.type === "MEAL" ? "Meal" : "";
     if (beveragePackage) beveragePackage.disabled = data.type !== "MEAL";
-    if (beverageRate) beverageRate.disabled = data.type !== "MEAL" || !data.beveragePackage;
+    if (beverageRate) beverageRate.disabled = data.type !== "MEAL" || !data.beveragePackage || data.included;
     if (!rate.value.trim()) rate.removeAttribute("title");
     discountControls.forEach((control) => {
       control.disabled = !allowDiscounts;
@@ -1623,7 +1640,7 @@
 
     item.closest("td").classList.toggle("muted-cell", hideItem);
     nights.closest("td").classList.toggle("muted-cell", hideNights);
-    tr.querySelector(".discounts").classList.toggle("muted-cell", !allowDiscounts);
+    tr.querySelector(".discounts").classList.toggle("muted-cell", !showDiscounts);
     from.closest("td").classList.toggle("muted-cell", hideAllDates);
     to.closest("td").classList.toggle("muted-cell", isDinner || hideAllDates);
   }
@@ -1650,7 +1667,7 @@
       }
       const row = calculated.rows[rowIndex++];
       tr.querySelector(".nights").value = row.nights;
-      tr.querySelector(".net").textContent = row.valid ? core.money(row.net) : "--";
+      tr.querySelector(".net").textContent = row.valid ? (row.included ? "Included" : core.money(row.net)) : "--";
       updateTypeColor(tr);
       updateRowState(tr);
     });
@@ -1689,7 +1706,7 @@
     }
 
     const rows = summaries.map((row) => {
-      const mealDisplay = row.beverageNet > 0
+      const mealDisplay = row.mealIncluded ? "Included" : row.beverageNet > 0
         ? `${core.money(row.mealBaseNet)} + ${core.money(row.beverageNet)} = ${core.money(row.mealNet)}`
         : core.money(row.mealNet);
       return `
@@ -1787,11 +1804,11 @@
     toCell.appendChild(to);
 
     const nightsCell = el("td");
-    const nights = el("input", { className: "nights", type: "number", min: "0", step: "1", readonly: "", value: "0" });
+    const nights = el("input", { className: "nights", type: "number", min: "0", max: "999", step: "1", readonly: "", value: "0" });
     nightsCell.appendChild(numberStepper(nights));
 
     const qtyCell = el("td");
-    const qty = el("input", { className: "qty", type: "number", min: "0", step: "1" });
+    const qty = el("input", { className: "qty", type: "number", min: "0", max: "999", step: "1" });
     qty.value = data.qty ?? "";
     qtyCell.appendChild(numberStepper(qty));
 
@@ -1799,11 +1816,13 @@
     const rateLayout = el("div", { className: "rate-layout" });
     const rate = el("input", { className: "rate", type: "text", inputmode: "decimal", autocomplete: "off" });
     rate.placeholder = "Meal";
-    rate.value = data.rateFormula || (Number(data.rate || 0) > 0 ? data.rate : "");
+    rate.value = data.rateFormula || (data.rate != null ? String(data.rate) : "");
+    const included = el("input", { className: "included", type: "checkbox", "aria-label": "Included in rate", title: "Included in rate" });
+    included.checked = data.type !== "ROOM" && data.included === true;
     const beverageRate = el("input", { className: "beverage-rate", type: "text", inputmode: "decimal", autocomplete: "off", placeholder: "Drinks", "aria-label": "Beverage package rate" });
     beverageRate.value = data.beverageRateFormula || (Number(data.beverageRate || 0) > 0 ? data.beverageRate : "");
     beverageRate.hidden = true;
-    rateLayout.append(rate, beverageRate);
+    rateLayout.append(included, rate, beverageRate);
     rateCell.appendChild(rateLayout);
 
     const discountsCell = el("td", { className: "discounts" });
@@ -1821,6 +1840,7 @@
 
     const type = tr.querySelector(".type");
     type.addEventListener("change", () => {
+      included.checked = false;
       item.value = "";
       beveragePackage.value = "";
       beverageRate.value = "";
@@ -1935,6 +1955,7 @@
     });
 
     tr.querySelector(".nights").addEventListener("input", () => {
+      capCounterValue(tr.querySelector(".nights"));
       const data = rowData(tr);
       if (!isDateRangeType(data.type)) return recalc();
       const fromInput = tr.querySelector(".from");
@@ -1946,7 +1967,14 @@
       applyRememberedRate(tr);
       recalc();
     });
-    tr.querySelector(".qty").addEventListener("input", recalc);
+    tr.querySelector(".qty").addEventListener("input", () => {
+      capCounterValue(qty);
+      recalc();
+    });
+    included.addEventListener("change", () => {
+      updateRowState(tr);
+      recalc();
+    });
     tr.querySelector(".rate").addEventListener("input", () => {
       autoRates.delete(tr);
       tr.querySelector(".rate").removeAttribute("title");
@@ -2009,6 +2037,7 @@
   }
 
   function setCheckoutFromNights() {
+    capCounterValue($("nights"));
     const nights = Number(value("nights") || 0);
     $("checkout").value = value("checkin") && nights > 0 ? core.addDays(value("checkin"), nights) : "";
     syncGlobalRows();
@@ -2150,8 +2179,13 @@
   }
 
   function findMealValue(record, plan, guest) {
+    if (record === HOTEL_DATA["Ozen Life Maadhoo"] && mealPlanTokens(plan) === "indulgence plan") plan = "THE INDULGENCE Plan";
+    if (record === HOTEL_DATA["Siyam World Maldives"] && mealPlanTokens(plan) === "ai premium wow!") plan = "WOW! All Inclusive";
     if (record === HOTEL_DATA["Furaveri Maldives"] && mealPlanTokens(plan) === "ai premium") {
       plan = "Island Wide Premium AI";
+    }
+    if (record === HOTEL_DATA["Cora Cora Maldives"] && mealPlanTokens(plan) === "ai premium") {
+      plan = "Premium AI Gourmet";
     }
     const wanted = normalizedMealPlan(plan);
     if (!record || !wanted) return "";
@@ -2256,6 +2290,9 @@
     function mappedRoomName(item) {
       const names = record?.rooms || [];
       const roomAliases = {
+        "Ozen Life Maadhoo": {
+          "2 bedroom suite earth pavilion with pool": "Earth Pool Pavilion 2|BR",
+        },
         "Ifuru Island Maldives": {
           "2 bedroom sunset beach villa with pool": "Sunset Two Bedroom Villa with Pool",
         },
@@ -2332,8 +2369,8 @@
       const childMeal = children > 0 ? findMealValue(record, parsed.mealPlan, "child") : "";
       const adultBeverage = adults > 0 && parsed.beveragePackage ? findBeverageValue(record, parsed.beveragePackage, "adult") : "";
       const childBeverage = children > 0 && parsed.beveragePackage ? findBeverageValue(record, parsed.beveragePackage, "child") : "";
-      if (adults > 0 && adultMeal) rows.push({ type: "MEAL", item: adultMeal, beveragePackage: adultBeverage, from: parsed.checkin, to: parsed.checkout, qty: adults, followGlobal: true });
-      if (children > 0 && childMeal) rows.push({ type: "MEAL", item: childMeal, beveragePackage: childBeverage, from: parsed.checkin, to: parsed.checkout, qty: children, followGlobal: true });
+      if (adults > 0 && adultMeal) rows.push({ type: "MEAL", item: adultMeal, included: parsed.mealIncluded === true, beveragePackage: adultBeverage, from: parsed.checkin, to: parsed.checkout, qty: adults, followGlobal: true });
+      if (children > 0 && childMeal) rows.push({ type: "MEAL", item: childMeal, included: parsed.mealIncluded === true, beveragePackage: childBeverage, from: parsed.checkin, to: parsed.checkout, qty: children, followGlobal: true });
       if ((adults > 0 && !adultMeal) || (children > 0 && !childMeal)) warnings.push(`Meal plan "${parsed.mealPlan}" was not safely mapped for the selected hotel.`);
       if (parsed.beveragePackage && ((adults > 0 && !adultBeverage) || (children > 0 && !childBeverage))) {
         warnings.push(`Beverage package "${parsed.beveragePackage}" was not safely mapped for the selected hotel.`);
@@ -2420,7 +2457,7 @@
     box.appendChild(previewLine("Nights", parsed.nights ? String(parsed.nights) : "", parsed.nights ? "Detected" : "Unresolved"));
     box.appendChild(previewLine("Guests", `${parsed.adults || 0} ADL, ${parsed.children || 0} CHD, ${parsed.infants || 0} INF`, parsed.adults ? "Detected" : "Unresolved"));
     if (parsed.childAges?.length) box.appendChild(previewLine("Child ages", parsed.childAges.join("/"), "Detected"));
-    box.appendChild(previewLine("Meal", parsed.mealPlan, parsed.mealPlan ? "Detected" : "Unresolved"));
+    box.appendChild(previewLine("Meal", core.serviceLabel({ item: parsed.mealPlan, included: parsed.mealIncluded }), parsed.mealPlan ? "Detected" : "Unresolved"));
     if (parsed.beveragePackage) {
       const beverageMapped = mapped.payload.rows.some((row) => row.type === "MEAL" && row.beveragePackage);
       box.appendChild(previewLine("Beverage", parsed.beveragePackage, beverageMapped ? "Mapped" : "Unresolved"));

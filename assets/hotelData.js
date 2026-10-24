@@ -2488,7 +2488,7 @@
       "Dine Around AI - Child"
     ]
   },
-  "Ozen By Atmosphere At Maadhoo": {
+  "Ozen Life Maadhoo": {
     "rooms": [
       "Earth Pool Pavilion 2|BR",
       "Earth Villa",
@@ -2899,8 +2899,8 @@
       "Water Villa with Pool + Slide"
     ],
     "meals": [
-      "WOW! Premium AI - Adult",
-      "WOW! Premium AI - Child"
+      "WOW! All Inclusive - Adult",
+      "WOW! All Inclusive - Child"
     ]
   },
   "SO/ Maldives": {
@@ -3248,7 +3248,9 @@
       "HB - Adult",
       "HB - Child",
       "FB - Adult",
-      "FB - Child"
+      "FB - Child",
+      "AI - Standard - Adult",
+      "AI - Standard - Child"
     ]
   },
   "The Ritz-Carlton Maldives, Fari Islands": {

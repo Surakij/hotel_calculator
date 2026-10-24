@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.HotelCalculatorSamoParser = factory();
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./requestRemarks.js"));
+  else root.HotelCalculatorSamoParser = factory(root.HotelRequestRemarks);
+})(typeof globalThis !== "undefined" ? globalThis : this, function (remarksParser) {
   const DAY = 24 * 60 * 60 * 1000;
   const DEFAULT_ADULT_AGE = 12;
   const RUSSIAN_MONTHS = {
@@ -103,6 +103,7 @@
       "Transfer",
       "Gala Dinner",
       "Remarks",
+      "Remark",
       "SPO code",
       "SPO",
       "Room quotation",
@@ -163,6 +164,7 @@
       .replace(/[★☆]/g, "*")
       .replace(/\b[1-7]\s*\*+\s*(?:deluxe)?\s*$/i, "")
       .replace(/\binter\s+continental\b/gi, "Intercontinental")
+      .replace(/^ozen\s+(?:by\s+atmosphere\s+at|life)\s+maadhoo(?:\s+maldives)?\s*$/i, "Ozen Life Maadhoo")
       .replace(/&/g, " and ")
       .replace(/\bmeeru\s+island(?:\s+resort)?(?:\s+and\s+spa)?(?=\s*$)/gi, "Meeru Maldives Resort Island")
       .replace(/\+/g, " ")
@@ -453,16 +455,19 @@
   }
 
   function splitMealSelection(value) {
-    const raw = String(value || "").trim().replace(/\s*\+\s*transfer\s*$/i, "").trim();
+    const input = String(value || "").trim().replace(/\s*\+\s*transfer\s*$/i, "").trim();
+    const marker = /(?:\s*\(\s*included(?:\s+in\s+(?:(?:the\s+)?room\s+)?rate)?\s*\)|\s*(?:[-\u2013\u2014:]\s*)?\bincluded\s+in\s+(?:(?:the\s+)?room\s+)?rate|\s+(?:[-\u2013\u2014:]\s*)?included)\s*$/i;
+    const included = marker.test(input) && !/\b(?:not|never)\s+included\b/i.test(input);
+    const raw = included ? input.replace(marker, "").trim() : input;
     const match = /\b(standard|premium)\s+beverage(?:\s+package)?\b/i.exec(raw);
-    if (!match) return { mealPlan: raw, beveragePackage: "" };
+    if (!match) return { mealPlan: raw, beveragePackage: "", included };
     const beveragePackage = `${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()} Beverage Package`;
     const mealPlan = raw
       .replace(match[0], "")
       .replace(/\s*[-+&,/]\s*$/g, "")
       .replace(/^\s*[-+&,/]\s*/g, "")
       .trim();
-    return { mealPlan, beveragePackage };
+    return { mealPlan, beveragePackage, included };
   }
 
   function parseStructuredRequest(text, options = {}) {
@@ -516,6 +521,7 @@
       childAges,
       rooms,
       mealPlan,
+      mealIncluded: mealSelection.included,
       beveragePackage,
       transfer,
       galaDinners,
@@ -523,6 +529,7 @@
       fuelSurcharge,
       spo,
       roomQuotation,
+      remarks: remarksParser.parseRemarks(text),
       warnings,
     };
   }
@@ -599,6 +606,7 @@
       `Handling fee: ${/green tax|грин такс/i.test(joined) ? "Maldives Green Tax" : ""}`,
     ].join("\n"), options);
     result.beveragePackage = splitMealSelection(joined).beveragePackage;
+    result.remarks = remarksParser.parseRemarks(text);
     const adultAge = adultAgeThreshold(options, result.mappedHotel || hotel);
     const promotedAges = ages.filter((age) => age >= adultAge);
     result.adults += promotedAges.length;
@@ -617,5 +625,6 @@
     parseSamoRequest,
     normalizeHotelName,
     ageOnDate,
+    guestAgeOnDate,
   };
 });

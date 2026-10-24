@@ -12,6 +12,9 @@ const filesToCheck = [
   "assets/googleDrive.js",
   "assets/initialLayout.js",
   "assets/samoParser.js",
+  "assets/requestRemarks.js",
+  "tests/calculatorFeatures.test.js",
+  "tests/calculatorFeatures.browser.test.js",
   "assets/app.js",
   "assets/updateManager.js",
   "assets/sharePresentation.js",
@@ -42,7 +45,8 @@ for (const file of filesToCheck) {
 
 const html = readFileSync(join(root, "index.html"), "utf8");
 const scriptTags = [...html.matchAll(/<script\b/g)].length;
-if (scriptTags !== 14) fail(`Expected exactly 14 script tags, found ${scriptTags}.`);
+if (scriptTags !== 15) fail(`Expected exactly 15 script tags, found ${scriptTags}.`);
+if (!(html.indexOf("assets/requestRemarks.js") < html.indexOf("assets/samoParser.js"))) fail("Shared remarks parsing must load before SAMO parser.");
 if (!html.includes("assets/sharePresentation.js")) fail("HTML must load sharePresentation.js.");
 if (!html.includes("assets/updateManager.js")) fail("HTML must load updateManager.js.");
 if (/onclick=|onchange=|oninput=/.test(html)) fail("Inline event handlers are not allowed.");

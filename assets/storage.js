@@ -85,6 +85,7 @@
   }
 
   const LEGACY_HOTEL_NAMES = new Map([
+    ["ozen by atmosphere at maadhoo", "Ozen Life Maadhoo"],
     ["anantara resort and spa maldives", "Anantara Dhigu Maldives"],
     ["angsana resort & spa maldives - velavaru", "Angsana Velavaru"],
     ["coco palm dhunikolhu", "Coco Palm Dhuni Kolhu"],
@@ -115,6 +116,7 @@
 
   function canonicalItemName(hotel, item) {
     const value = String(item || "").trim();
+    if (/^siyam world maldives$/i.test(String(hotel || "").trim()) && /^WOW! Premium AI - (Adult|Child)$/i.test(value)) return value.replace(/^WOW! Premium AI/i, "WOW! All Inclusive");
     if (/^fiha{1,2}lhohi maldives$/i.test(String(hotel || "").trim())
       && /^(?:Deluxe Beach|Deluxe Sky|Deluxe Superior|Premium Beach)$/i.test(value)) return `${value} Room`;
     if (/^lily beach resort(?: & spa)?$/i.test(String(hotel || "").trim())) {
@@ -143,7 +145,7 @@
   }
 
   function saveRateMemory(entry) {
-    if (!entry || !entry.hotel || !entry.type || !entry.item || !entry.rateFormula || Number(entry.rate || 0) <= 0) return null;
+    if (!entry || entry.included === true || !entry.hotel || !entry.type || !entry.item || !entry.rateFormula || Number(entry.rate || 0) <= 0) return null;
     const spo = String(entry.spo || "").trim();
     const nextEntry = {
       hotel: canonicalHotelName(entry.hotel, entry.item),

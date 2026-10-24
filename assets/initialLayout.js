@@ -17,7 +17,7 @@
       if (Array.isArray(row?.discounts) && row.discounts.length) return row.discounts.length;
       return [row?.d1, row?.d2, row?.d3, row?.d4].filter((value) => Number(value) > 0).length || 1;
     }));
-    const pricedRoomRows = rows.filter((row) => row?.type === "ROOM" && (row.rateFormula || Number(row.rate) > 0)).length;
+    const pricedRoomRows = rows.filter((row) => row?.type === "ROOM" && row.included !== true && (row.rateFormula || Number(row.rate) > 0)).length;
 
     root.style.setProperty("--discount-column-width", `${discountBaseWidth + (maxDiscounts - 1) * discountStepWidth}px`);
     root.style.setProperty("--table-wrap-min-height", `${tableHeaderHeight + rowCount * tableRowHeight + tableBottomSpace}px`);

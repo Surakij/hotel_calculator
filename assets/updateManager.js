@@ -4,6 +4,7 @@
   function create({ build, saveDraft }) {
     const VERSION_CHECK_INTERVAL = 5 * 60 * 1000;
     const REQUEST_TIMEOUT = 10000;
+    const ATTEMPTS_KEY = "hotelCalculator.updateAttempts";
     function compareVersions(left, right) {
       const leftParts = String(left || "").split(".").map((part) => Number(part) || 0);
       const rightParts = String(right || "").split(".").map((part) => Number(part) || 0);
@@ -16,9 +17,11 @@
     }
 
     let updateCheckRunning = false;
+    let navigationStarted = false;
+    let deferredCheck;
 
     async function checkForAppUpdate() {
-      if (!/^https?:$/.test(window.location.protocol) || updateCheckRunning) return false;
+      if (!/^https?:$/.test(window.location.protocol) || updateCheckRunning || navigationStarted) return false;
       updateCheckRunning = true;
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -30,24 +33,39 @@
         const publishedVersion = String((await response.json())?.version || "").trim();
         if (!/^\d+(?:\.\d+){2,3}$/.test(publishedVersion)) return false;
         if (compareVersions(publishedVersion, build) <= 0) {
-          try { sessionStorage.removeItem("hotelCalculator.pendingVersion"); } catch { /* Storage may be unavailable. */ }
+          try {
+            sessionStorage.removeItem("hotelCalculator.pendingVersion");
+            sessionStorage.removeItem(ATTEMPTS_KEY);
+          } catch { /* Storage may be unavailable. */ }
           return false;
         }
 
         let attemptedVersion = "";
-        try { attemptedVersion = sessionStorage.getItem("hotelCalculator.pendingVersion") || ""; } catch { /* Storage may be unavailable. */ }
-        if (attemptedVersion === publishedVersion) return false;
+        let attempts = 0;
+        try {
+          attemptedVersion = sessionStorage.getItem("hotelCalculator.pendingVersion") || "";
+          const saved = JSON.parse(sessionStorage.getItem(ATTEMPTS_KEY) || "null");
+          if (attemptedVersion === publishedVersion) attempts = saved?.version === publishedVersion ? Number(saved.count) || 0 : 1;
+        } catch { /* Storage may be unavailable. */ }
+        // One cache-busted retry after a failed reload, never an endless refresh loop.
+        if (attempts >= 2) return false;
 
         // Import text and partially edited fields are not represented by the draft.
         if (document.querySelector("dialog[open]") || document.activeElement?.matches("input, textarea, select, [contenteditable]")) return false;
 
         if (!saveDraft()) return false;
-        try { sessionStorage.setItem("hotelCalculator.pendingVersion", publishedVersion); } catch { return false; }
+        try {
+          sessionStorage.setItem("hotelCalculator.pendingVersion", publishedVersion);
+          sessionStorage.setItem(ATTEMPTS_KEY, JSON.stringify({ version: publishedVersion, count: attempts + 1 }));
+        } catch { return false; }
         const nextUrl = new URL(window.location.href);
         nextUrl.searchParams.set("v", publishedVersion);
+        if (attempts) nextUrl.searchParams.set("_update", Date.now());
+        navigationStarted = true;
         window.location.replace(nextUrl.href);
         return true;
       } catch {
+        navigationStarted = false;
         return false;
       } finally {
         window.clearTimeout(timeout);
@@ -63,6 +81,13 @@
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) checkForAppUpdate();
       });
+      function checkAfterEditing() {
+        window.clearTimeout(deferredCheck);
+        deferredCheck = window.setTimeout(checkForAppUpdate, 750);
+      }
+      document.addEventListener("focusout", checkAfterEditing);
+      document.addEventListener("close", checkAfterEditing, true);
+      window.addEventListener("online", checkForAppUpdate);
     }
 
     return { check: checkForAppUpdate, start };

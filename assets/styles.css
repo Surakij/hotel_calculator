@@ -457,19 +457,23 @@ input[type="number"]::-webkit-outer-spin-button {
   width: 100%;
 }
 
-.toolbar .actions { align-items: center; gap: 10px 16px; }
+.toolbar .actions { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .toolbar-group { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.toolbar .toolbar-group button { height: 38px; padding: 7px 10px; white-space: nowrap; flex: 0 0 auto; }
-.toolbar .toolbar-share-group { margin-left: auto; }
+.toolbar .toolbar-group button { height: 36px; padding: 6px 7px; gap: 6px; font-size: 12px; white-space: nowrap; flex: 0 0 auto; }
+.toolbar .toolbar-group .toolbar-icon { width: 36px; padding: 0; }
+.toolbar-icon .save-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.toolbar .toolbar-share-group { justify-self: end; }
 .toolbar .share { margin-left: 0; }
-.toolbar .rate-toggle { height: 38px; box-sizing: border-box; }
-@media (max-width: 1100px) {
-  .toolbar .toolbar-share-group { margin-left: 0; }
+.toolbar .rate-toggle { height: 36px; min-height: 36px; padding: 6px 8px; gap: 6px; font-size: 12px; box-sizing: border-box; }
+@media (max-width: 1350px) {
+  .toolbar .actions { grid-template-columns: minmax(0, 1fr) auto; }
+  .toolbar-group[aria-label="Requests"] { grid-column: 1 / -1; grid-row: 2; flex-wrap: wrap; }
 }
 @media (max-width: 600px) {
-  .toolbar .actions { flex-direction: column; align-items: stretch; }
+  .toolbar .actions { display: flex; flex-direction: column; align-items: stretch; }
   .toolbar-group { flex-wrap: wrap; }
-  .toolbar .toolbar-group button { flex: 1 1 auto; }
+  .toolbar .toolbar-group button:not(.toolbar-icon) { flex: 1 1 auto; }
+  .toolbar .toolbar-share-group { align-self: stretch; }
 }
 
 .rate-toggle {
@@ -726,18 +730,18 @@ table {
 
 .calc-table {
   margin-bottom: 18px;
-  min-width: calc(1280px + var(--discount-column-width, 152px));
+  min-width: calc(1060px + var(--discount-column-width, 152px));
 }
 
-.calc-table .col-type { width: 130px; }
-.calc-table .col-item { width: calc(100% - (860px + var(--discount-column-width, 152px))); }
-.calc-table .col-date { width: 120px; }
-.calc-table .col-nights { width: 100px; }
-.calc-table .col-qty { width: 100px; }
-.calc-table .col-rate { width: 134px; }
+.calc-table .col-type { width: 108px; }
+.calc-table .col-item { width: calc(100% - (804px + var(--discount-column-width, 152px))); }
+.calc-table .col-date { width: 108px; }
+.calc-table .col-nights { width: 112px; }
+.calc-table .col-qty { width: 112px; }
+.calc-table .col-rate { width: 110px; }
 .calc-table .col-discounts { width: var(--discount-column-width, 152px); }
-.calc-table .col-net { width: 104px; }
-.calc-table .col-delete { width: 52px; }
+.calc-table .col-net { width: 100px; }
+.calc-table .col-delete { width: 46px; }
 
 th {
   height: 40px;
@@ -811,9 +815,9 @@ td select {
 }
 
 .item-layout:has(.meal-beverage-addon:not([hidden])) > .item {
-  width: 205px;
-  min-width: 205px;
-  flex: 0 0 205px;
+  width: 140px;
+  min-width: 140px;
+  flex: 1 1 140px;
 }
 
 .row-allocation {
@@ -855,6 +859,7 @@ td select {
 .rate-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  align-items: center;
   gap: 6px;
 }
 
@@ -862,25 +867,25 @@ td select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-@media (max-width: 1450px) {
-  .calc-table { min-width: calc(1120px + var(--discount-column-width, 152px)); }
-  .calc-table .col-type { width: 116px; }
-  .calc-table .col-item { width: calc(100% - (790px + var(--discount-column-width, 152px))); }
-  .calc-table .col-date { width: 112px; }
-  .calc-table .col-nights,
-  .calc-table .col-qty { width: 92px; }
-  .calc-table .col-rate { width: 116px; }
-  .calc-table .col-net { width: 98px; }
-  .calc-table .col-delete { width: 52px; }
-  .item-layout:has(.meal-beverage-addon:not([hidden])) > .item {
-    width: 140px;
-    min-width: 140px;
-    flex-basis: 140px;
-  }
+.rate-layout.has-included {
+  grid-template-columns: 16px minmax(0, 1fr);
+}
+
+.rate-layout.has-included.has-beverage {
+  grid-template-columns: 16px repeat(2, minmax(0, 1fr));
 }
 
 .rate-layout input {
   min-width: 0;
+}
+
+.rate-layout .included {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--blue);
+  cursor: pointer;
 }
 
 .allocation-title {
@@ -1285,7 +1290,7 @@ td select.type-native {
 
 td .number-stepper {
   height: 36px;
-  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  grid-template-columns: 28px minmax(40px, 1fr) 28px;
 }
 
 td .number-stepper input {
@@ -1293,6 +1298,7 @@ td .number-stepper input {
   border: 0;
   border-radius: 0;
   padding: 0 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 td .number-stepper .step-button {
@@ -1402,8 +1408,8 @@ td.net {
 }
 
 .calc-table tbody td:last-child {
-  padding-right: 10px;
-  padding-left: 10px;
+  padding-right: 7px;
+  padding-left: 7px;
   text-align: center;
 }
 
